@@ -1,4 +1,6 @@
 import tkinter as tk
+import psycopg2
+from getpass import getpass
 
 class StartApp:
     def __init__(self):
@@ -56,7 +58,59 @@ class StartApp:
     def run(self):
         # Start the tkinter main loop
         self.window.mainloop()
+    
+    
 
 # Creating an instance of the StartApp class and starting the application
 app = StartApp()
 app.run()
+
+# Establish the connection
+conn = psycopg2.connect(
+    dbname="Registration System",
+    user="postgres",
+    password="12345",
+    host="localhost",
+    port="5432"
+)
+
+# Create a cursor
+cursor = conn.cursor()
+
+# Execute a query
+cursor.execute("SELECT * FROM admin")
+
+# Fetch and print the results
+rows = cursor.fetchall()
+for row in rows:
+    print(row)
+
+# Commit and close
+conn.commit()
+cursor.close()
+conn.close()
+
+def check_credentials(username, password):
+    try:
+        conn = psycopg2.connect(**conn)
+        cursor = conn.cursor()
+
+        # Query the database to check the credentials
+        cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
+        result = cursor.fetchone()
+
+        if result:
+            print("Login successful!")
+        else:
+            print("Invalid username or password.")
+
+        conn.close()
+    except psycopg2.Error as e:
+        print("Error connecting to the database:", e)
+
+if __name__ == "__main__":
+    print("Enter your login credentials:")
+    username = input("Username: ")
+    password = getpass("Password: ")
+
+    check_credentials(username, password)
