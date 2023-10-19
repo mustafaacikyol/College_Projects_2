@@ -2,6 +2,21 @@ import tkinter as tk
 import psycopg2
 #from getpass import getpass
 from tkinter import ttk
+import random
+
+class DatabaseConnection:
+    def __init__(self):
+        # Establish the connection
+        self.conn = psycopg2.connect(
+            dbname="RegistrationSystem",
+            user="postgres",
+            password="12345",
+            host="localhost",
+            port="5432"
+        )
+
+        # Create a cursor
+        self.cursor = self.conn.cursor()
 
 class StartApp:
     def __init__(self):
@@ -54,7 +69,7 @@ class StartApp:
         # Start the tkinter main loop
         self.window.mainloop()
     
-class Admin():
+class Admin:
     def __init__(self):
         self.login_window = tk.Tk()
 
@@ -117,9 +132,9 @@ class Admin():
 
     def close_login(self):
         self.login_window.destroy()
-        Admin.dashboard()
+        self.dashboard()
 
-    def dashboard():
+    def dashboard(self):
         window = tk.Toplevel()
         window.title("Admin Dashboard")
         window.state("zoomed")
@@ -137,7 +152,7 @@ class Admin():
         # Create a File menu
         file_menu = tk.Menu(menu)
         menu.add_cascade(label="Instructor", menu=file_menu)
-        file_menu.add_command(label="New")
+        file_menu.add_command(label="Generate", command=self.define_generate_instructor)
         file_menu.add_command(label="Open")
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=window.quit)
@@ -180,7 +195,59 @@ class Admin():
         # Start the tkinter main loop
         window.mainloop()
 
-class Instructor():
+    def define_generate_instructor(self):
+        window = tk.Toplevel()
+        window.title("Generate Instructor")
+        window.geometry("300x200+500+250")
+
+        instructor_number_label = tk.Label(window, text="Instructor Number to Generate : ", font=("Helvetica", 10, "bold"), fg="brown")
+        instructor_number_label.place(relx=0.05, rely=0.3)
+
+        self.instructor_number_field = tk.Entry(window, width=3, font=('Arial 12'))
+        self.instructor_number_field.place(relx=0.75, rely=0.3)
+        
+        instructor_generate_button = tk.Button(window, text="Generate", bg="#99FFFF", fg="#994C00", padx=5, pady=2, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=self.generate_instructor)
+        instructor_generate_button.place(relx=0.35, rely=0.6)
+
+    def generate_instructor(self):
+        titles = ["Dr.", "Associate Professor", "Professor"]
+        names = ["Ahmet", "Mehmet", "Serap", "Buse", "Hasan", "Kemal"]
+        surnames = ["Yılmaz", "Kaya", "Doğan"]
+        quotas = [10, 20, 30, 40, 50]
+        self.instructor_number = self.instructor_number_field.get()
+        number = int(self.instructor_number)
+        for i in range(0, number):
+            random_number = random.randint(0, 2)
+            title = titles[random_number]
+            random_number = random.randint(0, 5)
+            name = names[random_number]
+            random_number = random.randint(0, 2)
+            surname = surnames[random_number]
+            random_number = random.randint(0, 4)
+            quota = quotas[random_number]
+            random_number = random.randint(1, 10)
+            opened_lesson_id = random_number
+
+            conn = psycopg2.connect(
+            dbname="Registration System",
+            user="postgres",
+            password="12345",
+            host="localhost",
+            port="5432"
+            )
+
+            # Create a cursor
+            cursor = conn.cursor()
+
+            insert_query = "INSERT INTO instructor (title, name, surname, quota, username, password) VALUES (%s, %s, %s, %s, %s, %s)"
+            data_to_insert = (title, name, surname, quota, name, surname)
+
+            cursor.execute(insert_query, data_to_insert)
+            conn.commit()
+
+
+
+class Instructor:
     def __init__(self):
         self.login_window = tk.Tk()
 
@@ -250,7 +317,7 @@ class Instructor():
         window.title("Instructor Dashboard")
         window.state("zoomed")
 
-class Student():
+class Student:
     def __init__(self):
         self.login_window = tk.Tk()
 
