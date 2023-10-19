@@ -3,20 +3,43 @@ import psycopg2
 #from getpass import getpass
 from tkinter import ttk
 import random
+import time
 
 class DatabaseConnection:
     def __init__(self):
-        # Establish the connection
-        self.conn = psycopg2.connect(
-            dbname="RegistrationSystem",
-            user="postgres",
-            password="12345",
-            host="localhost",
-            port="5432"
-        )
+        try:
+            # Establish the database connection
+            self.conn = psycopg2.connect(
+                dbname="Registration System",
+                user="postgres",
+                password="12345",
+                host="localhost",
+                port="5432"
+            )
+            self.cursor = self.conn.cursor()
+        except psycopg2.OperationalError as e:
+            print(f"Error connecting to the database: {e}")
 
-        # Create a cursor
-        self.cursor = self.conn.cursor()
+    def execute_query(self, query, data=None):
+        try:
+            if data:
+                self.cursor.execute(query, data)
+            else:
+                self.cursor.execute(query)
+        except psycopg2.Error as e:
+            self.conn.rollback()
+            print(f"Error executing query: {e}")
+            return None
+
+    def fetch_data(self):
+        return self.cursor.fetchall()
+
+    def commit(self):
+        self.conn.commit()
+
+    def close(self):
+        self.cursor.close()
+        self.conn.close()
 
 class StartApp:
     def __init__(self):
@@ -99,36 +122,20 @@ class Admin:
     def check_credentials(self):
         username = self.username_field.get()
         password = self.password_field.get()
-        try:
-            # Establish the connection
-            conn = psycopg2.connect(
-            dbname="Registration System",
-            user="postgres",
-            password="12345",
-            host="localhost",
-            port="5432"
-            )
-
-            # Create a cursor
-            cursor = conn.cursor()
-            # Query the database to check the credentials
-            cursor.execute("SELECT username,password FROM admin WHERE username = %s AND password = %s", (username, password))
-            result = cursor.fetchone()
-
-            if result:
-                Admin.close_login(self)
-            else:
-                error_label = tk.Label(self.login_window, text="Invalid username or password!", font=("Helvetica", 15, "bold"), fg="red")
-                error_label.place(relx=0.37, rely=0.3)
-
-            conn.close()
-        except psycopg2.Error as e:
-            print("Error connecting to the database:", e)
         
-        # Commit and close
-        #conn.commit()
-        #cursor.close()
-        #conn.close()
+        db = DatabaseConnection()
+        # Query the database to check the credentials
+        select_query = "SELECT username,password FROM admin WHERE username = %s AND password = %s"
+        data = (username, password)
+
+        db.execute_query(select_query, data)
+        result = db.fetch_data()
+
+        if result:
+            Admin.close_login(self)
+        else:
+            error_label = tk.Label(self.login_window, text="Invalid username or password!", font=("Helvetica", 15, "bold"), fg="red")
+            error_label.place(relx=0.37, rely=0.3)
 
     def close_login(self):
         self.login_window.destroy()
@@ -196,17 +203,17 @@ class Admin:
         window.mainloop()
 
     def define_generate_instructor(self):
-        window = tk.Toplevel()
-        window.title("Generate Instructor")
-        window.geometry("300x200+500+250")
+        self.define_generate_window = tk.Toplevel()
+        self.define_generate_window.title("Generate Instructor")
+        self.define_generate_window.geometry("300x200+500+250")
 
-        instructor_number_label = tk.Label(window, text="Instructor Number to Generate : ", font=("Helvetica", 10, "bold"), fg="brown")
+        instructor_number_label = tk.Label(self.define_generate_window, text="Instructor Number to Generate : ", font=("Helvetica", 10, "bold"), fg="brown")
         instructor_number_label.place(relx=0.05, rely=0.3)
 
-        self.instructor_number_field = tk.Entry(window, width=3, font=('Arial 12'))
+        self.instructor_number_field = tk.Entry(self.define_generate_window, width=3, font=('Arial 12'))
         self.instructor_number_field.place(relx=0.75, rely=0.3)
         
-        instructor_generate_button = tk.Button(window, text="Generate", bg="#99FFFF", fg="#994C00", padx=5, pady=2, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=self.generate_instructor)
+        instructor_generate_button = tk.Button(self.define_generate_window, text="Generate", bg="#99FFFF", fg="#994C00", padx=5, pady=2, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=self.generate_instructor)
         instructor_generate_button.place(relx=0.35, rely=0.6)
 
     def generate_instructor(self):
@@ -216,6 +223,7 @@ class Admin:
         quotas = [10, 20, 30, 40, 50]
         self.instructor_number = self.instructor_number_field.get()
         number = int(self.instructor_number)
+        db = DatabaseConnection()
         for i in range(0, number):
             random_number = random.randint(0, 2)
             title = titles[random_number]
@@ -227,25 +235,17 @@ class Admin:
             quota = quotas[random_number]
             random_number = random.randint(1, 10)
             opened_lesson_id = random_number
-
-            conn = psycopg2.connect(
-            dbname="Registration System",
-            user="postgres",
-            password="12345",
-            host="localhost",
-            port="5432"
-            )
-
-            # Create a cursor
-            cursor = conn.cursor()
-
+            
             insert_query = "INSERT INTO instructor (title, name, surname, quota, username, password) VALUES (%s, %s, %s, %s, %s, %s)"
             data_to_insert = (title, name, surname, quota, name, surname)
 
-            cursor.execute(insert_query, data_to_insert)
-            conn.commit()
+            db.execute_query(insert_query, data_to_insert)
+            db.commit()
+        
+        success_label = tk.Label(self.define_generate_window, text="SUCCESSFUL", font=("Helvetica", 12, "bold"), fg="green")
+        success_label.place(relx=0.3, rely=0.1)
 
-
+        self.define_generate_window.after(1000, self.define_generate_window.destroy)
 
 class Instructor:
     def __init__(self):
@@ -277,36 +277,20 @@ class Instructor:
     def check_credentials(self):
         username = self.username_field.get()
         password = self.password_field.get()
-        try:
-            # Establish the connection
-            conn = psycopg2.connect(
-            dbname="Registration System",
-            user="postgres",
-            password="12345",
-            host="localhost",
-            port="5432"
-            )
-
-            # Create a cursor
-            cursor = conn.cursor()
-            # Query the database to check the credentials
-            cursor.execute("SELECT username,password FROM instructor WHERE username = %s AND password = %s", (username, password))
-            result = cursor.fetchone()
-
-            if result:
-                Instructor.close_login(self)
-            else:
-                error_label = tk.Label(self.login_window, text="Invalid username or password!", font=("Helvetica", 15, "bold"), fg="red")
-                error_label.place(relx=0.37, rely=0.3)
-
-            conn.close()
-        except psycopg2.Error as e:
-            print("Error connecting to the database:", e)
         
-        # Commit and close
-        #conn.commit()
-        #cursor.close()
-        #conn.close()
+        db = DatabaseConnection()
+        # Query the database to check the credentials
+        select_query = "SELECT username,password FROM instructor WHERE username = %s AND password = %s"
+        data = (username, password)
+
+        db.execute_query(select_query, data)
+        result = db.fetch_data()
+
+        if result:
+            Instructor.close_login(self)
+        else:
+            error_label = tk.Label(self.login_window, text="Invalid username or password!", font=("Helvetica", 15, "bold"), fg="red")
+            error_label.place(relx=0.37, rely=0.3)
 
     def close_login(self):
         self.login_window.destroy()
@@ -347,36 +331,20 @@ class Student:
     def check_credentials(self):
         username = self.username_field.get()
         password = self.password_field.get()
-        try:
-            # Establish the connection
-            conn = psycopg2.connect(
-            dbname="Registration System",
-            user="postgres",
-            password="12345",
-            host="localhost",
-            port="5432"
-            )
+       
+        db = DatabaseConnection()
+        # Query the database to check the credentials
+        select_query = "SELECT username,password FROM student WHERE username = %s AND password = %s"
+        data = (username, password)
 
-            # Create a cursor
-            cursor = conn.cursor()
-            # Query the database to check the credentials
-            cursor.execute("SELECT username,password FROM student WHERE username = %s AND password = %s", (username, password))
-            result = cursor.fetchone()
+        db.execute_query(select_query, data)
+        result = db.fetch_data()
 
-            if result:
-                Student.close_login(self)
-            else:
-                error_label = tk.Label(self.login_window, text="Invalid username or password!", font=("Helvetica", 15, "bold"), fg="red")
-                error_label.place(relx=0.37, rely=0.3)
-
-            conn.close()
-        except psycopg2.Error as e:
-            print("Error connecting to the database:", e)
-        
-        # Commit and close
-        #conn.commit()
-        #cursor.close()
-        #conn.close()
+        if result:
+            Student.close_login(self)
+        else:
+            error_label = tk.Label(self.login_window, text="Invalid username or password!", font=("Helvetica", 15, "bold"), fg="red")
+            error_label.place(relx=0.37, rely=0.3)
 
     def close_login(self):
         self.login_window.destroy()
@@ -391,11 +359,3 @@ class Student:
 app = StartApp()
 app.run()
 
-"""
-if __name__ == "__main__":
-    print("Enter your login credentials:")
-    username = input("Username: ")
-    password = getpass("Password: ")
-
-    check_credentials(username, password)
-"""
