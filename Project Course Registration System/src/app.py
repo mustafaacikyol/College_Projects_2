@@ -3,7 +3,11 @@ import psycopg2
 #from getpass import getpass
 from tkinter import ttk
 import random
-import time
+#import time
+#import tksheet
+#from tksheet import Sheet
+from PIL import Image, ImageTk
+from tkinter import *
 
 class DatabaseConnection:
     def __init__(self):
@@ -145,6 +149,7 @@ class Admin:
         window = tk.Toplevel()
         window.title("Admin Dashboard")
         window.state("zoomed")
+        db = DatabaseConnection()
 
         """
         def open_tab(tab_name):
@@ -179,13 +184,24 @@ class Admin:
         general_label.pack()
 
         # Tab 2
-        instructor_tab = ttk.Frame(tab_control)
-        tab_control.add(instructor_tab, text="Instructor")
-        instructor_label = tk.Label(instructor_tab, text="Instructor Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        self.instructor_tab = ttk.Frame(tab_control)
+        tab_control.add(self.instructor_tab, text="Instructor")
+        instructor_label = tk.Label(self.instructor_tab, text="Instructor Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
         instructor_label.pack()
         #button1 = tk.Button(tab1, text="Open Tab 2", command=lambda: open_tab(tab2))
         #button1.pack()
 
+        # Create a Treeview widget (the table)
+        self.tree = ttk.Treeview(self.instructor_tab, columns=("Title", "Name", "Surname", "Quota", "Lesson", "Field"), show="headings")
+        self.tree.heading("#1", text="Title")
+        self.tree.heading("#2", text="Name")
+        self.tree.heading("#3", text="Surname")
+        self.tree.heading("#4", text="Quota")
+        self.tree.heading("#5", text="Lesson")
+        self.tree.heading("#6", text="Field")
+        self.tree.pack()
+        self.get_instructor_data()
+        
         # Tab 3
         student_tab = ttk.Frame(tab_control)
         tab_control.add(student_tab, text="Student")
@@ -201,6 +217,26 @@ class Admin:
 
         # Start the tkinter main loop
         window.mainloop()
+
+    def get_instructor_data(self):
+        db = DatabaseConnection()
+        select_data_query = "SELECT i.title, i.name, i.surname, i.quota, ol.name, inte.field FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson as ol on iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id"
+        db.execute_query(select_data_query)
+        results = db.fetch_data()
+        self.m = Menu(self.tree, tearoff = 0) 
+        self.m.add_command(label ="Update") 
+        self.m.add_command(label ="Delete") 
+        self.m.add_separator() 
+        # Insert data into the table
+        for item in results:
+            self.tree.insert("", "end", values=item)
+            self.tree.bind("<Button-3>", self.do_popup) 
+
+    def do_popup(self,event): 
+        try: 
+            self.m.tk_popup(event.x_root, event.y_root) 
+        finally: 
+            self.m.grab_release()
 
     def define_generate_instructor(self):
         self.define_generate_window = tk.Toplevel()
@@ -233,15 +269,35 @@ class Admin:
             surname = surnames[random_number]
             random_number = random.randint(0, 4)
             quota = quotas[random_number]
-            random_number = random.randint(1, 10)
-            opened_lesson_id = random_number
             
             insert_query = "INSERT INTO instructor (title, name, surname, quota, username, password) VALUES (%s, %s, %s, %s, %s, %s)"
             data_to_insert = (title, name, surname, quota, name, surname)
 
             db.execute_query(insert_query, data_to_insert)
             db.commit()
-        
+
+        select_data_query = "SELECT registry_no FROM instructor"
+        db.execute_query(select_data_query)
+        results = db.fetch_data()
+
+        for result in results:
+            random_number = random.randint(1, 10)
+            opened_lesson_id = random_number
+            insert_query_2 = "INSERT INTO instructor_opened_lesson (registry_no, opened_lesson_id) VALUES (%s, %s)"
+            data_to_insert_2 = (result, opened_lesson_id)        
+            db.execute_query(insert_query_2, data_to_insert_2)
+            db.commit()    
+
+            select_data_query = "SELECT interest_id FROM opened_lesson_interest WHERE opened_lesson_id = %s"
+            data = (opened_lesson_id,)
+            db.execute_query(select_data_query, data)
+            interest_id = db.fetch_data()
+            insert_query_3 = "INSERT INTO instructor_interest (registry_no, interest_id) VALUES (%s, %s)"
+            data_to_insert_3 = (result, interest_id[0])  
+            db.execute_query(insert_query_3, data_to_insert_3)
+            db.commit()  
+
+        self.get_instructor_data()
         success_label = tk.Label(self.define_generate_window, text="SUCCESSFUL", font=("Helvetica", 12, "bold"), fg="green")
         success_label.place(relx=0.3, rely=0.1)
 
@@ -358,4 +414,9 @@ class Student:
 # Creating an instance of the StartApp class and starting the application
 app = StartApp()
 app.run()
+
+
+
+
+
 
