@@ -99,6 +99,7 @@ class StartApp:
 class Admin:
     def __init__(self):
         self.login_window = tk.Tk()
+        self.db = DatabaseConnection()
 
     def login(self):
         
@@ -127,13 +128,13 @@ class Admin:
         username = self.username_field.get()
         password = self.password_field.get()
         
-        db = DatabaseConnection()
+        self.db = DatabaseConnection()
         # Query the database to check the credentials
         select_query = "SELECT username,password FROM admin WHERE username = %s AND password = %s"
         data = (username, password)
 
-        db.execute_query(select_query, data)
-        result = db.fetch_data()
+        self.db.execute_query(select_query, data)
+        result = self.db.fetch_data()
 
         if result:
             Admin.close_login(self)
@@ -149,7 +150,6 @@ class Admin:
         window = tk.Toplevel()
         window.title("Admin Dashboard")
         window.state("zoomed")
-        db = DatabaseConnection()
 
         """
         def open_tab(tab_name):
@@ -192,15 +192,22 @@ class Admin:
         #button1.pack()
 
         # Create a Treeview widget (the table)
-        self.tree = ttk.Treeview(self.instructor_tab, columns=("Title", "Name", "Surname", "Quota", "Lesson", "Field"), show="headings")
-        self.tree.heading("#1", text="Title")
-        self.tree.heading("#2", text="Name")
-        self.tree.heading("#3", text="Surname")
-        self.tree.heading("#4", text="Quota")
-        self.tree.heading("#5", text="Lesson")
-        self.tree.heading("#6", text="Field")
+        self.tree = ttk.Treeview(self.instructor_tab, columns=("Registry No", "Title", "Name", "Surname", "Quota", "Lesson", "Field"), show="headings")
+        self.tree.heading("#1", text="Registry No")
+        self.tree.heading("#2", text="Title")
+        self.tree.heading("#3", text="Name")
+        self.tree.heading("#4", text="Surname")
+        self.tree.heading("#5", text="Quota")
+        self.tree.heading("#6", text="Lesson")
+        self.tree.heading("#7", text="Field")
         self.tree.pack()
         self.get_instructor_data()
+        
+        # Create the context menu
+        self.m = tk.Menu(self.tree, tearoff=0)
+        self.m.add_command(label="Update", command=self.update_instructor)
+        self.m.add_command(label="Delete", command=self.delete_instructor)
+        self.m.add_separator()
         
         # Tab 3
         student_tab = ttk.Frame(tab_control)
@@ -219,24 +226,106 @@ class Admin:
         window.mainloop()
 
     def get_instructor_data(self):
-        db = DatabaseConnection()
-        select_data_query = "SELECT i.title, i.name, i.surname, i.quota, ol.name, inte.field FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson as ol on iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id"
-        db.execute_query(select_data_query)
-        results = db.fetch_data()
-        self.m = Menu(self.tree, tearoff = 0) 
-        self.m.add_command(label ="Update") 
-        self.m.add_command(label ="Delete") 
-        self.m.add_separator() 
+        select_data_query = "SELECT i.registry_no, i.title, i.name, i.surname, i.quota, ol.name, inte.field FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson as ol on iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id"
+        self.db.execute_query(select_data_query)
+        results = self.db.fetch_data()
+
         # Insert data into the table
         for item in results:
             self.tree.insert("", "end", values=item)
-            self.tree.bind("<Button-3>", self.do_popup) 
 
-    def do_popup(self,event): 
-        try: 
-            self.m.tk_popup(event.x_root, event.y_root) 
-        finally: 
-            self.m.grab_release()
+        # Bind the right-click context menu to the Treeview
+        self.tree.bind("<Button-3>", self.do_popup)
+
+    def do_popup(self, event):
+        item = self.tree.item(self.tree.selection())  # Get the selected item
+        if item:
+            self.selected_registry_no = item['values'][0]  # Extract the 'registry_no' value
+            self.m.tk_popup(event.x_root, event.y_root)
+
+    def delete_instructor(self):
+        if hasattr(self, 'selected_registry_no'):
+            delete_query_1 = "DELETE FROM instructor_opened_lesson WHERE registry_no = %s"
+            data = (self.selected_registry_no,)
+            self.db.execute_query(delete_query_1, data)
+            self.db.commit()
+
+            delete_query_2 = "DELETE FROM instructor_interest WHERE registry_no = %s"
+            data = (self.selected_registry_no,)
+            self.db.execute_query(delete_query_2, data)
+            self.db.commit()
+
+            delete_query_3 = "DELETE FROM instructor WHERE registry_no = %s"
+            data = (self.selected_registry_no,)
+            self.db.execute_query(delete_query_3, data)
+            self.db.commit()
+
+            # Remove the deleted item from the Treeview
+            selected_item = self.tree.selection()
+            if selected_item:
+                self.tree.delete(selected_item)
+
+            # Optionally clear the selected_registry_no attribute
+            del self.selected_registry_no
+
+    def update_instructor(self):
+        selected_item = self.tree.selection()
+        if selected_item:
+            selected_values = self.tree.item(selected_item, "values")
+            if selected_values:
+                # Open the update window with the instructor's data for editing
+                self.open_update_window(selected_values)
+
+    def open_update_window(self, selected_values):
+        update_window = tk.Toplevel()
+        update_window.title("Update Instructor")
+        update_window.state("zoomed")
+        # Create input fields and labels for updating instructor data
+        # You can design and populate this window as needed
+
+        # Example: Create an entry field for updating the instructor's name
+        name_label = tk.Label(update_window, text="Title")
+        name_label.pack()
+        name_entry = tk.Entry(update_window, width=30)
+        name_entry.insert(0, selected_values[1])  # Pre-fill with the instructor's current name
+        name_entry.pack()
+
+        name_label = tk.Label(update_window, text="Name")
+        name_label.pack()
+        name_entry = tk.Entry(update_window, width=30)
+        name_entry.insert(0, selected_values[2])  # Pre-fill with the instructor's current name
+        name_entry.pack()
+
+        name_label = tk.Label(update_window, text="Surname")
+        name_label.pack()
+        name_entry = tk.Entry(update_window, width=30)
+        name_entry.insert(0, selected_values[3])  # Pre-fill with the instructor's current name
+        name_entry.pack()
+
+        name_label = tk.Label(update_window, text="Quota")
+        name_label.pack()
+        name_entry = tk.Entry(update_window, width=30)
+        name_entry.insert(0, selected_values[4])  # Pre-fill with the instructor's current name
+        name_entry.pack()
+
+        name_label = tk.Label(update_window, text="Lesson")
+        name_label.pack()
+        name_entry = tk.Entry(update_window, width=30)
+        name_entry.insert(0, selected_values[5])  # Pre-fill with the instructor's current name
+        name_entry.pack()
+
+        name_label = tk.Label(update_window, text="Field")
+        name_label.pack()
+        name_entry = tk.Entry(update_window, width=30)
+        name_entry.insert(0, selected_values[6])  # Pre-fill with the instructor's current name
+        name_entry.pack()
+
+        # Create a button to save the updates
+        save_button = tk.Button(update_window, text="Save", command=self.save_instructor_updates, bg="#99FFFF", fg="#994C00", padx=10, pady=3, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge")
+        save_button.place(relx=0.48, rely=0.38)
+
+    def save_instructor_updates(self):
+        print(1)
 
     def define_generate_instructor(self):
         self.define_generate_window = tk.Toplevel()
@@ -259,7 +348,6 @@ class Admin:
         quotas = [10, 20, 30, 40, 50]
         self.instructor_number = self.instructor_number_field.get()
         number = int(self.instructor_number)
-        db = DatabaseConnection()
         for i in range(0, number):
             random_number = random.randint(0, 2)
             title = titles[random_number]
@@ -273,29 +361,29 @@ class Admin:
             insert_query = "INSERT INTO instructor (title, name, surname, quota, username, password) VALUES (%s, %s, %s, %s, %s, %s)"
             data_to_insert = (title, name, surname, quota, name, surname)
 
-            db.execute_query(insert_query, data_to_insert)
-            db.commit()
+            self.db.execute_query(insert_query, data_to_insert)
+            self.db.commit()
 
         select_data_query = "SELECT registry_no FROM instructor"
-        db.execute_query(select_data_query)
-        results = db.fetch_data()
+        self.db.execute_query(select_data_query)
+        results = self.db.fetch_data()
 
         for result in results:
             random_number = random.randint(1, 10)
             opened_lesson_id = random_number
             insert_query_2 = "INSERT INTO instructor_opened_lesson (registry_no, opened_lesson_id) VALUES (%s, %s)"
             data_to_insert_2 = (result, opened_lesson_id)        
-            db.execute_query(insert_query_2, data_to_insert_2)
-            db.commit()    
+            self.db.execute_query(insert_query_2, data_to_insert_2)
+            self.db.commit()    
 
             select_data_query = "SELECT interest_id FROM opened_lesson_interest WHERE opened_lesson_id = %s"
             data = (opened_lesson_id,)
-            db.execute_query(select_data_query, data)
-            interest_id = db.fetch_data()
+            self.db.execute_query(select_data_query, data)
+            interest_id = self.db.fetch_data()
             insert_query_3 = "INSERT INTO instructor_interest (registry_no, interest_id) VALUES (%s, %s)"
             data_to_insert_3 = (result, interest_id[0])  
-            db.execute_query(insert_query_3, data_to_insert_3)
-            db.commit()  
+            self.db.execute_query(insert_query_3, data_to_insert_3)
+            self.db.commit()  
 
         self.get_instructor_data()
         success_label = tk.Label(self.define_generate_window, text="SUCCESSFUL", font=("Helvetica", 12, "bold"), fg="green")
@@ -334,13 +422,12 @@ class Instructor:
         username = self.username_field.get()
         password = self.password_field.get()
         
-        db = DatabaseConnection()
         # Query the database to check the credentials
         select_query = "SELECT username,password FROM instructor WHERE username = %s AND password = %s"
         data = (username, password)
 
-        db.execute_query(select_query, data)
-        result = db.fetch_data()
+        self.db.execute_query(select_query, data)
+        result = self.db.fetch_data()
 
         if result:
             Instructor.close_login(self)
