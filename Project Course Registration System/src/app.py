@@ -7,7 +7,8 @@ import random
 #import tksheet
 #from tksheet import Sheet
 from PIL import Image, ImageTk
-from tkinter import *
+#from tkinter import *
+from tkinter import messagebox
 
 class DatabaseConnection:
     def __init__(self):
@@ -165,14 +166,14 @@ class Admin:
         file_menu = tk.Menu(menu)
         menu.add_cascade(label="Instructor", menu=file_menu)
         file_menu.add_command(label="Generate", command=self.define_generate_instructor)
-        file_menu.add_command(label="Open")
+        #file_menu.add_command(label="Open")
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=window.quit)
 
         # Create a Help menu
         help_menu = tk.Menu(menu)
         menu.add_cascade(label="Student", menu=help_menu)
-        help_menu.add_command(label="About")
+        help_menu.add_command(label="Generate", command=self.define_generate_student)
 
         # Create tabs
         tab_control = ttk.Notebook(window)
@@ -210,12 +211,28 @@ class Admin:
         self.m.add_separator()
         
         # Tab 3
-        student_tab = ttk.Frame(tab_control)
-        tab_control.add(student_tab, text="Student")
-        student_label = tk.Label(student_tab, text="Student Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        self.student_tab = ttk.Frame(tab_control)
+        tab_control.add(self.student_tab, text="Student")
+        student_label = tk.Label(self.student_tab, text="Student Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
         student_label.pack()
         #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
         #button2.pack()
+
+        # Create a Treeview widget (the table)
+        self.tree = ttk.Treeview(self.student_tab, columns=("Student No", "Name", "Surname", "Status", "Field"), show="headings")
+        self.tree.heading("#1", text="Student No")
+        self.tree.heading("#2", text="Name")
+        self.tree.heading("#3", text="Surname")
+        self.tree.heading("#4", text="Status")
+        self.tree.heading("#5", text="Field")
+        self.tree.pack()
+        self.get_student_data() 
+        
+        # Create the context menu
+        self.m = tk.Menu(self.tree, tearoff=0)
+        self.m.add_command(label="Update", command=self.update_instructor)
+        self.m.add_command(label="Delete", command=self.delete_student)
+        self.m.add_separator()
 
         # Set the default tab to open
         tab_control.select(general_tab)
@@ -235,9 +252,17 @@ class Admin:
             self.tree.insert("", "end", values=item)
 
         # Bind the right-click context menu to the Treeview
-        self.tree.bind("<Button-3>", self.do_popup)
+        self.tree.bind("<Button-3>", self.do_popup_instructor)
 
-    def do_popup(self, event):
+    def refresh_instructor_data(self):
+        # Clear existing data in the Treeview
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
+        # Fetch and insert the updated data
+        self.get_instructor_data()
+
+    def do_popup_instructor(self, event):
         item = self.tree.item(self.tree.selection())  # Get the selected item
         if item:
             self.selected_registry_no = item['values'][0]  # Extract the 'registry_no' value
@@ -274,86 +299,112 @@ class Admin:
             selected_values = self.tree.item(selected_item, "values")
             if selected_values:
                 # Open the update window with the instructor's data for editing
-                self.open_update_window(selected_values)
+                self.open_instructor_update_window(selected_values)
 
-    def open_update_window(self, selected_values):
-        update_window = tk.Toplevel()
-        update_window.title("Update Instructor")
-        update_window.state("zoomed")
+    def open_instructor_update_window(self, selected_values):
+        self.update_window = tk.Toplevel()
+        self.update_window.title("Update Instructor")
+        self.update_window.state("zoomed")
         # Create input fields and labels for updating instructor data
         # You can design and populate this window as needed
 
         # Example: Create an entry field for updating the instructor's name
-        name_label = tk.Label(update_window, text="Title")
-        name_label.pack()
-        name_entry = tk.Entry(update_window, width=30)
-        name_entry.insert(0, selected_values[1])  # Pre-fill with the instructor's current name
-        name_entry.pack()
+        self.title_label = tk.Label(self.update_window, text="Title")
+        self.title_label.pack()
+        self.title_entry = tk.Entry(self.update_window, width=30)
+        self.title_entry.insert(0, selected_values[1])  # Pre-fill with the instructor's current name
+        self.title_entry.pack()
 
-        name_label = tk.Label(update_window, text="Name")
-        name_label.pack()
-        name_entry = tk.Entry(update_window, width=30)
-        name_entry.insert(0, selected_values[2])  # Pre-fill with the instructor's current name
-        name_entry.pack()
+        self.name_label = tk.Label(self.update_window, text="Name")
+        self.name_label.pack()
+        self.name_entry = tk.Entry(self.update_window, width=30)
+        self.name_entry.insert(0, selected_values[2])  # Pre-fill with the instructor's current name
+        self.name_entry.pack()
 
-        name_label = tk.Label(update_window, text="Surname")
-        name_label.pack()
-        name_entry = tk.Entry(update_window, width=30)
-        name_entry.insert(0, selected_values[3])  # Pre-fill with the instructor's current name
-        name_entry.pack()
+        self.surname_label = tk.Label(self.update_window, text="Surname")
+        self.surname_label.pack()
+        self.surname_entry = tk.Entry(self.update_window, width=30)
+        self.surname_entry.insert(0, selected_values[3])  # Pre-fill with the instructor's current name
+        self.surname_entry.pack()
 
-        name_label = tk.Label(update_window, text="Quota")
-        name_label.pack()
-        name_entry = tk.Entry(update_window, width=30)
-        name_entry.insert(0, selected_values[4])  # Pre-fill with the instructor's current name
-        name_entry.pack()
+        self.quota_label = tk.Label(self.update_window, text="Quota")
+        self.quota_label.pack()
+        self.quota_entry = tk.Entry(self.update_window, width=30)
+        self.quota_entry.insert(0, selected_values[4])  # Pre-fill with the instructor's current name
+        self.quota_entry.pack()
 
-        name_label = tk.Label(update_window, text="Lesson")
-        name_label.pack()
-        name_entry = tk.Entry(update_window, width=30)
-        name_entry.insert(0, selected_values[5])  # Pre-fill with the instructor's current name
-        name_entry.pack()
-
-        name_label = tk.Label(update_window, text="Field")
-        name_label.pack()
-        name_entry = tk.Entry(update_window, width=30)
-        name_entry.insert(0, selected_values[6])  # Pre-fill with the instructor's current name
-        name_entry.pack()
+        self.lesson_label = tk.Label(self.update_window, text="Lesson")
+        self.lesson_label.pack()
+        self.lesson_entry = tk.Entry(self.update_window, width=30)
+        self.lesson_entry.insert(0, selected_values[5])  # Pre-fill with the instructor's current name
+        self.lesson_entry.pack()
 
         # Create a button to save the updates
-        save_button = tk.Button(update_window, text="Save", command=self.save_instructor_updates, bg="#99FFFF", fg="#994C00", padx=10, pady=3, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge")
+        save_button = tk.Button(self.update_window, text="Save", command=self.save_instructor_updates, bg="#99FFFF", fg="#994C00", padx=10, pady=2, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge")
         save_button.place(relx=0.48, rely=0.38)
 
     def save_instructor_updates(self):
-        print(1)
+        # Get the values from the input fields in the update window
+        title = self.title_entry.get()
+        name = self.name_entry.get()
+        surname = self.surname_entry.get()
+        quota = self.quota_entry.get()
+        lesson = self.lesson_entry.get()
+        
+        # Check if all required fields are filled
+        if not (title and name and surname and quota and lesson):
+            messagebox.showerror("Error", "All fields must be filled.")
+            return
+
+        # Perform the update in the database
+        update_query = "UPDATE instructor SET title = %s, name = %s, surname = %s, quota = %s WHERE registry_no = %s"
+        data = (title, name, surname, quota, self.selected_registry_no)
+        self.db.execute_query(update_query, data)
+        self.db.commit()
+
+        select_query = "SELECT opened_lesson_id FROM opened_lesson WHERE name = %s"
+        data_2 = (lesson,)
+        self.db.execute_query(select_query, data_2)
+        results = self.db.fetch_data()
+
+        update_query_2 = "UPDATE instructor_opened_lesson SET opened_lesson_id = %s WHERE registry_no = %s"
+        data_3 = (results[0], self.selected_registry_no)
+        self.db.execute_query(update_query_2, data_3)
+        self.db.commit()
+
+        # Close the update window
+        self.update_window.destroy()
+
+        # Refresh the Treeview to reflect the changes
+        self.refresh_instructor_data()
 
     def define_generate_instructor(self):
-        self.define_generate_window = tk.Toplevel()
-        self.define_generate_window.title("Generate Instructor")
-        self.define_generate_window.geometry("300x200+500+250")
+        self.define_generate_instructor_window = tk.Toplevel()
+        self.define_generate_instructor_window.title("Generate Instructor")
+        self.define_generate_instructor_window.geometry("300x200+500+250")
 
-        instructor_number_label = tk.Label(self.define_generate_window, text="Instructor Number to Generate : ", font=("Helvetica", 10, "bold"), fg="brown")
+        instructor_number_label = tk.Label(self.define_generate_instructor_window, text="Instructor Number to Generate : ", font=("Helvetica", 10, "bold"), fg="brown")
         instructor_number_label.place(relx=0.05, rely=0.3)
 
-        self.instructor_number_field = tk.Entry(self.define_generate_window, width=3, font=('Arial 12'))
+        self.instructor_number_field = tk.Entry(self.define_generate_instructor_window, width=3, font=('Arial 12'))
         self.instructor_number_field.place(relx=0.75, rely=0.3)
         
-        instructor_generate_button = tk.Button(self.define_generate_window, text="Generate", bg="#99FFFF", fg="#994C00", padx=5, pady=2, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=self.generate_instructor)
+        instructor_generate_button = tk.Button(self.define_generate_instructor_window, text="Generate", bg="#99FFFF", fg="#994C00", padx=5, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=self.generate_instructor)
         instructor_generate_button.place(relx=0.35, rely=0.6)
 
     def generate_instructor(self):
         titles = ["Dr.", "Associate Professor", "Professor"]
-        names = ["Ahmet", "Mehmet", "Serap", "Buse", "Hasan", "Kemal"]
-        surnames = ["Yılmaz", "Kaya", "Doğan"]
+        names = ["Ahmet", "Mehmet", "Serap", "Buse", "Hasan", "Kemal", "Yusuf", "Ömer", "Zeynep", "Mustafa", "Ali", "Fatma", "Hande", "Kerem", "İbrahim", "Yunus", "Cemre", "Derya", "Ekrem", "Fatih", "Füsun", "İsmail", "Leyla", "Mahmut", "Melike", "Nalan", "Nazım", "Perihan", "Reyhan", "Tarık", "Veysel", "Yasemin", "İshak", "İhsan", "Gamze", "Güzide", "Celil", "Selim", "Aynur", "Adem", "Ufuk", "Nilgün", "Zehra", "Hamdi", "Veli"]
+        surnames = ["Yılmaz", "Kaya", "Doğan", "Acar", "Açıkalın", "Adıvar", "Ağaoğlu", "Balaban", "Baltacı", "Barbarosoğlu", "Başoğlu", "Baydar", "Berberoğlu", "Beşikçi", "Biçer", "Boduroğlu", "Boz", "Caymaz", "Çetin", "Çolak", "Çörekçi", "Davulcu", "Demirkan", "Duman", "Eğilmez", "Ekici", "Gedik", "Güngör", "Hancı", "İpekçi", "Kahveci", "Karabay", "Karaca", "Karakaş", "Koşar", "Mutlu", "Odabaşı", "Orbay", "Ozansoy", "Ölmez", "Özden", "Özyürek", "Tosun"]
         quotas = [10, 20, 30, 40, 50]
         self.instructor_number = self.instructor_number_field.get()
         number = int(self.instructor_number)
         for i in range(0, number):
             random_number = random.randint(0, 2)
             title = titles[random_number]
-            random_number = random.randint(0, 5)
+            random_number = random.randint(0, 44)
             name = names[random_number]
-            random_number = random.randint(0, 2)
+            random_number = random.randint(0, 42)
             surname = surnames[random_number]
             random_number = random.randint(0, 4)
             quota = quotas[random_number]
@@ -386,10 +437,103 @@ class Admin:
             self.db.commit()  
 
         self.get_instructor_data()
-        success_label = tk.Label(self.define_generate_window, text="SUCCESSFUL", font=("Helvetica", 12, "bold"), fg="green")
+        success_label = tk.Label(self.define_generate_instructor_window, text="SUCCESSFUL", font=("Helvetica", 12, "bold"), fg="green")
         success_label.place(relx=0.3, rely=0.1)
 
-        self.define_generate_window.after(1000, self.define_generate_window.destroy)
+        self.define_generate_instructor_window.after(1000, self.define_generate_instructor_window.destroy)
+
+    def get_student_data(self):
+        select_data_query = "SELECT s.student_no, s.name, s.surname, s.deal_status, i.field FROM student AS s INNER JOIN student_interest AS si on s.student_no=si.student_no INNER JOIN interest as i on si.interest_id=i.interest_id"
+        self.db.execute_query(select_data_query)
+        results = self.db.fetch_data()
+
+        # Insert data into the table
+        for item in results:
+            item = list(item)
+            if item[3]==1:
+                item[3]="deal"
+            else:
+                item[3]="non-deal"
+            item = tuple(item)
+            self.tree.insert("", "end", values=item)
+
+        # Bind the right-click context menu to the Treeview
+        self.tree.bind("<Button-3>", self.do_popup_student)
+
+    def do_popup_student(self, event):
+        item = self.tree.item(self.tree.selection())  # Get the selected item
+        if item:
+            self.selected_student_no = item['values'][0]  # Extract the 'registry_no' value
+            self.m.tk_popup(event.x_root, event.y_root)
+
+    def delete_student(self):
+        if hasattr(self, 'selected_student_no'):
+            delete_query_1 = "DELETE FROM student_interest WHERE student_no = %s"
+            data = (self.selected_student_no,)
+            self.db.execute_query(delete_query_1, data)
+            self.db.commit()
+
+            delete_query_2 = "DELETE FROM student WHERE student_no = %s"
+            data = (self.selected_student_no,)
+            self.db.execute_query(delete_query_2, data)
+            self.db.commit()
+
+            # Remove the deleted item from the Treeview
+            selected_item = self.tree.selection()
+            if selected_item:
+                self.tree.delete(selected_item)
+
+            # Optionally clear the selected_registry_no attribute
+            del self.selected_student_no
+
+    def define_generate_student(self):
+        self.define_generate_student_window = tk.Toplevel()
+        self.define_generate_student_window.title("Generate Student")
+        self.define_generate_student_window.geometry("300x200+500+250")
+
+        student_number_label = tk.Label(self.define_generate_student_window, text="Student Number to Generate : ", font=("Helvetica", 10, "bold"), fg="brown")
+        student_number_label.place(relx=0.05, rely=0.3)
+
+        self.student_number_field = tk.Entry(self.define_generate_student_window, width=3, font=('Arial 12'))
+        self.student_number_field.place(relx=0.75, rely=0.3)
+        
+        student_generate_button = tk.Button(self.define_generate_student_window, text="Generate", bg="#99FFFF", fg="#994C00", padx=5, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=self.generate_student)
+        student_generate_button.place(relx=0.35, rely=0.6)
+
+    def generate_student(self):
+        names = ["Akasya", "Arda", "Alya", "Baha", "Barış", "Beren", "Berkan", "Cemre", "Ceyda", "Caner", "Çağla", "Çağdaş", "Deren", "Dilara", "Demirkan", "Edis", "Efe", "Ece", "Ezgi", "Ferda", "Fulya", "Cemre", "Hakan", "İlkay", "İlker", "Kaan", "Gizem", "Helin", "Irmak", "Işıl", "İdil", "Kuzey", "Mert", "Nusret", "Olcay", "Jale", "Kumru", "Melda", "Naz", "Nil", "Oya", "Övünç", "Reha", "Sertaç", "Öykü", "Pelin", "Selin", "Şule", "Taner", "Turgay", "Vedat", "Zafer", "Tülin", "Yonca"]
+        surnames = ["Şen", "Kandemir", "Çevik", "Tüten", "Yücel", "Sönmez", "Ertekin", "Dede", "Uyanık", "Aslan", "Akbulut", "Uz", "Kaya", "Kulaç", "Selvi", "Akpınar", "Abacıoğlu", "Işık", "Özer", "Özdemir", "Tahtacı", "Büyükcam", "Kulaksız", "Aksel", "Eroğlu", "Karakum", "Dal", "Yiğit", "Gümüşay", "Yılmaz", "Sezer", "Doğan", "Demir", "Kayayurt", "Turgut", "Aldinç", "Tekin", "Almacıoğlu", "Öner", "Yaman", "Şentürk", "Yıldız", "Güler", "Koç", "Korkmaz", "Aydoğan"]
+        self.student_number = self.student_number_field.get()
+        number = int(self.student_number)
+        for i in range(0, number):
+            random_number = random.randint(0, 53)
+            name = names[random_number]
+            random_number = random.randint(0, 45)
+            surname = surnames[random_number]
+            
+            insert_query = "INSERT INTO student (name, surname, username, password, deal_status) VALUES (%s, %s, %s, %s, %s)"
+            data_to_insert = (name, surname, name, surname, 0)
+
+            self.db.execute_query(insert_query, data_to_insert)
+            self.db.commit()
+
+        select_data_query = "SELECT student_no FROM student"
+        self.db.execute_query(select_data_query)
+        results = self.db.fetch_data()
+
+        for result in results:
+            random_number = random.randint(1, 10)
+            student_interest_id = random_number
+            insert_query_2 = "INSERT INTO student_interest (student_no, interest_id) VALUES (%s, %s)"
+            data_to_insert_2 = (result, student_interest_id)        
+            self.db.execute_query(insert_query_2, data_to_insert_2)
+            self.db.commit()    
+
+        self.get_student_data()
+        success_label = tk.Label(self.define_generate_student_window, text="SUCCESSFUL", font=("Helvetica", 12, "bold"), fg="green")
+        success_label.place(relx=0.3, rely=0.1)
+
+        self.define_generate_student_window.after(1000, self.define_generate_student_window.destroy)
 
 class Instructor:
     def __init__(self):
@@ -501,6 +645,7 @@ class Student:
 # Creating an instance of the StartApp class and starting the application
 app = StartApp()
 app.run()
+
 
 
 
