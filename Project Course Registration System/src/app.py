@@ -604,8 +604,9 @@ class Admin:
     def generate_student(self):
         names = ["Akasya", "Arda", "Alya", "Baha", "Barış", "Beren", "Berkan", "Cemre", "Ceyda", "Caner", "Çağla", "Çağdaş", "Deren", "Dilara", "Demirkan", "Edis", "Efe", "Ece", "Ezgi", "Ferda", "Fulya", "Cemre", "Hakan", "İlkay", "İlker", "Kaan", "Gizem", "Helin", "Irmak", "Işıl", "İdil", "Kuzey", "Mert", "Nusret", "Olcay", "Jale", "Kumru", "Melda", "Naz", "Nil", "Oya", "Övünç", "Reha", "Sertaç", "Öykü", "Pelin", "Selin", "Şule", "Taner", "Turgay", "Vedat", "Zafer", "Tülin", "Yonca"]
         surnames = ["Şen", "Kandemir", "Çevik", "Tüten", "Yücel", "Sönmez", "Ertekin", "Dede", "Uyanık", "Aslan", "Akbulut", "Uz", "Kaya", "Kulaç", "Selvi", "Akpınar", "Abacıoğlu", "Işık", "Özer", "Özdemir", "Tahtacı", "Büyükcam", "Kulaksız", "Aksel", "Eroğlu", "Karakum", "Dal", "Yiğit", "Gümüşay", "Yılmaz", "Sezer", "Doğan", "Demir", "Kayayurt", "Turgut", "Aldinç", "Tekin", "Almacıoğlu", "Öner", "Yaman", "Şentürk", "Yıldız", "Güler", "Koç", "Korkmaz", "Aydoğan"]
-        grades = ["AA", "BA", "BB", "CB", "CC", "DC", "DD", "FF"]
-        lessons = [""]
+        grades = ["AA", "BA", "BB", "CB", "CC", "DC"]
+        lessons = ["history 1", "turkish 1", "english 1", "physics 1", "linear algebra", "maths 1", "computer laboratory 1", "introduction to computer engineering", "programming 1", "history 2", "turkish 2", "english 2", "physics 2", "maths 2", "computer laboratory 2", "programming 2", "electrical circuit basic", "differential equations", "object oriented programming", "data structures and algorithms", "programming laboratory 1", "logic", "internship 1", "discrete maths", "probability and random variables", "electronic", "computer organization and architecture", "database management", "programming laboratory 2", "system programming", "internship 2", "numerical methods", "sign and systems", "operating systems", "software laboratory 1", "internship 3", "automata theory", "digital data communication", "software laboratory 2", "software engineering", "internship 4"]
+        total_lessons_number = [10, 15, 20, 25, 30, 35, 40]
         self.student_number = self.student_number_field.get()
         number = int(self.student_number)
         for i in range(0, number):
@@ -619,6 +620,21 @@ class Admin:
 
             self.db.execute_query(insert_query, data_to_insert)
             self.db.commit()
+
+            random_number = random.randint(0, 6)
+            total_lesson_number = total_lessons_number[random_number]
+            for j in range(0, total_lesson_number):
+                select_data_query = "SELECT student_no FROM student ORDER BY student_no DESC LIMIT 1;"
+                self.db.execute_query(select_data_query)
+                results = self.db.fetch_data()
+
+                random_number = random.randint(0, 5)
+                mark = grades[random_number]
+                insert_query = "INSERT INTO student_lesson (student_no, lesson_id, mark) VALUES (%s, %s, %s)"
+                data_to_insert = (results[0], j+1, mark)
+
+                self.db.execute_query(insert_query, data_to_insert)
+                self.db.commit()
 
         select_data_query = "SELECT student_no FROM student"
         self.db.execute_query(select_data_query)
@@ -722,13 +738,13 @@ class Student:
         username = self.username_field.get()
         password = self.password_field.get()
        
-        db = DatabaseConnection()
+        self.db = DatabaseConnection()
         # Query the database to check the credentials
         select_query = "SELECT student_no, name, surname, username,password FROM student WHERE username = %s AND password = %s"
         data = (username, password)
 
-        db.execute_query(select_query, data)
-        self.result = db.fetch_data()
+        self.db.execute_query(select_query, data)
+        self.result = self.db.fetch_data()
 
         if self.result:
             Student.close_login(self)
@@ -782,7 +798,20 @@ class Student:
         #button1 = tk.Button(tab1, text="Open Tab 2", command=lambda: open_tab(tab2))
         #button1.pack()
 
+        # Create a Treeview widget (the table)
+        self.lesson_tree = ttk.Treeview(self.instructor_tab, columns=("Lesson Name", "AKTS", "Mark"), show="headings")
+        self.lesson_tree.heading("#1", text="Lesson Name")
+        self.lesson_tree.heading("#2", text="AKTS")
+        self.lesson_tree.heading("#3", text="Mark")
+        self.lesson_tree.pack()
+        self.get_lesson_data()
         
+        # Create the context menu
+        self.instructor_m = tk.Menu(self.lesson_tree, tearoff=0)
+        self.instructor_m.add_command(label="Update")
+        self.instructor_m.add_command(label="Delete")
+        self.instructor_m.add_separator()
+
         # Tab 3
         self.student_tab = ttk.Frame(tab_control)
         tab_control.add(self.student_tab, text="Profile")
@@ -838,6 +867,19 @@ class Student:
 
             text_display.delete(1.0, tk.END)
             text_display.insert(tk.END, text)
+
+    def get_lesson_data(self):
+        select_data_query = "SELECT l.name, l.AKTS, sl.mark FROM student_lesson AS sl INNER JOIN lesson AS l on sl.lesson_id=l.lesson_id WHERE sl.student_no = %s"
+        data_to_insert = (self.result[0][0],)
+        self.db.execute_query(select_data_query, data_to_insert)
+        results = self.db.fetch_data()
+
+        # Insert data into the table
+        for item in results:
+            self.lesson_tree.insert("", "end", values=item)
+
+        # Bind the right-click context menu to the Treeview
+        #self.lesson_tree.bind("<Button-3>", self.do_popup_instructor)
 
 # Creating an instance of the StartApp class and starting the application
 app = StartApp()
