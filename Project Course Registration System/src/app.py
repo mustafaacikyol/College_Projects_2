@@ -9,6 +9,10 @@ import random
 from PIL import Image, ImageTk
 #from tkinter import *
 from tkinter import messagebox
+from tkinter import filedialog
+from PyPDF2 import PdfReader 
+from shutil import copyfile
+import fitz  # PyMuPDF
 
 class DatabaseConnection:
     def __init__(self):
@@ -193,22 +197,22 @@ class Admin:
         #button1.pack()
 
         # Create a Treeview widget (the table)
-        self.tree = ttk.Treeview(self.instructor_tab, columns=("Registry No", "Title", "Name", "Surname", "Quota", "Lesson", "Field"), show="headings")
-        self.tree.heading("#1", text="Registry No")
-        self.tree.heading("#2", text="Title")
-        self.tree.heading("#3", text="Name")
-        self.tree.heading("#4", text="Surname")
-        self.tree.heading("#5", text="Quota")
-        self.tree.heading("#6", text="Lesson")
-        self.tree.heading("#7", text="Field")
-        self.tree.pack()
+        self.instructor_tree = ttk.Treeview(self.instructor_tab, columns=("Registry No", "Title", "Name", "Surname", "Quota", "Lesson", "Field"), show="headings")
+        self.instructor_tree.heading("#1", text="Registry No")
+        self.instructor_tree.heading("#2", text="Title")
+        self.instructor_tree.heading("#3", text="Name")
+        self.instructor_tree.heading("#4", text="Surname")
+        self.instructor_tree.heading("#5", text="Quota")
+        self.instructor_tree.heading("#6", text="Lesson")
+        self.instructor_tree.heading("#7", text="Field")
+        self.instructor_tree.pack()
         self.get_instructor_data()
         
         # Create the context menu
-        self.m = tk.Menu(self.tree, tearoff=0)
-        self.m.add_command(label="Update", command=self.update_instructor)
-        self.m.add_command(label="Delete", command=self.delete_instructor)
-        self.m.add_separator()
+        self.instructor_m = tk.Menu(self.instructor_tree, tearoff=0)
+        self.instructor_m.add_command(label="Update", command=self.update_instructor)
+        self.instructor_m.add_command(label="Delete", command=self.delete_instructor)
+        self.instructor_m.add_separator()
         
         # Tab 3
         self.student_tab = ttk.Frame(tab_control)
@@ -217,23 +221,23 @@ class Admin:
         student_label.pack()
         #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
         #button2.pack()
-
+        
         # Create a Treeview widget (the table)
-        self.tree = ttk.Treeview(self.student_tab, columns=("Student No", "Name", "Surname", "Status", "Field"), show="headings")
-        self.tree.heading("#1", text="Student No")
-        self.tree.heading("#2", text="Name")
-        self.tree.heading("#3", text="Surname")
-        self.tree.heading("#4", text="Status")
-        self.tree.heading("#5", text="Field")
-        self.tree.pack()
+        self.student_tree = ttk.Treeview(self.student_tab, columns=("Student No", "Name", "Surname", "Status", "Field"), show="headings")
+        self.student_tree.heading("#1", text="Student No")
+        self.student_tree.heading("#2", text="Name")
+        self.student_tree.heading("#3", text="Surname")
+        self.student_tree.heading("#4", text="Status")
+        self.student_tree.heading("#5", text="Field")
+        self.student_tree.pack()
         self.get_student_data() 
         
         # Create the context menu
-        self.m = tk.Menu(self.tree, tearoff=0)
-        self.m.add_command(label="Update", command=self.update_instructor)
-        self.m.add_command(label="Delete", command=self.delete_student)
-        self.m.add_separator()
-
+        self.student_m = tk.Menu(self.student_tree, tearoff=0)
+        self.student_m.add_command(label="Update", command=self.update_student)
+        self.student_m.add_command(label="Delete", command=self.delete_student)
+        self.student_m.add_separator()
+        
         # Set the default tab to open
         tab_control.select(general_tab)
 
@@ -249,24 +253,24 @@ class Admin:
 
         # Insert data into the table
         for item in results:
-            self.tree.insert("", "end", values=item)
+            self.instructor_tree.insert("", "end", values=item)
 
         # Bind the right-click context menu to the Treeview
-        self.tree.bind("<Button-3>", self.do_popup_instructor)
+        self.instructor_tree.bind("<Button-3>", self.do_popup_instructor)
 
     def refresh_instructor_data(self):
         # Clear existing data in the Treeview
-        for item in self.tree.get_children():
-            self.tree.delete(item)
+        for item in self.instructor_tree.get_children():
+            self.instructor_tree.delete(item)
 
         # Fetch and insert the updated data
         self.get_instructor_data()
 
     def do_popup_instructor(self, event):
-        item = self.tree.item(self.tree.selection())  # Get the selected item
+        item = self.instructor_tree.item(self.instructor_tree.selection())  # Get the selected item
         if item:
             self.selected_registry_no = item['values'][0]  # Extract the 'registry_no' value
-            self.m.tk_popup(event.x_root, event.y_root)
+            self.instructor_m.tk_popup(event.x_root, event.y_root)
 
     def delete_instructor(self):
         if hasattr(self, 'selected_registry_no'):
@@ -286,62 +290,62 @@ class Admin:
             self.db.commit()
 
             # Remove the deleted item from the Treeview
-            selected_item = self.tree.selection()
+            selected_item = self.instructor_tree.selection()
             if selected_item:
-                self.tree.delete(selected_item)
+                self.instructor_tree.delete(selected_item)
 
             # Optionally clear the selected_registry_no attribute
             del self.selected_registry_no
 
     def update_instructor(self):
-        selected_item = self.tree.selection()
+        selected_item = self.instructor_tree.selection()
         if selected_item:
-            selected_values = self.tree.item(selected_item, "values")
+            selected_values = self.instructor_tree.item(selected_item, "values")
             if selected_values:
                 # Open the update window with the instructor's data for editing
                 self.open_instructor_update_window(selected_values)
 
     def open_instructor_update_window(self, selected_values):
-        self.update_window = tk.Toplevel()
-        self.update_window.title("Update Instructor")
-        self.update_window.state("zoomed")
+        self.update_instructor_window = tk.Toplevel()
+        self.update_instructor_window.title("Update Instructor")
+        self.update_instructor_window.state("zoomed")
         # Create input fields and labels for updating instructor data
         # You can design and populate this window as needed
 
         # Example: Create an entry field for updating the instructor's name
-        self.title_label = tk.Label(self.update_window, text="Title")
+        self.title_label = tk.Label(self.update_instructor_window, text="Title")
         self.title_label.pack()
-        self.title_entry = tk.Entry(self.update_window, width=30)
+        self.title_entry = tk.Entry(self.update_instructor_window, width=30)
         self.title_entry.insert(0, selected_values[1])  # Pre-fill with the instructor's current name
         self.title_entry.pack()
 
-        self.name_label = tk.Label(self.update_window, text="Name")
+        self.name_label = tk.Label(self.update_instructor_window, text="Name")
         self.name_label.pack()
-        self.name_entry = tk.Entry(self.update_window, width=30)
+        self.name_entry = tk.Entry(self.update_instructor_window, width=30)
         self.name_entry.insert(0, selected_values[2])  # Pre-fill with the instructor's current name
         self.name_entry.pack()
 
-        self.surname_label = tk.Label(self.update_window, text="Surname")
+        self.surname_label = tk.Label(self.update_instructor_window, text="Surname")
         self.surname_label.pack()
-        self.surname_entry = tk.Entry(self.update_window, width=30)
+        self.surname_entry = tk.Entry(self.update_instructor_window, width=30)
         self.surname_entry.insert(0, selected_values[3])  # Pre-fill with the instructor's current name
         self.surname_entry.pack()
 
-        self.quota_label = tk.Label(self.update_window, text="Quota")
+        self.quota_label = tk.Label(self.update_instructor_window, text="Quota")
         self.quota_label.pack()
-        self.quota_entry = tk.Entry(self.update_window, width=30)
+        self.quota_entry = tk.Entry(self.update_instructor_window, width=30)
         self.quota_entry.insert(0, selected_values[4])  # Pre-fill with the instructor's current name
         self.quota_entry.pack()
 
-        self.lesson_label = tk.Label(self.update_window, text="Lesson")
+        self.lesson_label = tk.Label(self.update_instructor_window, text="Lesson")
         self.lesson_label.pack()
-        self.lesson_entry = tk.Entry(self.update_window, width=30)
+        self.lesson_entry = tk.Entry(self.update_instructor_window, width=30)
         self.lesson_entry.insert(0, selected_values[5])  # Pre-fill with the instructor's current name
         self.lesson_entry.pack()
 
         # Create a button to save the updates
-        save_button = tk.Button(self.update_window, text="Save", command=self.save_instructor_updates, bg="#99FFFF", fg="#994C00", padx=10, pady=2, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge")
-        save_button.place(relx=0.48, rely=0.38)
+        save_button = tk.Button(self.update_instructor_window, text="Save", command=self.save_instructor_updates, bg="#99FFFF", fg="#994C00", padx=10, pady=2, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge")
+        save_button.place(relx=0.48, rely=0.32)
 
     def save_instructor_updates(self):
         # Get the values from the input fields in the update window
@@ -373,7 +377,7 @@ class Admin:
         self.db.commit()
 
         # Close the update window
-        self.update_window.destroy()
+        self.update_instructor_window.destroy()
 
         # Refresh the Treeview to reflect the changes
         self.refresh_instructor_data()
@@ -455,16 +459,24 @@ class Admin:
             else:
                 item[3]="non-deal"
             item = tuple(item)
-            self.tree.insert("", "end", values=item)
+            self.student_tree.insert("", "end", values=item)
 
         # Bind the right-click context menu to the Treeview
-        self.tree.bind("<Button-3>", self.do_popup_student)
+        self.student_tree.bind("<Button-3>", self.do_popup_student)
+
+    def refresh_student_data(self):
+        # Clear existing data in the Treeview
+        for item in self.student_tree.get_children():
+            self.student_tree.delete(item)
+
+        # Fetch and insert the updated data
+        self.get_student_data()
 
     def do_popup_student(self, event):
-        item = self.tree.item(self.tree.selection())  # Get the selected item
+        item = self.student_tree.item(self.student_tree.selection())  # Get the selected item
         if item:
             self.selected_student_no = item['values'][0]  # Extract the 'registry_no' value
-            self.m.tk_popup(event.x_root, event.y_root)
+            self.student_m.tk_popup(event.x_root, event.y_root)
 
     def delete_student(self):
         if hasattr(self, 'selected_student_no'):
@@ -479,12 +491,101 @@ class Admin:
             self.db.commit()
 
             # Remove the deleted item from the Treeview
-            selected_item = self.tree.selection()
+            selected_item = self.student_tree.selection()
             if selected_item:
-                self.tree.delete(selected_item)
+                self.student_tree.delete(selected_item)
 
             # Optionally clear the selected_registry_no attribute
             del self.selected_student_no
+
+    def update_student(self):
+        selected_item = self.student_tree.selection()
+        if selected_item:
+            selected_values = self.student_tree.item(selected_item, "values")
+            if selected_values:
+                self.open_student_update_window(selected_values)
+
+    def open_student_update_window(self, selected_values):
+        self.update_student_window = tk.Toplevel()
+        self.update_student_window.title("Update Student")
+        self.update_student_window.state("zoomed")
+        # Create input fields and labels for updating instructor data
+        # You can design and populate this window as needed
+
+        # Example: Create an entry field for updating the instructor's name
+        self.student_no_label = tk.Label(self.update_student_window, text="Student No")
+        self.student_no_label.pack()
+        self.student_no_entry = tk.Entry(self.update_student_window, width=30)
+        self.student_no_entry.insert(0, selected_values[0])  # Pre-fill with the instructor's current name
+        self.student_no_entry.pack()
+
+        self.name_label = tk.Label(self.update_student_window, text="Name")
+        self.name_label.pack()
+        self.name_entry = tk.Entry(self.update_student_window, width=30)
+        self.name_entry.insert(0, selected_values[1])  # Pre-fill with the instructor's current name
+        self.name_entry.pack()
+
+        self.surname_label = tk.Label(self.update_student_window, text="Surname")
+        self.surname_label.pack()
+        self.surname_entry = tk.Entry(self.update_student_window, width=30)
+        self.surname_entry.insert(0, selected_values[2])  # Pre-fill with the instructor's current name
+        self.surname_entry.pack()
+
+        self.status_label = tk.Label(self.update_student_window, text="Status")
+        self.status_label.pack()
+        self.status_entry = tk.Entry(self.update_student_window, width=30)
+        self.status_entry.insert(0, selected_values[3])  # Pre-fill with the instructor's current name
+        self.status_entry.pack()
+
+        self.field_label = tk.Label(self.update_student_window, text="Field")
+        self.field_label.pack()
+        self.field_entry = tk.Entry(self.update_student_window, width=30)
+        self.field_entry.insert(0, selected_values[4])  # Pre-fill with the instructor's current name
+        self.field_entry.pack()
+
+        # Create a button to save the updates
+        save_button = tk.Button(self.update_student_window, text="Save", command=self.save_student_updates, bg="#99FFFF", fg="#994C00", padx=10, pady=2, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge")
+        save_button.place(relx=0.48, rely=0.32)
+
+    def save_student_updates(self):
+        # Get the values from the input fields in the update window
+        student_no = self.student_no_entry.get()
+        name = self.name_entry.get()
+        surname = self.surname_entry.get()
+        status = self.status_entry.get()
+        field = self.field_entry.get()
+        
+        # Check if all required fields are filled
+        if not (student_no and name and surname and status and field):
+            messagebox.showerror("Error", "All fields must be filled.")
+            return
+
+        
+        if status=="deal":
+            status = 1
+        else:
+            status = 0
+        # Perform the update in the database
+        update_query = "UPDATE student SET student_no = %s, name = %s, surname = %s, deal_status = %s WHERE student_no = %s"
+        data = (student_no, name, surname, status, self.selected_student_no)
+        self.db.execute_query(update_query, data)
+        self.db.commit()
+
+        select_query = "SELECT interest_id FROM interest WHERE field = %s"
+        data_2 = (field,)
+        self.db.execute_query(select_query, data_2)
+        results = self.db.fetch_data()
+
+        update_query_2 = "UPDATE student_interest SET interest_id = %s WHERE student_no = %s"
+        data_3 = (results[0], self.selected_student_no)
+        self.db.execute_query(update_query_2, data_3)
+        self.db.commit()
+
+        # Close the update window
+        self.update_student_window.destroy()
+
+        # Refresh the Treeview to reflect the changes
+        self.refresh_student_data()
 
     def define_generate_student(self):
         self.define_generate_student_window = tk.Toplevel()
@@ -503,6 +604,8 @@ class Admin:
     def generate_student(self):
         names = ["Akasya", "Arda", "Alya", "Baha", "Barış", "Beren", "Berkan", "Cemre", "Ceyda", "Caner", "Çağla", "Çağdaş", "Deren", "Dilara", "Demirkan", "Edis", "Efe", "Ece", "Ezgi", "Ferda", "Fulya", "Cemre", "Hakan", "İlkay", "İlker", "Kaan", "Gizem", "Helin", "Irmak", "Işıl", "İdil", "Kuzey", "Mert", "Nusret", "Olcay", "Jale", "Kumru", "Melda", "Naz", "Nil", "Oya", "Övünç", "Reha", "Sertaç", "Öykü", "Pelin", "Selin", "Şule", "Taner", "Turgay", "Vedat", "Zafer", "Tülin", "Yonca"]
         surnames = ["Şen", "Kandemir", "Çevik", "Tüten", "Yücel", "Sönmez", "Ertekin", "Dede", "Uyanık", "Aslan", "Akbulut", "Uz", "Kaya", "Kulaç", "Selvi", "Akpınar", "Abacıoğlu", "Işık", "Özer", "Özdemir", "Tahtacı", "Büyükcam", "Kulaksız", "Aksel", "Eroğlu", "Karakum", "Dal", "Yiğit", "Gümüşay", "Yılmaz", "Sezer", "Doğan", "Demir", "Kayayurt", "Turgut", "Aldinç", "Tekin", "Almacıoğlu", "Öner", "Yaman", "Şentürk", "Yıldız", "Güler", "Koç", "Korkmaz", "Aydoğan"]
+        grades = ["AA", "BA", "BB", "CB", "CC", "DC", "DD", "FF"]
+        lessons = [""]
         self.student_number = self.student_number_field.get()
         number = int(self.student_number)
         for i in range(0, number):
@@ -621,13 +724,13 @@ class Student:
        
         db = DatabaseConnection()
         # Query the database to check the credentials
-        select_query = "SELECT username,password FROM student WHERE username = %s AND password = %s"
+        select_query = "SELECT student_no, name, surname, username,password FROM student WHERE username = %s AND password = %s"
         data = (username, password)
 
         db.execute_query(select_query, data)
-        result = db.fetch_data()
+        self.result = db.fetch_data()
 
-        if result:
+        if self.result:
             Student.close_login(self)
         else:
             error_label = tk.Label(self.login_window, text="Invalid username or password!", font=("Helvetica", 15, "bold"), fg="red")
@@ -635,12 +738,106 @@ class Student:
 
     def close_login(self):
         self.login_window.destroy()
-        Student.dashboard()
+        Student.dashboard(self)
 
-    def dashboard():
-        window = tk.Toplevel()
+    def dashboard(self):
+        window = tk.Tk()
         window.title("Student Dashboard")
         window.state("zoomed")
+
+        name_surname_label = tk.Label(window, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
+        name_surname_label.place(relx=0.85, rely=0.03)
+
+        # Create a menu bar
+        menu = tk.Menu(window)
+        window.config(menu=menu)
+
+        # Create a File menu
+        file_menu = tk.Menu(menu)
+        menu.add_cascade(label="Transcript", menu=file_menu)
+        file_menu.add_command(label="Upload", command=self.open_upload_transcript_window)
+        #file_menu.add_command(label="Open")
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=window.quit)
+
+        # Create a Help menu
+        help_menu = tk.Menu(menu)
+        menu.add_cascade(label="About", menu=help_menu)
+        help_menu.add_command(label="About")
+        
+        # Create tabs
+        tab_control = ttk.Notebook(window)
+
+        # Tab 1
+        general_tab = ttk.Frame(tab_control)
+        tab_control.add(general_tab, text="General")
+        general_label = tk.Label(general_tab, text="General Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        general_label.pack()
+
+        # Tab 2
+        self.instructor_tab = ttk.Frame(tab_control)
+        tab_control.add(self.instructor_tab, text="Lessons")
+        instructor_label = tk.Label(self.instructor_tab, text="Lessons Taken and Grades", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        instructor_label.pack()
+        #button1 = tk.Button(tab1, text="Open Tab 2", command=lambda: open_tab(tab2))
+        #button1.pack()
+
+        
+        # Tab 3
+        self.student_tab = ttk.Frame(tab_control)
+        tab_control.add(self.student_tab, text="Profile")
+        student_label = tk.Label(self.student_tab, text="Profile Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        student_label.pack()
+        #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
+        #button2.pack()
+
+        
+        # Set the default tab to open
+        tab_control.select(general_tab)
+
+        tab_control.pack(expand=1, fill="both")
+        
+        # Start the tkinter main loop
+        window.mainloop()
+
+    def open_upload_transcript_window(self):
+        self.upload_transcript_window = tk.Toplevel()
+        self.upload_transcript_window.title("Upload Transcript")
+        self.upload_transcript_window.state("zoomed")
+
+        # Label to display the selected file and number of pages
+        self.status_label = tk.Label(self.upload_transcript_window, text="", wraplength=300)
+        self.status_label.pack()
+
+        upload_transcript_button = tk.Button(self.upload_transcript_window, text="Upload File", bg="#99FFFF", fg="#994C00", padx=5, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=self.upload_pdf_file)
+        upload_transcript_button.place(relx=0.47, rely=0.8)
+
+    def upload_pdf_file(self):
+        file_path = filedialog.askopenfilename(
+            filetypes=[("PDF files", "*.pdf")],
+            title="Select a PDF file"
+        )
+
+        if file_path:
+            # Destination directory where you want to copy the file
+            destination_directory = r"D:\projects 2\first term\first project\Project Course Registration System\upload"
+            destination_file_path = f"{destination_directory}/{file_path.split('/')[-1]}"
+            copyfile(file_path, destination_file_path)
+            pdf_reader = PdfReader(open(file_path, "rb"))
+            num_pages = len(pdf_reader.pages)
+            self.status_label.config(text=f"Selected File: {file_path}\nNumber of Pages: {num_pages}")
+            # Create a text display area to show the extracted text
+            text_display = tk.Text(self.upload_transcript_window, height=30, width=120)
+            text_display.pack()
+            doc = fitz.open(file_path)
+            text = ""
+
+            for page in doc:
+                extracted_text = page.get_text()
+                text += extracted_text
+
+            text_display.delete(1.0, tk.END)
+            text_display.insert(tk.END, text)
 
 # Creating an instance of the StartApp class and starting the application
 app = StartApp()
