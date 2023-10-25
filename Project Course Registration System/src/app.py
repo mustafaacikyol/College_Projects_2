@@ -761,9 +761,6 @@ class Student:
         window.title("Student Dashboard")
         window.state("zoomed")
 
-        name_surname_label = tk.Label(window, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
-        name_surname_label.place(relx=0.85, rely=0.03)
-
         # Create a menu bar
         menu = tk.Menu(window)
         window.config(menu=menu)
@@ -790,36 +787,101 @@ class Student:
         general_label = tk.Label(general_tab, text="General Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
         general_label.pack()
 
+        name_surname_label = tk.Label(general_tab, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
+        name_surname_label.place(relx=0.85, rely=0.03)
+
         # Tab 2
-        self.instructor_tab = ttk.Frame(tab_control)
-        tab_control.add(self.instructor_tab, text="Lessons")
-        instructor_label = tk.Label(self.instructor_tab, text="Lessons Taken and Grades", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        self.lesson_tab = ttk.Frame(tab_control)
+        tab_control.add(self.lesson_tab, text="Lessons")
+        instructor_label = tk.Label(self.lesson_tab, text="Lessons Taken and Grades", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
         instructor_label.pack()
         #button1 = tk.Button(tab1, text="Open Tab 2", command=lambda: open_tab(tab2))
         #button1.pack()
 
         # Create a Treeview widget (the table)
-        self.lesson_tree = ttk.Treeview(self.instructor_tab, columns=("Lesson Name", "AKTS", "Mark"), show="headings")
+        self.lesson_tree = ttk.Treeview(self.lesson_tab, columns=("Lesson Name", "AKTS", "Mark"), show="headings")
         self.lesson_tree.heading("#1", text="Lesson Name")
         self.lesson_tree.heading("#2", text="AKTS")
         self.lesson_tree.heading("#3", text="Mark")
         self.lesson_tree.pack()
         self.get_lesson_data()
-        
-        # Create the context menu
-        self.instructor_m = tk.Menu(self.lesson_tree, tearoff=0)
-        self.instructor_m.add_command(label="Update")
-        self.instructor_m.add_command(label="Delete")
-        self.instructor_m.add_separator()
 
         # Tab 3
-        self.student_tab = ttk.Frame(tab_control)
-        tab_control.add(self.student_tab, text="Profile")
-        student_label = tk.Label(self.student_tab, text="Profile Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        self.interest_tab = ttk.Frame(tab_control)
+        tab_control.add(self.interest_tab, text="Interest Field")
+        student_label = tk.Label(self.interest_tab, text="Interest Field Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
         student_label.pack()
         #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
         #button2.pack()
 
+        self.sub_interest_tab = ttk.Frame(self.interest_tab)
+        self.sub_interest_tab.pack()
+
+        #def on_option_selected(*args):
+            #selected = selected_option.get()
+
+        # Create a variable to store the selected option
+        self.lesson_selected_option = tk.StringVar(self.sub_interest_tab)
+
+        # List of options for the dropdown
+        lesson_options = ["Select Lesson"]
+
+        select_data_query = "SELECT name FROM opened_lesson"
+        self.db.execute_query(select_data_query)
+        results = self.db.fetch_data()
+        for result in results:
+            lesson_name = result[0]
+            lesson_options.append(lesson_name)
+
+        # Create the OptionMenu widget
+        lesson_option_menu = tk.OptionMenu(self.sub_interest_tab, self.lesson_selected_option, *lesson_options)
+        lesson_option_menu.pack(side="left", padx=30, pady=30)
+
+        # Set the default selected option (optional)
+        self.lesson_selected_option.set(lesson_options[0])
+
+        # Bind the function to the selection event
+        self.lesson_selected_option.trace("w", self.on_lesson_option_selected)
+
+
+        # Create a variable to store the selected option
+        self.interest_selected_option = tk.StringVar(self.sub_interest_tab)
+
+        # List of options for the dropdown
+        interest_options = ["Select Interest"]
+
+        select_data_query = "SELECT field FROM interest"
+        self.db.execute_query(select_data_query)
+        results = self.db.fetch_data()
+        for result in results:
+            interest_name = result[0]
+            interest_options.append(interest_name)
+
+        # Create the OptionMenu widget
+        interest_option_menu = tk.OptionMenu(self.sub_interest_tab, self.interest_selected_option, *interest_options)
+        interest_option_menu.pack(side="left",padx=30, pady=30)
+
+        # Set the default selected option (optional)
+        self.interest_selected_option.set(interest_options[0])
+
+        # Bind the function to the selection event
+        self.interest_selected_option.trace("w", self.on_interest_option_selected)
+
+         # Create a Treeview widget (the table)
+        self.interest_tree = ttk.Treeview(self.interest_tab, columns=("Lesson Name", "Interest Field", "Instructor Title", "Instructor Name", "Instructor Surname", "Quota"), show="headings")
+        self.interest_tree.heading("#1", text="Lesson Name")
+        self.interest_tree.heading("#2", text="Interest Field")
+        self.interest_tree.heading("#3", text="Instructor Title")
+        self.interest_tree.heading("#4", text="Instructor Name")
+        self.interest_tree.heading("#5", text="Instructor Surname")
+        self.interest_tree.heading("#6", text="Quota")
+        self.interest_tree.pack()
+        self.get_interest_data()
+
+        # Create the context menu
+        self.interest_m = tk.Menu(self.interest_tree, tearoff=0)
+        self.interest_m.add_command(label="Demand")
+        self.interest_m.add_separator()
         
         # Set the default tab to open
         tab_control.select(general_tab)
@@ -880,6 +942,59 @@ class Student:
 
         # Bind the right-click context menu to the Treeview
         #self.lesson_tree.bind("<Button-3>", self.do_popup_instructor)
+
+    def get_interest_data(self):
+        select_data_query = "SELECT ol.name, inte.field, i.title, i.name, i.surname, i.quota FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson as ol on iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id"
+        self.db.execute_query(select_data_query)
+        results = self.db.fetch_data()
+
+        # Insert data into the table
+        for item in results:
+            self.interest_tree.insert("", "end", values=item)
+
+        # Bind the right-click context menu to the Treeview
+        self.interest_tree.bind("<Button-3>", self.do_popup_interest)
+    
+    def refresh_interest_data(self):
+        # Clear existing data in the Treeview
+        for item in self.interest_tree.get_children():
+            self.interest_tree.delete(item)
+
+    def on_lesson_option_selected(self, *args):
+        self.refresh_interest_data()
+        selected_lesson = self.lesson_selected_option.get()
+        select_data_query = "SELECT ol.name, inte.field, i.title, i.name, i.surname, i.quota FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson as ol on iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id  WHERE ol.name = %s"
+        data_to_insert = (selected_lesson,)
+        self.db.execute_query(select_data_query, data_to_insert)
+        results = self.db.fetch_data()
+
+        # Insert data into the table
+        for item in results:
+            self.interest_tree.insert("", "end", values=item)
+
+        # Bind the right-click context menu to the Treeview
+        #self.lesson_tree.bind("<Button-3>", self.do_popup_lesson)
+
+    def on_interest_option_selected(self, *args):
+        self.refresh_interest_data()
+        selected_interest = self.interest_selected_option.get()
+        select_data_query = "SELECT ol.name, inte.field, i.title, i.name, i.surname, i.quota FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson as ol on iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id  WHERE inte.field = %s"
+        data_to_insert = (selected_interest,)
+        self.db.execute_query(select_data_query, data_to_insert)
+        results = self.db.fetch_data()
+
+        # Insert data into the table
+        for item in results:
+            self.interest_tree.insert("", "end", values=item)
+
+        # Bind the right-click context menu to the Treeview
+        #self.lesson_tree.bind("<Button-3>", self.do_popup_instructor)
+
+    def do_popup_interest(self, event):
+        item = self.interest_tree.item(self.interest_tree.selection())  # Get the selected item
+        if item:
+            self.selected_opened_lesson_id = item['values'][0]  # Extract the 'registry_no' value
+            self.interest_m.tk_popup(event.x_root, event.y_root)
 
 # Creating an instance of the StartApp class and starting the application
 app = StartApp()
