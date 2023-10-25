@@ -798,6 +798,9 @@ class Student:
         #button1 = tk.Button(tab1, text="Open Tab 2", command=lambda: open_tab(tab2))
         #button1.pack()
 
+        name_surname_label = tk.Label(self.lesson_tab, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
+        name_surname_label.place(relx=0.85, rely=0.03)
+
         # Create a Treeview widget (the table)
         self.lesson_tree = ttk.Treeview(self.lesson_tab, columns=("Lesson Name", "AKTS", "Mark"), show="headings")
         self.lesson_tree.heading("#1", text="Lesson Name")
@@ -813,6 +816,9 @@ class Student:
         student_label.pack()
         #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
         #button2.pack()
+
+        name_surname_label = tk.Label(self.interest_tab, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
+        name_surname_label.place(relx=0.85, rely=0.03)
 
         self.sub_interest_tab = ttk.Frame(self.interest_tab)
         self.sub_interest_tab.pack()
@@ -993,8 +999,25 @@ class Student:
     def do_popup_interest(self, event):
         item = self.interest_tree.item(self.interest_tree.selection())  # Get the selected item
         if item:
-            self.selected_opened_lesson_id = item['values'][0]  # Extract the 'registry_no' value
+            self.selected_opened_lesson_name = item['values'][0]  # Extract the 'registry_no' value
             self.interest_m.tk_popup(event.x_root, event.y_root)
+
+            select_query = "SELECT i.registry_no, iol.opened_lesson_id FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson AS ol on iol.opened_lesson_id=ol.opened_lesson_id WHERE ol.name = %s"
+            data = (self.selected_opened_lesson_name,)
+            self.db.execute_query(select_query, data)
+            results = self.db.fetch_data()
+            
+            insert_query = "INSERT INTO deal (student_no, registry_no, opened_lesson_id, deal_status) VALUES (%s, %s, %s, %s)"
+            data_to_insert = (self.result[0][0], results[0][0], results[0][1], 0)
+            self.db.execute_query(insert_query, data_to_insert)
+            self.db.commit()
+
+            confirmation_window = tk.Tk()
+            confirmation_window.title("Confirmation Window")
+            confirmation_window.geometry("300x150+500+300")
+
+            confirmation_label = tk.Label(confirmation_window, text="Request Send Successfully", font=("Helvetica", 12, "bold"), fg="green")
+            confirmation_label.place(relx=0.1, rely=0.3)
 
 # Creating an instance of the StartApp class and starting the application
 app = StartApp()
