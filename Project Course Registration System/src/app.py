@@ -947,9 +947,9 @@ class Student:
             destination_directory = r"D:\projects 2\first term\first project\Project Course Registration System\upload"
             destination_file_path = f"{destination_directory}/{file_path.split('/')[-1]}"
             copyfile(file_path, destination_file_path)
-            pdf_reader = PdfReader(open(file_path, "rb"))
-            num_pages = len(pdf_reader.pages)
-            self.status_label.config(text=f"Selected File: {file_path}\nNumber of Pages: {num_pages}")
+            self.pdf_reader = PdfReader(open(file_path, "rb"))
+            self.num_pages = len(self.pdf_reader.pages)
+            self.status_label.config(text=f"Selected File: {file_path}\nNumber of Pages: {self.num_pages}")
             # Create a text display area to show the extracted text
             text_display = tk.Text(self.upload_transcript_window, height=30, width=120)
             text_display.pack()
@@ -962,6 +962,37 @@ class Student:
 
             text_display.delete(1.0, tk.END)
             text_display.insert(tk.END, text)
+
+            lesson_names = []
+            marks = []
+
+            # Split the page text by line breaks and filter out empty lines
+            lines = [line.strip() for line in text.split('\n') if line.strip()]
+            
+            # Check for lines that match your lesson name pattern (e.g., AIT109, AIT110, etc.)
+            for i in range(len(lines) - 1):
+                if lines[i].startswith("AIT") or lines[i].startswith("IKT") or lines[i].startswith("JFZ") or lines[i].startswith("TDB") or lines[i].startswith("YDB") or lines[i].startswith("BLM") or lines[i].startswith("FEF") or lines[i].startswith("TDB") or lines[i].startswith("MAT") or lines[i].startswith("MUH"):
+                    lesson_names.append(lines[i + 1])
+                
+                if lines[i].startswith("AA") or lines[i].startswith("BA") or lines[i].startswith("BB") or lines[i].startswith("CB") or lines[i].startswith("CC") or lines[i].startswith("DC"):
+                    marks.append(lines[i])
+
+            for i in range(0, 32):
+                
+                select_data_query = "SELECT course_id FROM course WHERE name = %s"
+                data = (lesson_names[i], )
+                self.db.execute_query(select_data_query, data)
+                results = self.db.fetch_data()
+
+                insert_data_query = """INSERT INTO student_course (student_no, course_id, mark) VALUES (%s, %s, %s)"""
+                data_to_insert = (self.result[0][0], results[0], marks[i])
+                self.db.execute_query(insert_data_query, data_to_insert)
+                self.db.commit()
+            
+            insert_data_query = """INSERT INTO pdf (student_no, file_name, file_data) VALUES (%s, %s, %s)"""
+            data_to_insert = (self.result[0][0], "transcript.pdf", text)
+            self.db.execute_query(insert_data_query, data_to_insert)
+            self.db.commit()
 
     def get_lesson_data(self):
         select_data_query = "SELECT l.name, l.AKTS, sl.mark FROM student_lesson AS sl INNER JOIN lesson AS l on sl.lesson_id=l.lesson_id WHERE sl.student_no = %s"
