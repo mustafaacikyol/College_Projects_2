@@ -886,8 +886,35 @@ class Student:
 
         # Create the context menu
         self.interest_m = tk.Menu(self.interest_tree, tearoff=0)
-        self.interest_m.add_command(label="Demand")
+        self.interest_m.add_command(label="Demand", command=self.make_demand)
         self.interest_m.add_separator()
+
+        # Tab 4
+        self.demand_tab = ttk.Frame(tab_control)
+        tab_control.add(self.demand_tab, text="Demand")
+        student_label = tk.Label(self.demand_tab, text="Demand Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        student_label.pack()
+        #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
+        #button2.pack()
+
+        name_surname_label = tk.Label(self.demand_tab, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
+        name_surname_label.place(relx=0.85, rely=0.03)
+
+        # Create a Treeview widget (the table)
+        self.demand_tree = ttk.Treeview(self.demand_tab, columns=("Lesson Name", "Interest Field", "Instructor Title", "Instructor Name", "Instructor Surname", "Quota"), show="headings")
+        self.demand_tree.heading("#1", text="Lesson Name")
+        self.demand_tree.heading("#2", text="Interest Field")
+        self.demand_tree.heading("#3", text="Instructor Title")
+        self.demand_tree.heading("#4", text="Instructor Name")
+        self.demand_tree.heading("#5", text="Instructor Surname")
+        self.demand_tree.heading("#6", text="Quota")
+        self.demand_tree.pack()
+        self.get_demand_data()
+
+        # Create the context menu
+        self.demand_m = tk.Menu(self.demand_tree, tearoff=0)
+        self.demand_m.add_command(label="Withdraw", command=self.withdraw_demand)
+        self.demand_m.add_separator()
         
         # Set the default tab to open
         tab_control.select(general_tab)
@@ -960,11 +987,32 @@ class Student:
 
         # Bind the right-click context menu to the Treeview
         self.interest_tree.bind("<Button-3>", self.do_popup_interest)
+
+    def get_demand_data(self):
+        select_data_query = "SELECT ol.name, inte.field, i.title, i.name, i.surname, i.quota, d.deal_id FROM deal AS d INNER JOIN instructor AS i on d.registry_no=i.registry_no INNER JOIN opened_lesson AS ol on d.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli on ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id WHERE d.student_no = %s"
+        data = (self.result[0][0],)
+        self.db.execute_query(select_data_query, data)
+        self.results = self.db.fetch_data()
+
+        # Insert data into the table
+        for item in self.results:
+            self.demand_tree.insert("", "end", values=item)
+
+        # Bind the right-click context menu to the Treeview
+        self.demand_tree.bind("<Button-3>", self.do_popup_demand)
     
     def refresh_interest_data(self):
         # Clear existing data in the Treeview
         for item in self.interest_tree.get_children():
             self.interest_tree.delete(item)
+
+    def refresh_demand_data(self):
+        # Clear existing data in the Treeview
+        for item in self.demand_tree.get_children():
+            self.demand_tree.delete(item)
+
+        # Fetch and insert the updated data
+        self.get_demand_data()
 
     def on_lesson_option_selected(self, *args):
         self.refresh_interest_data()
@@ -1001,23 +1049,46 @@ class Student:
         if item:
             self.selected_opened_lesson_name = item['values'][0]  # Extract the 'registry_no' value
             self.interest_m.tk_popup(event.x_root, event.y_root)
-
-            select_query = "SELECT i.registry_no, iol.opened_lesson_id FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson AS ol on iol.opened_lesson_id=ol.opened_lesson_id WHERE ol.name = %s"
-            data = (self.selected_opened_lesson_name,)
-            self.db.execute_query(select_query, data)
-            results = self.db.fetch_data()
             
-            insert_query = "INSERT INTO deal (student_no, registry_no, opened_lesson_id, deal_status) VALUES (%s, %s, %s, %s)"
-            data_to_insert = (self.result[0][0], results[0][0], results[0][1], 0)
-            self.db.execute_query(insert_query, data_to_insert)
+    def do_popup_demand(self, event):
+        item = self.demand_tree.item(self.demand_tree.selection())  # Get the selected item
+        if item:
+            self.selected_deal_id = item['values'][6]  # Extract the 'registry_no' value
+            self.demand_m.tk_popup(event.x_root, event.y_root)
+
+    def make_demand(self):
+        select_query = "SELECT i.registry_no, iol.opened_lesson_id FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson AS ol on iol.opened_lesson_id=ol.opened_lesson_id WHERE ol.name = %s"
+        data = (self.selected_opened_lesson_name,)
+        self.db.execute_query(select_query, data)
+        results = self.db.fetch_data()
+        
+        insert_query = "INSERT INTO deal (student_no, registry_no, opened_lesson_id, deal_status) VALUES (%s, %s, %s, %s)"
+        data_to_insert = (self.result[0][0], results[0][0], results[0][1], 0)
+        self.db.execute_query(insert_query, data_to_insert)
+        self.db.commit()
+
+        confirmation_window = tk.Tk()
+        confirmation_window.title("Confirmation Window")
+        confirmation_window.geometry("300x150+500+300")
+
+        confirmation_label = tk.Label(confirmation_window, text="Request Send Successfully", font=("Helvetica", 12, "bold"), fg="green")
+        confirmation_label.place(relx=0.1, rely=0.3)
+
+        self.refresh_demand_data()
+        
+    def withdraw_demand(self):
+        if hasattr(self, "selected_deal_id"):
+            delete_query_1 = "DELETE FROM deal WHERE deal_id = %s"
+            data = (self.selected_deal_id,)
+            self.db.execute_query(delete_query_1, data)
             self.db.commit()
 
-            confirmation_window = tk.Tk()
-            confirmation_window.title("Confirmation Window")
-            confirmation_window.geometry("300x150+500+300")
+            # Remove the deleted item from the Treeview
+            selected_item = self.demand_tree.selection()
+            if selected_item:
+                self.demand_tree.delete(selected_item)
 
-            confirmation_label = tk.Label(confirmation_window, text="Request Send Successfully", font=("Helvetica", 12, "bold"), fg="green")
-            confirmation_label.place(relx=0.1, rely=0.3)
+
 
 # Creating an instance of the StartApp class and starting the application
 app = StartApp()
