@@ -167,17 +167,18 @@ class Admin:
         window.config(menu=menu)
 
         # Create a File menu
-        file_menu = tk.Menu(menu)
-        menu.add_cascade(label="Instructor", menu=file_menu)
-        file_menu.add_command(label="Generate", command=self.define_generate_instructor)
+        instructor_menu = tk.Menu(menu)
+        menu.add_cascade(label="Instructor", menu=instructor_menu)
+        instructor_menu.add_command(label="Generate", command=self.define_generate_instructor)
         #file_menu.add_command(label="Open")
-        file_menu.add_separator()
-        file_menu.add_command(label="Exit", command=window.quit)
+        instructor_menu.add_separator()
+        instructor_menu.add_command(label="Exit", command=window.quit)
 
         # Create a Help menu
-        help_menu = tk.Menu(menu)
-        menu.add_cascade(label="Student", menu=help_menu)
-        help_menu.add_command(label="Generate", command=self.define_generate_student)
+        student_menu = tk.Menu(menu)
+        menu.add_cascade(label="Student", menu=student_menu)
+        student_menu.add_command(label="Generate", command=self.define_generate_student)
+        student_menu.add_command(label="Generate without Lessons", command=self.define_generate_student_without_lesson)
 
         # Create tabs
         tab_control = ttk.Notebook(window)
@@ -601,12 +602,26 @@ class Admin:
         student_generate_button = tk.Button(self.define_generate_student_window, text="Generate", bg="#99FFFF", fg="#994C00", padx=5, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=self.generate_student)
         student_generate_button.place(relx=0.35, rely=0.6)
 
-    def generate_student(self):
+    def define_generate_student_without_lesson(self):
+        self.define_generate_student_window = tk.Toplevel()
+        self.define_generate_student_window.title("Generate Student")
+        self.define_generate_student_window.geometry("300x200+500+250")
+
+        student_number_label = tk.Label(self.define_generate_student_window, text="Student Number to Generate : ", font=("Helvetica", 10, "bold"), fg="brown")
+        student_number_label.place(relx=0.05, rely=0.3)
+
+        self.student_number_field = tk.Entry(self.define_generate_student_window, width=3, font=('Arial 12'))
+        self.student_number_field.place(relx=0.75, rely=0.3)
+        
+        student_generate_button = tk.Button(self.define_generate_student_window, text="Generate", bg="#99FFFF", fg="#994C00", padx=5, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=lambda: self.generate_student(1))
+        student_generate_button.place(relx=0.35, rely=0.6)
+
+    def generate_student(self, param=0):
         names = ["Akasya", "Arda", "Alya", "Baha", "Barış", "Beren", "Berkan", "Cemre", "Ceyda", "Caner", "Çağla", "Çağdaş", "Deren", "Dilara", "Demirkan", "Edis", "Efe", "Ece", "Ezgi", "Ferda", "Fulya", "Cemre", "Hakan", "İlkay", "İlker", "Kaan", "Gizem", "Helin", "Irmak", "Işıl", "İdil", "Kuzey", "Mert", "Nusret", "Olcay", "Jale", "Kumru", "Melda", "Naz", "Nil", "Oya", "Övünç", "Reha", "Sertaç", "Öykü", "Pelin", "Selin", "Şule", "Taner", "Turgay", "Vedat", "Zafer", "Tülin", "Yonca"]
         surnames = ["Şen", "Kandemir", "Çevik", "Tüten", "Yücel", "Sönmez", "Ertekin", "Dede", "Uyanık", "Aslan", "Akbulut", "Uz", "Kaya", "Kulaç", "Selvi", "Akpınar", "Abacıoğlu", "Işık", "Özer", "Özdemir", "Tahtacı", "Büyükcam", "Kulaksız", "Aksel", "Eroğlu", "Karakum", "Dal", "Yiğit", "Gümüşay", "Yılmaz", "Sezer", "Doğan", "Demir", "Kayayurt", "Turgut", "Aldinç", "Tekin", "Almacıoğlu", "Öner", "Yaman", "Şentürk", "Yıldız", "Güler", "Koç", "Korkmaz", "Aydoğan"]
         grades = ["AA", "BA", "BB", "CB", "CC", "DC"]
-        lessons = ["history 1", "turkish 1", "english 1", "physics 1", "linear algebra", "maths 1", "computer laboratory 1", "introduction to computer engineering", "programming 1", "history 2", "turkish 2", "english 2", "physics 2", "maths 2", "computer laboratory 2", "programming 2", "electrical circuit basic", "differential equations", "object oriented programming", "data structures and algorithms", "programming laboratory 1", "logic", "internship 1", "discrete maths", "probability and random variables", "electronic", "computer organization and architecture", "database management", "programming laboratory 2", "system programming", "internship 2", "numerical methods", "sign and systems", "operating systems", "software laboratory 1", "internship 3", "automata theory", "digital data communication", "software laboratory 2", "software engineering", "internship 4"]
-        total_lessons_number = [10, 15, 20, 25, 30, 35, 40]
+        lessons = ["Atatürk İlkeleri ve İnkilap Tarihi I (UE)", "Atatürk İlkeleri ve İnkilap Tarihi II (UE)", "Oyun Teorisi", "AFETLER VE ZARALARININ AZALTILMASI", "Türk Dili I (UE)", "Türk Dili II (UE)", "İngilizce I (UE)", "Bilgisayar Laboratuvarı I", "Bilgisayar Mühendisliğine Giriş", "Programlama I", "Fizik I", "Lineer Cebir", "Matematik I", "Bilgisayar Laboratuvarı II", "Elektrik Devre Temelleri ve Uygulamaları", "Programlama II", "Fizik II", "Matematik II", "Veri Yapıları ve Algoritmaları", "Programlama Laboratuvarı - I", "Mantıksal Tasarım ve Uygulamaları", "Diferansiyel Denklemler", "Kesikli Matematik", "Nesneye Yönelik Programlama", "Bilgisayar Organizasyonu ve Mimarisi", "electronic", "Veritabanı Yönetimi", "Programlama Laboratuvarı – II", "Sistem Programlama", "Türkiye İktisat Tarihi", "Olasılık ve Raslantı Değişkenleri", "Elektronik ve Uygulamaları", "İngilizce II (UE)"]
+        total_lessons_number = [10, 15, 20, 25, 30]
         self.student_number = self.student_number_field.get()
         number = int(self.student_number)
         for i in range(0, number):
@@ -621,23 +636,25 @@ class Admin:
             self.db.execute_query(insert_query, data_to_insert)
             self.db.commit()
 
-            random_number = random.randint(0, 6)
-            total_lesson_number = total_lessons_number[random_number]
-            for j in range(0, total_lesson_number):
-                select_data_query = "SELECT student_no FROM student ORDER BY student_no DESC LIMIT 1;"
-                self.db.execute_query(select_data_query)
-                results = self.db.fetch_data()
+            if(param==0):
+                random_number = random.randint(0, 4)
+                total_lesson_number = total_lessons_number[random_number]
+                for j in range(0, total_lesson_number):
+                    select_data_query = "SELECT student_no FROM student ORDER BY student_no DESC LIMIT 1;"
+                    self.db.execute_query(select_data_query)
+                    results = self.db.fetch_data()
 
-                random_number = random.randint(0, 5)
-                mark = grades[random_number]
-                insert_query = "INSERT INTO student_lesson (student_no, lesson_id, mark) VALUES (%s, %s, %s)"
-                data_to_insert = (results[0], j+1, mark)
+                    random_number = random.randint(0, 5)
+                    mark = grades[random_number]
+                    insert_query = "INSERT INTO student_lesson (student_no, lesson_id, mark) VALUES (%s, %s, %s)"
+                    data_to_insert = (results[0], j+1, mark)
 
-                self.db.execute_query(insert_query, data_to_insert)
-                self.db.commit()
+                    self.db.execute_query(insert_query, data_to_insert)
+                    self.db.commit()
 
-        select_data_query = "SELECT student_no FROM student"
-        self.db.execute_query(select_data_query)
+        select_data_query = "SELECT student_no FROM student ORDER BY student_no DESC LIMIT %s"
+        data = (number,)
+        self.db.execute_query(select_data_query, data)
         results = self.db.fetch_data()
 
         for result in results:
@@ -648,7 +665,7 @@ class Admin:
             self.db.execute_query(insert_query_2, data_to_insert_2)
             self.db.commit()    
 
-        self.get_student_data()
+        self.refresh_student_data()
         success_label = tk.Label(self.define_generate_student_window, text="SUCCESSFUL", font=("Helvetica", 12, "bold"), fg="green")
         success_label.place(relx=0.3, rely=0.1)
 
@@ -768,7 +785,7 @@ class Student:
         # Create a File menu
         file_menu = tk.Menu(menu)
         menu.add_cascade(label="Transcript", menu=file_menu)
-        file_menu.add_command(label="Upload", command=self.open_upload_transcript_window)
+        file_menu.add_command(label="Upload", command=self.upload_pdf_file)
         #file_menu.add_command(label="Open")
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=window.quit)
@@ -924,18 +941,6 @@ class Student:
         # Start the tkinter main loop
         window.mainloop()
 
-    def open_upload_transcript_window(self):
-        self.upload_transcript_window = tk.Toplevel()
-        self.upload_transcript_window.title("Upload Transcript")
-        self.upload_transcript_window.state("zoomed")
-
-        # Label to display the selected file and number of pages
-        self.status_label = tk.Label(self.upload_transcript_window, text="", wraplength=300)
-        self.status_label.pack()
-
-        upload_transcript_button = tk.Button(self.upload_transcript_window, text="Upload File", bg="#99FFFF", fg="#994C00", padx=5, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=self.upload_pdf_file)
-        upload_transcript_button.place(relx=0.47, rely=0.8)
-
     def upload_pdf_file(self):
         file_path = filedialog.askopenfilename(
             filetypes=[("PDF files", "*.pdf")],
@@ -949,19 +954,13 @@ class Student:
             copyfile(file_path, destination_file_path)
             self.pdf_reader = PdfReader(open(file_path, "rb"))
             self.num_pages = len(self.pdf_reader.pages)
-            self.status_label.config(text=f"Selected File: {file_path}\nNumber of Pages: {self.num_pages}")
-            # Create a text display area to show the extracted text
-            text_display = tk.Text(self.upload_transcript_window, height=30, width=120)
-            text_display.pack()
+
             doc = fitz.open(file_path)
             text = ""
 
             for page in doc:
                 extracted_text = page.get_text()
                 text += extracted_text
-
-            text_display.delete(1.0, tk.END)
-            text_display.insert(tk.END, text)
 
             lesson_names = []
             marks = []
@@ -979,12 +978,12 @@ class Student:
 
             for i in range(0, 32):
                 
-                select_data_query = "SELECT course_id FROM course WHERE name = %s"
+                select_data_query = "SELECT lesson_id FROM lesson WHERE name = %s"
                 data = (lesson_names[i], )
                 self.db.execute_query(select_data_query, data)
                 results = self.db.fetch_data()
 
-                insert_data_query = """INSERT INTO student_course (student_no, course_id, mark) VALUES (%s, %s, %s)"""
+                insert_data_query = """INSERT INTO student_lesson (student_no, lesson_id, mark) VALUES (%s, %s, %s)"""
                 data_to_insert = (self.result[0][0], results[0], marks[i])
                 self.db.execute_query(insert_data_query, data_to_insert)
                 self.db.commit()
@@ -993,6 +992,8 @@ class Student:
             data_to_insert = (self.result[0][0], "transcript.pdf", text)
             self.db.execute_query(insert_data_query, data_to_insert)
             self.db.commit()
+
+            self.get_lesson_data()
 
     def get_lesson_data(self):
         select_data_query = "SELECT l.name, l.AKTS, sl.mark FROM student_lesson AS sl INNER JOIN lesson AS l on sl.lesson_id=l.lesson_id WHERE sl.student_no = %s"
