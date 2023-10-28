@@ -14,6 +14,8 @@ from PyPDF2 import PdfReader
 from shutil import copyfile
 import fitz  # PyMuPDF
 
+character_number = 5
+
 class DatabaseConnection:
     def __init__(self):
         try:
@@ -179,6 +181,11 @@ class Admin:
         menu.add_cascade(label="Student", menu=student_menu)
         student_menu.add_command(label="Generate", command=self.define_generate_student)
         student_menu.add_command(label="Generate without Lessons", command=self.define_generate_student_without_lesson)
+
+        # Create a Help menu
+        message_menu = tk.Menu(menu)
+        menu.add_cascade(label="Message", menu=message_menu)
+        message_menu.add_command(label="Set Number of Characters", command=self.set_number_of_characters_window)
 
         # Create tabs
         tab_control = ttk.Notebook(window)
@@ -671,9 +678,37 @@ class Admin:
 
         self.define_generate_student_window.after(1000, self.define_generate_student_window.destroy)
 
+    def set_number_of_characters_window(self):
+        self.number_of_characters_window = tk.Toplevel()
+        self.number_of_characters_window.title("Set Number of Characters")
+        self.number_of_characters_window.geometry("300x250+500+250")
+
+        number_label = tk.Label(self.number_of_characters_window, text=f"Current Character Number : {character_number}", font=("Helvetica", 10, "bold"), fg="brown")
+        number_label.place(relx=0.05, rely=0.3)
+
+        character_number_label = tk.Label(self.number_of_characters_window, text="Character Number to Set : ", font=("Helvetica", 10, "bold"), fg="brown")
+        character_number_label.place(relx=0.05, rely=0.5)
+
+        self.character_number_field = tk.Entry(self.number_of_characters_window, width=7, font=('Arial 12'))
+        self.character_number_field.place(relx=0.70, rely=0.5)
+        
+        character_generate_button = tk.Button(self.number_of_characters_window, text="Set", bg="#99FFFF", fg="#994C00", padx=5, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=self.set_number_of_characters)
+        character_generate_button.place(relx=0.35, rely=0.7)
+
+    def set_number_of_characters(self):
+        global character_number
+        character_number = self.character_number_field.get()
+
+        if(self.character_number_field.get()):
+            success_label = tk.Label(self.number_of_characters_window, text="SUCCESSFUL", font=("Helvetica", 12, "bold"), fg="green")
+            success_label.place(relx=0.3, rely=0.1)
+
+            self.number_of_characters_window.after(1000, self.number_of_characters_window.destroy)
+        
 class Instructor:
     def __init__(self):
         self.login_window = tk.Tk()
+        self.db = DatabaseConnection()
 
     def login(self):
         
@@ -703,26 +738,211 @@ class Instructor:
         password = self.password_field.get()
         
         # Query the database to check the credentials
-        select_query = "SELECT username,password FROM instructor WHERE username = %s AND password = %s"
+        select_query = "SELECT registry_no, title, name, surname, username,password FROM instructor WHERE username = %s AND password = %s"
         data = (username, password)
 
         self.db.execute_query(select_query, data)
-        result = self.db.fetch_data()
+        self.result = self.db.fetch_data()
 
-        if result:
-            Instructor.close_login(self)
+        if self.result:
+            self.close_login()
         else:
             error_label = tk.Label(self.login_window, text="Invalid username or password!", font=("Helvetica", 15, "bold"), fg="red")
             error_label.place(relx=0.37, rely=0.3)
 
     def close_login(self):
         self.login_window.destroy()
-        Instructor.dashboard()
+        self.dashboard()
 
-    def dashboard():
+    def dashboard(self):
         window = tk.Toplevel()
         window.title("Instructor Dashboard")
         window.state("zoomed")
+
+        # Create a menu bar
+        menu = tk.Menu(window)
+        window.config(menu=menu)
+
+        # Create a File menu
+        file_menu = tk.Menu(menu)
+        menu.add_cascade(label="Transcript", menu=file_menu)
+        file_menu.add_command(label="Upload")
+        #file_menu.add_command(label="Open")
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=window.quit)
+
+        # Create a Help menu
+        help_menu = tk.Menu(menu)
+        menu.add_cascade(label="About", menu=help_menu)
+        help_menu.add_command(label="About")
+        
+        # Create tabs
+        tab_control = ttk.Notebook(window)
+
+        # Tab 1
+        general_tab = ttk.Frame(tab_control)
+        tab_control.add(general_tab, text="General")
+        general_label = tk.Label(general_tab, text="General Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        general_label.pack()
+
+        name_surname_label = tk.Label(general_tab, text=f"{self.result[0][1]} {self.result[0][2]} {self.result[0][3]}", font=("Helvetica", 12, "bold"), fg="brown")
+        name_surname_label.place(relx=0.85, rely=0.03)
+
+        # Tab 2
+        self.message_tab = ttk.Frame(tab_control)
+        tab_control.add(self.message_tab, text="Messages")
+        message_label = tk.Label(self.message_tab, text="Messages", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        message_label.pack()
+        #button1 = tk.Button(tab1, text="Open Tab 2", command=lambda: open_tab(tab2))
+        #button1.pack()
+
+        name_surname_label = tk.Label(self.message_tab, text=f"{self.result[0][1]} {self.result[0][2]}  {self.result[0][3]}", font=("Helvetica", 12, "bold"), fg="brown")
+        name_surname_label.place(relx=0.85, rely=0.03)
+
+        # Create a Treeview widget (the table)
+        self.message_tree = ttk.Treeview(self.message_tab, columns=("Name", "Surname", "Message"), show="headings")
+        self.message_tree.heading("#1", text="Name")
+        self.message_tree.heading("#2", text="Surname")
+        self.message_tree.heading("#3", text="Message")
+        self.message_tree.pack()
+        self.get_message_data(0)
+
+        message_refresh_button = tk.Button(self.message_tab, text="Refresh", bg="#99FFFF", fg="#994C00", padx=5, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=lambda: self.get_message_data(1))
+        message_refresh_button.place(relx=0.9, rely=0.1)
+
+        """
+        # Tab 3
+        self.interest_tab = ttk.Frame(tab_control)
+        tab_control.add(self.interest_tab, text="Interest Field")
+        student_label = tk.Label(self.interest_tab, text="Interest Field Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        student_label.pack()
+        #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
+        #button2.pack()
+
+        name_surname_label = tk.Label(self.interest_tab, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
+        name_surname_label.place(relx=0.85, rely=0.03)
+
+        self.sub_interest_tab = ttk.Frame(self.interest_tab)
+        self.sub_interest_tab.pack()
+
+        #def on_option_selected(*args):
+            #selected = selected_option.get()
+
+        # Create a variable to store the selected option
+        self.lesson_selected_option = tk.StringVar(self.sub_interest_tab)
+
+        # List of options for the dropdown
+        lesson_options = ["Select Lesson"]
+
+        select_data_query = "SELECT name FROM opened_lesson"
+        self.db.execute_query(select_data_query)
+        results = self.db.fetch_data()
+        for result in results:
+            lesson_name = result[0]
+            lesson_options.append(lesson_name)
+
+        # Create the OptionMenu widget
+        lesson_option_menu = tk.OptionMenu(self.sub_interest_tab, self.lesson_selected_option, *lesson_options)
+        lesson_option_menu.pack(side="left", padx=30, pady=30)
+
+        # Set the default selected option (optional)
+        self.lesson_selected_option.set(lesson_options[0])
+
+        # Bind the function to the selection event
+        self.lesson_selected_option.trace("w", self.on_lesson_option_selected)
+
+
+        # Create a variable to store the selected option
+        self.interest_selected_option = tk.StringVar(self.sub_interest_tab)
+
+        # List of options for the dropdown
+        interest_options = ["Select Interest"]
+
+        select_data_query = "SELECT field FROM interest"
+        self.db.execute_query(select_data_query)
+        results = self.db.fetch_data()
+        for result in results:
+            interest_name = result[0]
+            interest_options.append(interest_name)
+
+        # Create the OptionMenu widget
+        interest_option_menu = tk.OptionMenu(self.sub_interest_tab, self.interest_selected_option, *interest_options)
+        interest_option_menu.pack(side="left",padx=30, pady=30)
+
+        # Set the default selected option (optional)
+        self.interest_selected_option.set(interest_options[0])
+
+        # Bind the function to the selection event
+        self.interest_selected_option.trace("w", self.on_interest_option_selected)
+
+         # Create a Treeview widget (the table)
+        self.interest_tree = ttk.Treeview(self.interest_tab, columns=("Lesson Name", "Interest Field", "Instructor Title", "Instructor Name", "Instructor Surname", "Quota"), show="headings")
+        self.interest_tree.heading("#1", text="Lesson Name")
+        self.interest_tree.heading("#2", text="Interest Field")
+        self.interest_tree.heading("#3", text="Instructor Title")
+        self.interest_tree.heading("#4", text="Instructor Name")
+        self.interest_tree.heading("#5", text="Instructor Surname")
+        self.interest_tree.heading("#6", text="Quota")
+        self.interest_tree.pack()
+        self.get_interest_data()
+
+        # Create the context menu
+        self.interest_m = tk.Menu(self.interest_tree, tearoff=0)
+        self.interest_m.add_command(label="Demand", command=self.make_demand)
+        self.interest_m.add_command(label="Demand with Message", command=self.write_message)
+        self.interest_m.add_separator()
+
+        # Tab 4
+        self.demand_tab = ttk.Frame(tab_control)
+        tab_control.add(self.demand_tab, text="Demand")
+        student_label = tk.Label(self.demand_tab, text="Demand Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        student_label.pack()
+        #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
+        #button2.pack()
+
+        name_surname_label = tk.Label(self.demand_tab, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
+        name_surname_label.place(relx=0.85, rely=0.03)
+
+        # Create a Treeview widget (the table)
+        self.demand_tree = ttk.Treeview(self.demand_tab, columns=("Lesson Name", "Interest Field", "Instructor Title", "Instructor Name", "Instructor Surname", "Quota"), show="headings")
+        self.demand_tree.heading("#1", text="Lesson Name")
+        self.demand_tree.heading("#2", text="Interest Field")
+        self.demand_tree.heading("#3", text="Instructor Title")
+        self.demand_tree.heading("#4", text="Instructor Name")
+        self.demand_tree.heading("#5", text="Instructor Surname")
+        self.demand_tree.heading("#6", text="Quota")
+        self.demand_tree.pack()
+        self.get_demand_data()
+
+        # Create the context menu
+        self.demand_m = tk.Menu(self.demand_tree, tearoff=0)
+        self.demand_m.add_command(label="Withdraw", command=self.withdraw_demand)
+        self.demand_m.add_separator()
+        """
+        # Set the default tab to open
+        tab_control.select(general_tab)
+
+        tab_control.pack(expand=1, fill="both")
+        
+        # Start the tkinter main loop
+        window.mainloop()
+        
+    def get_message_data(self, refresh):
+        if(refresh==1):
+            # Clear existing data in the Treeview
+            for item in self.message_tree.get_children():
+                self.message_tree.delete(item)
+
+        select_data_query = "SELECT s.name, s.surname ,m.content FROM message AS m INNER JOIN student AS s on m.student_no=s.student_no"
+        self.db.execute_query(select_data_query)
+        results = self.db.fetch_data()
+
+        # Insert data into the table
+        for item in results:
+            self.message_tree.insert("", "end", values=item)
+
+        # Bind the right-click context menu to the Treeview
+        #self.message_tree.bind("<Button-3>", self.do_popup_interest)
 
 class Student:
     def __init__(self):
@@ -904,6 +1124,7 @@ class Student:
         # Create the context menu
         self.interest_m = tk.Menu(self.interest_tree, tearoff=0)
         self.interest_m.add_command(label="Demand", command=self.make_demand)
+        self.interest_m.add_command(label="Demand with Message", command=self.write_message)
         self.interest_m.add_separator()
 
         # Tab 4
@@ -1088,6 +1309,58 @@ class Student:
             self.selected_deal_id = item['values'][6]  # Extract the 'registry_no' value
             self.demand_m.tk_popup(event.x_root, event.y_root)
 
+    def write_message(self):
+        global character_number
+        self.message_window = tk.Tk()
+        self.message_window.title("Message Window")
+        self.message_window.geometry("600x400+300+200")
+
+        character_limit_label = tk.Label(self.message_window, text=f"Character Limit : {character_number}", font=("Helvetica", 12, "bold"), fg="green")
+        character_limit_label.place(relx=0.1, rely=0.2)
+
+        # Create a text entry field
+        self.message_entry = tk.Text(self.message_window, width=60, height=10)
+        self.message_entry.place(relx=0.1, rely=0.3)
+
+        def enforce_character_limit(event):
+            # Get the current text in the text widget
+            current_text = self.message_entry.get("1.0", "end-1c")
+            character_limit = int(character_number)-1  # You can set your desired character limit
+
+            # Check if the character limit is reached
+            if len(current_text) > character_limit:
+                # Prevent further input by disabling the widget
+                self.message_entry.config(state=tk.DISABLED)
+
+        # Bind the enforce_character_limit function to the text widget
+        self.message_entry.bind("<Key>", enforce_character_limit)
+
+        send_demand_message_button = tk.Button(self.message_window, text="Send Demand", bg="#99FFFF", fg="#994C00", padx=5, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=self.make_demand_with_message)
+        send_demand_message_button.place(relx=0.4, rely=0.8)
+
+    def make_demand_with_message(self):
+        select_query = "SELECT i.registry_no, iol.opened_lesson_id FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson AS ol on iol.opened_lesson_id=ol.opened_lesson_id WHERE ol.name = %s"
+        data = (self.selected_opened_lesson_name,)
+        self.db.execute_query(select_query, data)
+        results = self.db.fetch_data()
+        
+        insert_query = "INSERT INTO deal (student_no, registry_no, opened_lesson_id, deal_status) VALUES (%s, %s, %s, %s)"
+        data_to_insert = (self.result[0][0], results[0][0], results[0][1], 0)
+        self.db.execute_query(insert_query, data_to_insert)
+        self.db.commit()
+
+        text = self.message_entry.get("1.0", "end-1c")
+        insert_query = "INSERT INTO message (student_no, registry_no, content) VALUES (%s, %s, %s)"
+        data_to_insert = (self.result[0][0], results[0][0], text)
+        self.db.execute_query(insert_query, data_to_insert)
+        self.db.commit()
+
+        confirmation_label = tk.Label(self.message_window, text="Request Send Successfully", font=("Helvetica", 12, "bold"), fg="green")
+        confirmation_label.place(relx=0.1, rely=0.1)
+        self.message_window.after(1000, self.message_window.destroy)
+
+        self.refresh_demand_data()
+        
     def make_demand(self):
         select_query = "SELECT i.registry_no, iol.opened_lesson_id FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson AS ol on iol.opened_lesson_id=ol.opened_lesson_id WHERE ol.name = %s"
         data = (self.selected_opened_lesson_name,)
@@ -1100,11 +1373,12 @@ class Student:
         self.db.commit()
 
         confirmation_window = tk.Tk()
-        confirmation_window.title("Confirmation Window")
-        confirmation_window.geometry("300x150+500+300")
+        confirmation_window.title("Message Window")
+        confirmation_window.geometry("300x150+500+250")
 
         confirmation_label = tk.Label(confirmation_window, text="Request Send Successfully", font=("Helvetica", 12, "bold"), fg="green")
-        confirmation_label.place(relx=0.1, rely=0.3)
+        confirmation_label.place(relx=0.1, rely=0.4)
+        confirmation_window.after(1000, confirmation_window.destroy)
 
         self.refresh_demand_data()
         
@@ -1119,8 +1393,6 @@ class Student:
             selected_item = self.demand_tree.selection()
             if selected_item:
                 self.demand_tree.delete(selected_item)
-
-
 
 # Creating an instance of the StartApp class and starting the application
 app = StartApp()
