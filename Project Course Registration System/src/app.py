@@ -455,7 +455,7 @@ class Admin:
         self.define_generate_instructor_window.after(1000, self.define_generate_instructor_window.destroy)
 
     def get_student_data(self):
-        select_data_query = "SELECT s.student_no, s.name, s.surname, s.deal_status, i.field FROM student AS s INNER JOIN student_interest AS si on s.student_no=si.student_no INNER JOIN interest as i on si.interest_id=i.interest_id"
+        select_data_query = "SELECT s.student_no, s.name, s.surname, d.deal_status, i.field FROM student AS s INNER JOIN student_interest AS si on s.student_no=si.student_no INNER JOIN interest as i on si.interest_id=i.interest_id LEFT JOIN deal AS d ON s.student_no=d.student_no"
         self.db.execute_query(select_data_query)
         results = self.db.fetch_data()
 
@@ -574,8 +574,8 @@ class Admin:
         else:
             status = 0
         # Perform the update in the database
-        update_query = "UPDATE student SET student_no = %s, name = %s, surname = %s, deal_status = %s WHERE student_no = %s"
-        data = (student_no, name, surname, status, self.selected_student_no)
+        update_query = "UPDATE student SET student_no = %s, name = %s, surname = %s, WHERE student_no = %s"
+        data = (student_no, name, surname, self.selected_student_no)
         self.db.execute_query(update_query, data)
         self.db.commit()
 
@@ -637,8 +637,8 @@ class Admin:
             random_number = random.randint(0, 45)
             surname = surnames[random_number]
             
-            insert_query = "INSERT INTO student (name, surname, username, password, deal_status) VALUES (%s, %s, %s, %s, %s)"
-            data_to_insert = (name, surname, name, surname, 0)
+            insert_query = "INSERT INTO student (name, surname, username, password) VALUES (%s, %s, %s, %s)"
+            data_to_insert = (name, surname, name, surname)
 
             self.db.execute_query(insert_query, data_to_insert)
             self.db.commit()
@@ -891,7 +891,7 @@ class Instructor:
         self.interest_m.add_command(label="Demand", command=self.make_demand)
         self.interest_m.add_command(label="Demand with Message", command=self.write_message)
         self.interest_m.add_separator()
-
+        """
         # Tab 4
         self.demand_tab = ttk.Frame(tab_control)
         tab_control.add(self.demand_tab, text="Demand")
@@ -900,25 +900,26 @@ class Instructor:
         #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
         #button2.pack()
 
-        name_surname_label = tk.Label(self.demand_tab, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
+        name_surname_label = tk.Label(self.demand_tab, text=f"{self.result[0][1]} {self.result[0][2]} {self.result[0][3]}", font=("Helvetica", 12, "bold"), fg="brown")
         name_surname_label.place(relx=0.85, rely=0.03)
 
         # Create a Treeview widget (the table)
-        self.demand_tree = ttk.Treeview(self.demand_tab, columns=("Lesson Name", "Interest Field", "Instructor Title", "Instructor Name", "Instructor Surname", "Quota"), show="headings")
+        self.demand_tree = ttk.Treeview(self.demand_tab, columns=("Lesson Name", "Interest Field", "Student No", "Student Name", "Student Surname", "Quota"), show="headings")
         self.demand_tree.heading("#1", text="Lesson Name")
         self.demand_tree.heading("#2", text="Interest Field")
-        self.demand_tree.heading("#3", text="Instructor Title")
-        self.demand_tree.heading("#4", text="Instructor Name")
-        self.demand_tree.heading("#5", text="Instructor Surname")
+        self.demand_tree.heading("#3", text="Student No")
+        self.demand_tree.heading("#4", text="Student Name")
+        self.demand_tree.heading("#5", text="Student Surname")
         self.demand_tree.heading("#6", text="Quota")
         self.demand_tree.pack()
-        self.get_demand_data()
+        self.get_demand_data(0)
 
         # Create the context menu
         self.demand_m = tk.Menu(self.demand_tree, tearoff=0)
-        self.demand_m.add_command(label="Withdraw", command=self.withdraw_demand)
+        self.demand_m.add_command(label="Inspect", command=self.get_student_lesson_data)
+        self.demand_m.add_command(label="Approve", command=self.approve_deal)
         self.demand_m.add_separator()
-        """
+        
         # Set the default tab to open
         tab_control.select(general_tab)
 
@@ -933,7 +934,7 @@ class Instructor:
             for item in self.message_tree.get_children():
                 self.message_tree.delete(item)
 
-        select_data_query = "SELECT s.name, s.surname ,m.content FROM message AS m INNER JOIN student AS s on m.student_no=s.student_no"
+        select_data_query = "SELECT s.name, s.surname, m.content FROM message AS m INNER JOIN student AS s on m.student_no=s.student_no"
         self.db.execute_query(select_data_query)
         results = self.db.fetch_data()
 
@@ -943,6 +944,78 @@ class Instructor:
 
         # Bind the right-click context menu to the Treeview
         #self.message_tree.bind("<Button-3>", self.do_popup_interest)
+
+    def get_demand_data(self, refresh):
+        if(refresh==1):
+            # Clear existing data in the Treeview
+            for item in self.demand_tree.get_children():
+                self.demand_tree.delete(item)
+
+        select_data_query = "SELECT ol.name, inte.field, s.student_no, s.name, s.surname, i.quota FROM deal AS d INNER JOIN student AS s ON d.student_no=s.student_no INNER JOIN instructor AS i ON d.registry_no=i.registry_no INNER JOIN instructor_opened_lesson AS iol ON i.registry_no=iol.registry_no INNER JOIN opened_lesson AS ol ON iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte ON oli.interest_id=inte.interest_id WHERE d.deal_status=0 AND d.registry_no=%s"
+        data = (self.result[0][0],)
+        self.db.execute_query(select_data_query, data)
+        results = self.db.fetch_data()
+
+        # Insert data into the table
+        for item in results:
+            self.demand_tree.insert("", "end", values=item)
+
+        # Bind the right-click context menu to the Treeview
+        self.demand_tree.bind("<Button-3>", self.do_popup_demand)
+
+    def do_popup_demand(self, event):
+        item = self.demand_tree.item(self.demand_tree.selection())  # Get the selected item
+        if item:
+            self.selected_student_no = item['values'][2]  # Extract the 'registry_no' value
+            self.demand_m.tk_popup(event.x_root, event.y_root)
+
+    def get_student_lesson_data(self):
+        student_lesson_window = tk.Tk()
+        student_lesson_window.title("Student Taken Lessons")
+        student_lesson_window.state("zoomed")
+
+        # Create a Treeview widget (the table)
+        self.lesson_tree = ttk.Treeview(student_lesson_window, columns=("Lesson Name", "AKTS", "Mark"), show="headings")
+        self.lesson_tree.heading("#1", text="Lesson Name")
+        self.lesson_tree.heading("#2", text="AKTS")
+        self.lesson_tree.heading("#3", text="Mark")
+        self.lesson_tree.pack(pady=100)
+
+        select_data_query = "SELECT l.name, l.AKTS, sl.mark FROM student_lesson AS sl INNER JOIN lesson AS l on sl.lesson_id=l.lesson_id WHERE sl.student_no = %s"
+        data_to_insert = (self.selected_student_no,)
+        self.db.execute_query(select_data_query, data_to_insert)
+        results = self.db.fetch_data()
+
+        # Insert data into the table
+        for item in results:
+            self.lesson_tree.insert("", "end", values=item)
+
+        # Bind the right-click context menu to the Treeview
+        #self.lesson_tree.bind("<Button-3>", self.do_popup_instructor)
+
+    def approve_deal(self):
+        update_query = "UPDATE deal SET deal_status = %s WHERE student_no = %s"
+        data = (1, self.selected_student_no)
+
+        update_query_2 = "UPDATE instructor SET quota =quota-1 WHERE registry_no = %s"
+        data_2 = (self.result[0][0],)
+
+        try:
+            self.db.execute_query(update_query, data)
+            self.db.commit()
+
+            self.db.execute_query(update_query_2, data_2)
+            self.db.commit()
+
+            confirmation_window = tk.Tk()
+            confirmation_window.title("Confirmation Window")
+            confirmation_window.geometry("300x150+500+250")
+
+            confirmation_label = tk.Label(confirmation_window, text="Deal Approved", font=("Helvetica", 12, "bold"), fg="green")
+            confirmation_label.place(relx=0.1, rely=0.4)
+            confirmation_window.after(1000, confirmation_window.destroy)
+        except Exception as e:
+            print(e)
 
 class Student:
     def __init__(self):
@@ -1028,23 +1101,23 @@ class Student:
         name_surname_label.place(relx=0.85, rely=0.03)
 
         # Tab 2
-        self.lesson_tab = ttk.Frame(tab_control)
-        tab_control.add(self.lesson_tab, text="Lessons")
-        instructor_label = tk.Label(self.lesson_tab, text="Lessons Taken and Grades", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
-        instructor_label.pack()
+        self.lesson_taken_tab = ttk.Frame(tab_control)
+        tab_control.add(self.lesson_taken_tab, text="Lessons Taken")
+        lesson_taken_label = tk.Label(self.lesson_taken_tab, text="Lessons Taken and Grades", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        lesson_taken_label.pack()
         #button1 = tk.Button(tab1, text="Open Tab 2", command=lambda: open_tab(tab2))
         #button1.pack()
 
-        name_surname_label = tk.Label(self.lesson_tab, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
+        name_surname_label = tk.Label(self.lesson_taken_tab, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
         name_surname_label.place(relx=0.85, rely=0.03)
 
         # Create a Treeview widget (the table)
-        self.lesson_tree = ttk.Treeview(self.lesson_tab, columns=("Lesson Name", "AKTS", "Mark"), show="headings")
-        self.lesson_tree.heading("#1", text="Lesson Name")
-        self.lesson_tree.heading("#2", text="AKTS")
-        self.lesson_tree.heading("#3", text="Mark")
-        self.lesson_tree.pack()
-        self.get_lesson_data()
+        self.lesson_taken_tree = ttk.Treeview(self.lesson_taken_tab, columns=("Lesson Name", "AKTS", "Mark"), show="headings")
+        self.lesson_taken_tree.heading("#1", text="Lesson Name")
+        self.lesson_taken_tree.heading("#2", text="AKTS")
+        self.lesson_taken_tree.heading("#3", text="Mark")
+        self.lesson_taken_tree.pack()
+        self.get_lesson_taken_data()
 
         # Tab 3
         self.interest_tab = ttk.Frame(tab_control)
@@ -1153,6 +1226,36 @@ class Student:
         self.demand_m = tk.Menu(self.demand_tree, tearoff=0)
         self.demand_m.add_command(label="Withdraw", command=self.withdraw_demand)
         self.demand_m.add_separator()
+
+        # Tab 5
+        self.lesson_tab = ttk.Frame(tab_control)
+        tab_control.add(self.lesson_tab, text="Lesson")
+        student_label = tk.Label(self.lesson_tab, text="Lesson Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        student_label.pack()
+        #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
+        #button2.pack()
+
+        name_surname_label = tk.Label(self.lesson_tab, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
+        name_surname_label.place(relx=0.85, rely=0.03)
+
+        # Create a Treeview widget (the table)
+        self.lesson_tree = ttk.Treeview(self.lesson_tab, columns=("Lesson Name", "Interest Field", "Instructor Title", "Instructor Name", "Instructor Surname", "Quota"), show="headings")
+        self.lesson_tree.heading("#1", text="Lesson Name")
+        self.lesson_tree.heading("#2", text="Interest Field")
+        self.lesson_tree.heading("#3", text="Instructor Title")
+        self.lesson_tree.heading("#4", text="Instructor Name")
+        self.lesson_tree.heading("#5", text="Instructor Surname")
+        self.lesson_tree.heading("#6", text="Quota")
+        self.lesson_tree.pack()
+        self.get_lesson_data(0)
+
+        lesson_refresh_button = tk.Button(self.lesson_tab, text="Refresh", bg="#99FFFF", fg="#994C00", padx=5, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=lambda: self.get_lesson_data(1))
+        lesson_refresh_button.place(relx=0.7, rely=0.02)
+
+        # Create the context menu
+        #self.lesson_m = tk.Menu(self.lesson_tree, tearoff=0)
+        #self.lesson_m.add_command(label="Withdraw", command=self.withdraw_demand)
+        #self.lesson_m.add_separator()
         
         # Set the default tab to open
         tab_control.select(general_tab)
@@ -1214,9 +1317,9 @@ class Student:
             self.db.execute_query(insert_data_query, data_to_insert)
             self.db.commit()
 
-            self.get_lesson_data()
+            self.get_lesson_taken_data()
 
-    def get_lesson_data(self):
+    def get_lesson_taken_data(self):
         select_data_query = "SELECT l.name, l.AKTS, sl.mark FROM student_lesson AS sl INNER JOIN lesson AS l on sl.lesson_id=l.lesson_id WHERE sl.student_no = %s"
         data_to_insert = (self.result[0][0],)
         self.db.execute_query(select_data_query, data_to_insert)
@@ -1224,7 +1327,7 @@ class Student:
 
         # Insert data into the table
         for item in results:
-            self.lesson_tree.insert("", "end", values=item)
+            self.lesson_taken_tree.insert("", "end", values=item)
 
         # Bind the right-click context menu to the Treeview
         #self.lesson_tree.bind("<Button-3>", self.do_popup_instructor)
@@ -1254,6 +1357,23 @@ class Student:
         # Bind the right-click context menu to the Treeview
         self.demand_tree.bind("<Button-3>", self.do_popup_demand)
     
+    def get_lesson_data(self, refresh):
+        if(refresh==1):
+            # Clear existing data in the Treeview
+            for item in self.lesson_tree.get_children():
+                self.lesson_tree.delete(item)
+        select_data_query = "SELECT ol.name, inte.field, i.title, i.name, i.surname, i.quota, d.deal_id FROM deal AS d INNER JOIN instructor AS i on d.registry_no=i.registry_no INNER JOIN opened_lesson AS ol on d.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli on ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id WHERE d.student_no = %s AND d.deal_status=1"
+        data = (self.result[0][0],)
+        self.db.execute_query(select_data_query, data)
+        self.results = self.db.fetch_data()
+
+        # Insert data into the table
+        for item in self.results:
+            self.lesson_tree.insert("", "end", values=item)
+
+        # Bind the right-click context menu to the Treeview
+        #self.demand_tree.bind("<Button-3>", self.do_popup_demand)
+
     def refresh_interest_data(self):
         # Clear existing data in the Treeview
         for item in self.interest_tree.get_children():
@@ -1373,7 +1493,7 @@ class Student:
         self.db.commit()
 
         confirmation_window = tk.Tk()
-        confirmation_window.title("Message Window")
+        confirmation_window.title("Confirmation Window")
         confirmation_window.geometry("300x150+500+250")
 
         confirmation_label = tk.Label(confirmation_window, text="Request Send Successfully", font=("Helvetica", 12, "bold"), fg="green")
