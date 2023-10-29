@@ -794,8 +794,7 @@ class Instructor:
         general_label = tk.Label(general_tab, text="General Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
         general_label.pack()
 
-        name_surname_label = tk.Label(general_tab, text=f"{self.result[0][1]} {self.result[0][2]} {self.result[0][3]}", font=("Helvetica", 12, "bold"), fg="brown")
-        name_surname_label.place(relx=0.85, rely=0.03)
+        self.get_instructor_name_surname(general_tab)
 
         # Tab 2
         self.interest_tab = ttk.Frame(tab_control)
@@ -805,8 +804,7 @@ class Instructor:
         #button1 = tk.Button(tab1, text="Open Tab 2", command=lambda: open_tab(tab2))
         #button1.pack()
 
-        name_surname_label = tk.Label(self.interest_tab, text=f"{self.result[0][1]} {self.result[0][2]}  {self.result[0][3]}", font=("Helvetica", 12, "bold"), fg="brown")
-        name_surname_label.place(relx=0.85, rely=0.03)
+        self.get_instructor_name_surname(self.interest_tab)
 
         select_data_query = "SELECT interest_id, field FROM interest"
         self.db.execute_query(select_data_query)
@@ -824,7 +822,40 @@ class Instructor:
         add_button = tk.Button(self.interest_tab, text="Add Interests", bg="#99FFFF", fg="#994C00", padx=5, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=self.add_interests)
         add_button.pack(pady=50)
 
+        # Tab 3
+        self.score_tab = ttk.Frame(tab_control)
+        tab_control.add(self.score_tab, text="Lesson Scoring")
+        score_label = tk.Label(self.score_tab, text="Lesson Scoring", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        score_label.pack()
+        #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
+        #button2.pack()
 
+        self.get_instructor_name_surname(self.score_tab)
+
+        # Tab 4
+        self.student_tab = ttk.Frame(tab_control)
+        tab_control.add(self.student_tab, text="Student")
+        student_label = tk.Label(self.student_tab, text="Student Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        student_label.pack()
+        #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
+        #button2.pack()
+
+        self.get_instructor_name_surname(self.student_tab)
+        
+        # Create a Treeview widget (the table)
+        self.student_tree = ttk.Treeview(self.student_tab, columns=("Student No", "Name", "Surname", "Status", "Field"), show="headings")
+        self.student_tree.heading("#1", text="Student No")
+        self.student_tree.heading("#2", text="Name")
+        self.student_tree.heading("#3", text="Surname")
+        self.student_tree.heading("#4", text="Status")
+        self.student_tree.heading("#5", text="Field")
+        self.student_tree.pack()
+        self.get_same_field_student_data(0) 
+        
+        # Create the context menu
+        self.student_m = tk.Menu(self.student_tree, tearoff=0)
+        self.student_m.add_command(label="Inspect", command=self.get_student_lesson_data)
+        self.student_m.add_separator()
 
         """
         # Create checkboxes based on the retrieved data
@@ -854,7 +885,7 @@ class Instructor:
         self.checkbox_label1.pack()
         self.checkbox_label2.pack()
         """
-        # Tab 3
+        # Tab 5
         self.message_tab = ttk.Frame(tab_control)
         tab_control.add(self.message_tab, text="Messages")
         message_label = tk.Label(self.message_tab, text="Messages", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
@@ -862,8 +893,7 @@ class Instructor:
         #button1 = tk.Button(tab1, text="Open Tab 2", command=lambda: open_tab(tab2))
         #button1.pack()
 
-        name_surname_label = tk.Label(self.message_tab, text=f"{self.result[0][1]} {self.result[0][2]}  {self.result[0][3]}", font=("Helvetica", 12, "bold"), fg="brown")
-        name_surname_label.place(relx=0.85, rely=0.03)
+        self.get_instructor_name_surname(self.message_tab)
 
         # Create a Treeview widget (the table)
         self.message_tree = ttk.Treeview(self.message_tab, columns=("Name", "Surname", "Message"), show="headings")
@@ -958,7 +988,7 @@ class Instructor:
         self.interest_m.add_command(label="Demand with Message", command=self.write_message)
         self.interest_m.add_separator()
         """
-        # Tab 4
+        # Tab 6
         self.demand_tab = ttk.Frame(tab_control)
         tab_control.add(self.demand_tab, text="Demand")
         student_label = tk.Label(self.demand_tab, text="Demand Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
@@ -966,8 +996,7 @@ class Instructor:
         #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
         #button2.pack()
 
-        name_surname_label = tk.Label(self.demand_tab, text=f"{self.result[0][1]} {self.result[0][2]} {self.result[0][3]}", font=("Helvetica", 12, "bold"), fg="brown")
-        name_surname_label.place(relx=0.85, rely=0.03)
+        self.get_instructor_name_surname(self.demand_tab)
 
         # Create a Treeview widget (the table)
         self.demand_tree = ttk.Treeview(self.demand_tab, columns=("Lesson Name", "Interest Field", "Student No", "Student Name", "Student Surname", "Quota"), show="headings")
@@ -1048,11 +1077,46 @@ class Instructor:
         # Bind the right-click context menu to the Treeview
         self.demand_tree.bind("<Button-3>", self.do_popup_demand)
 
+    def get_same_field_student_data(self, refresh):
+        if(refresh==1):
+            # Clear existing data in the Treeview
+            for item in self.student_tree.get_children():
+                self.student_tree.delete(item)
+
+        select_data_query = "SELECT interest_id FROM instructor_interest"
+        self.db.execute_query(select_data_query)
+        interest_ids = self.db.fetch_data()
+
+        for interest_id in interest_ids:
+            select_data_query = "SELECT s.student_no, s.name, s.surname, d.deal_status, inte.field FROM student AS s INNER JOIN student_interest AS si ON s.student_no=si.student_no INNER JOIN interest AS inte ON si.interest_id=inte.interest_id INNER JOIN deal AS d ON si.student_no=d.student_no WHERE d.deal_status=0 AND si.interest_id=%s"
+            data = (interest_id,)
+            self.db.execute_query(select_data_query, data)
+            results = self.db.fetch_data()
+
+            # Insert data into the table
+            for item in results:
+                item = list(item)
+                if item[3]==1:
+                    item[3]="deal"
+                else:
+                    item[3]="non-deal"
+                item = tuple(item)
+                self.student_tree.insert("", "end", values=item)
+
+        # Bind the right-click context menu to the Treeview
+        self.student_tree.bind("<Button-3>", self.do_popup_student)
+
     def do_popup_demand(self, event):
         item = self.demand_tree.item(self.demand_tree.selection())  # Get the selected item
         if item:
             self.selected_student_no = item['values'][2]  # Extract the 'registry_no' value
             self.demand_m.tk_popup(event.x_root, event.y_root)
+
+    def do_popup_student(self, event):
+        item = self.student_tree.item(self.student_tree.selection())  # Get the selected item
+        if item:
+            self.selected_student_no = item['values'][0]  # Extract the 'registry_no' value
+            self.student_m.tk_popup(event.x_root, event.y_root)
 
     def get_student_lesson_data(self):
         student_lesson_window = tk.Tk()
@@ -1104,6 +1168,10 @@ class Instructor:
         confirmation_label = tk.Label(confirmation_window, text=str, font=("Helvetica", 12, "bold"), fg="green")
         confirmation_label.place(relx=0.1, rely=0.4)
         confirmation_window.after(1000, confirmation_window.destroy)
+
+    def get_instructor_name_surname(self, tab):
+        name_surname_label = tk.Label(tab, text=f"{self.result[0][1]} {self.result[0][2]} {self.result[0][3]}", font=("Helvetica", 12, "bold"), fg="brown")
+        name_surname_label.place(relx=0.85, rely=0.03)
 
 class Student:
     def __init__(self):
