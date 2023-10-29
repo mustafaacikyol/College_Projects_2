@@ -705,6 +705,15 @@ class Admin:
 
             self.number_of_characters_window.after(1000, self.number_of_characters_window.destroy)
         
+    def make_confirmation_window(self, str):
+        confirmation_window = tk.Tk()
+        confirmation_window.title("Confirmation Window")
+        confirmation_window.geometry("300x150+500+250")
+
+        confirmation_label = tk.Label(confirmation_window, text=str, font=("Helvetica", 12, "bold"), fg="green")
+        confirmation_label.place(relx=0.1, rely=0.4)
+        confirmation_window.after(1000, confirmation_window.destroy)
+
 class Instructor:
     def __init__(self):
         self.login_window = tk.Tk()
@@ -789,6 +798,63 @@ class Instructor:
         name_surname_label.place(relx=0.85, rely=0.03)
 
         # Tab 2
+        self.interest_tab = ttk.Frame(tab_control)
+        tab_control.add(self.interest_tab, text="Interest Field")
+        interest_label = tk.Label(self.interest_tab, text="Interest Field", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        interest_label.pack()
+        #button1 = tk.Button(tab1, text="Open Tab 2", command=lambda: open_tab(tab2))
+        #button1.pack()
+
+        name_surname_label = tk.Label(self.interest_tab, text=f"{self.result[0][1]} {self.result[0][2]}  {self.result[0][3]}", font=("Helvetica", 12, "bold"), fg="brown")
+        name_surname_label.place(relx=0.85, rely=0.03)
+
+        select_data_query = "SELECT interest_id, field FROM interest"
+        self.db.execute_query(select_data_query)
+        self.interests = self.db.fetch_data()
+
+        # Create and initialize variables to track checkbox states
+        self.checkbox_vars = [tk.IntVar() for _ in self.interests]
+
+        # Create checkboxes for each interest
+        for i, (interest_id, field) in enumerate(self.interests):
+            checkbox = tk.Checkbutton(self.interest_tab, text=field, variable=self.checkbox_vars[i])
+            checkbox.pack(anchor="w", padx=600)
+
+        # Button to add selected interests to the instructor_interest table
+        add_button = tk.Button(self.interest_tab, text="Add Interests", bg="#99FFFF", fg="#994C00", padx=5, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=self.add_interests)
+        add_button.pack(pady=50)
+
+
+
+        """
+        # Create checkboxes based on the retrieved data
+        for row in interest_results:
+            checkbox_var = tk.IntVar()
+            self.checkbox_vars = [20]
+            self.checkbox_vars.append(checkbox_var)  # Append the IntVar to the list
+            checkbox = tk.Checkbutton(self.interest_tab, text=row[1], variable=checkbox_var, command=lambda id=row[0]: self.on_checkbox_click(id))
+            checkbox.pack()
+        """
+        """
+        # Create variables to store the checkbox states
+        self.checkbox_var1 = tk.IntVar()
+        self.checkbox_var2 = tk.IntVar()
+
+        # Create checkboxes
+        checkbox1 = tk.Checkbutton(self.interest_tab, text="Checkbox 1", variable=self.checkbox_var1, command=lambda: self.on_checkbox_click(1))
+        checkbox2 = tk.Checkbutton(self.interest_tab, text="Checkbox 2", variable=self.checkbox_var2, command=lambda: self.on_checkbox_click(2))
+
+        # Create labels to display the checkbox state
+        self.checkbox_label1 = tk.Label(self.interest_tab, text="Checkbox 1: Unchecked")
+        self.checkbox_label2 = tk.Label(self.interest_tab, text="Checkbox 2: Unchecked")
+
+        # Place checkboxes and labels in the window
+        checkbox1.pack()
+        checkbox2.pack()
+        self.checkbox_label1.pack()
+        self.checkbox_label2.pack()
+        """
+        # Tab 3
         self.message_tab = ttk.Frame(tab_control)
         tab_control.add(self.message_tab, text="Messages")
         message_label = tk.Label(self.message_tab, text="Messages", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
@@ -807,8 +873,8 @@ class Instructor:
         self.message_tree.pack()
         self.get_message_data(0)
 
-        message_refresh_button = tk.Button(self.message_tab, text="Refresh", bg="#99FFFF", fg="#994C00", padx=5, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=lambda: self.get_message_data(1))
-        message_refresh_button.place(relx=0.9, rely=0.1)
+        message_refresh_button = tk.Button(self.message_tab, text="Refresh", command=lambda: self.get_message_data(1))
+        message_refresh_button.place(relx=0.1, rely=0.03)
 
         """
         # Tab 3
@@ -919,6 +985,9 @@ class Instructor:
         self.demand_m.add_command(label="Inspect", command=self.get_student_lesson_data)
         self.demand_m.add_command(label="Approve", command=self.approve_deal)
         self.demand_m.add_separator()
+
+        demand_refresh_button = tk.Button(self.demand_tab, text="Refresh", command=lambda: self.get_demand_data(1))
+        demand_refresh_button.place(relx=0.1, rely=0.03)
         
         # Set the default tab to open
         tab_control.select(general_tab)
@@ -928,6 +997,22 @@ class Instructor:
         # Start the tkinter main loop
         window.mainloop()
         
+    def add_interests(self):
+        selected_interests = [self.interests[i][0] for i, var in enumerate(self.checkbox_vars) if var.get()]
+        if selected_interests:
+            registry_no = self.result[0][0]
+            for interest_id in selected_interests:
+                self.db.cursor.execute("INSERT INTO instructor_interest (registry_no, interest_id) VALUES (%s, %s)", (registry_no, interest_id))
+                select_data_query = "SELECT opened_lesson_id FROM opened_lesson_interest WHERE interest_id=%s"
+                data = (interest_id,)
+                self.db.execute_query(select_data_query, data)
+                opened_lesson_id_results = self.db.fetch_data()
+            self.db.commit()
+            for opened_lesson_id_result in opened_lesson_id_results:
+                self.db.cursor.execute("INSERT INTO instructor_opened_lesson (registry_no, opened_lesson_id) VALUES (%s, %s)", (registry_no, opened_lesson_id_result))
+            self.db.commit()
+            self.make_confirmation_window("Interest Field Added")
+
     def get_message_data(self, refresh):
         if(refresh==1):
             # Clear existing data in the Treeview
@@ -1007,15 +1092,18 @@ class Instructor:
             self.db.execute_query(update_query_2, data_2)
             self.db.commit()
 
-            confirmation_window = tk.Tk()
-            confirmation_window.title("Confirmation Window")
-            confirmation_window.geometry("300x150+500+250")
-
-            confirmation_label = tk.Label(confirmation_window, text="Deal Approved", font=("Helvetica", 12, "bold"), fg="green")
-            confirmation_label.place(relx=0.1, rely=0.4)
-            confirmation_window.after(1000, confirmation_window.destroy)
+            self.make_confirmation_window("Deal Approved")
         except Exception as e:
             print(e)
+
+    def make_confirmation_window(self, str):
+        confirmation_window = tk.Tk()
+        confirmation_window.title("Confirmation Window")
+        confirmation_window.geometry("300x150+500+250")
+
+        confirmation_label = tk.Label(confirmation_window, text=str, font=("Helvetica", 12, "bold"), fg="green")
+        confirmation_label.place(relx=0.1, rely=0.4)
+        confirmation_window.after(1000, confirmation_window.destroy)
 
 class Student:
     def __init__(self):
@@ -1492,14 +1580,7 @@ class Student:
         self.db.execute_query(insert_query, data_to_insert)
         self.db.commit()
 
-        confirmation_window = tk.Tk()
-        confirmation_window.title("Confirmation Window")
-        confirmation_window.geometry("300x150+500+250")
-
-        confirmation_label = tk.Label(confirmation_window, text="Request Send Successfully", font=("Helvetica", 12, "bold"), fg="green")
-        confirmation_label.place(relx=0.1, rely=0.4)
-        confirmation_window.after(1000, confirmation_window.destroy)
-
+        self.make_confirmation_window("Request Send Successfully")
         self.refresh_demand_data()
         
     def withdraw_demand(self):
@@ -1513,6 +1594,15 @@ class Student:
             selected_item = self.demand_tree.selection()
             if selected_item:
                 self.demand_tree.delete(selected_item)
+
+    def make_confirmation_window(self, str):
+        confirmation_window = tk.Tk()
+        confirmation_window.title("Confirmation Window")
+        confirmation_window.geometry("300x150+500+250")
+
+        confirmation_label = tk.Label(confirmation_window, text=str, font=("Helvetica", 12, "bold"), fg="green")
+        confirmation_label.place(relx=0.1, rely=0.4)
+        confirmation_window.after(1000, confirmation_window.destroy)
 
 # Creating an instance of the StartApp class and starting the application
 app = StartApp()
