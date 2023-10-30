@@ -774,8 +774,8 @@ class Instructor:
 
         # Create a File menu
         file_menu = tk.Menu(menu)
-        menu.add_cascade(label="Transcript", menu=file_menu)
-        file_menu.add_command(label="Upload")
+        menu.add_cascade(label="File", menu=file_menu)
+        file_menu.add_command(label="Open")
         #file_menu.add_command(label="Open")
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=window.quit)
@@ -830,7 +830,47 @@ class Instructor:
         #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
         #button2.pack()
 
+        # Create a Canvas for scrollable area
+        self.canvas = tk.Canvas(self.score_tab)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Create a Scrollbar for the Canvas
+        scrollbar = tk.Scrollbar(self.score_tab, orient=tk.VERTICAL, command=self.canvas.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Configure the Canvas to work with the Scrollbar
+        self.canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Create a Frame inside the Canvas to place your labels
+        content_frame = tk.Frame(self.canvas)
+        self.canvas.create_window((0, 0), window=content_frame, anchor=tk.NW)
+
         self.get_instructor_name_surname(self.score_tab)
+
+        select_data_query = "SELECT lesson_id, name FROM lesson"
+        self.db.execute_query(select_data_query)
+        self.lesson_results = self.db.fetch_data()
+
+        self.lesson_field = []
+        for i,lesson_result in enumerate(self.lesson_results):
+            frame = tk.Frame(content_frame)
+            frame.pack(fill=tk.X)  # Ensure the frame takes up the full width
+
+            lesson_label = tk.Label(frame, text=lesson_result[1])
+            lesson_label.pack(side=tk.LEFT)
+            entry = tk.Entry(frame, width=3)
+            entry.pack(side=tk.LEFT)
+
+            self.lesson_field.append(entry)
+
+        submit_button = tk.Button(content_frame, text="Submit", command=self.insert_coefficient_table)
+        submit_button.pack(pady=15)
+
+        # Bind the Canvas to the scrollbar to enable scrolling
+        content_frame.bind("<Configure>", lambda event: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+
+        # Bind the mouse wheel event to scroll the canvas
+        self.canvas.bind("<MouseWheel>", self.on_mousewheel)
 
         # Tab 4
         self.student_tab = ttk.Frame(tab_control)
@@ -841,6 +881,25 @@ class Instructor:
         #button2.pack()
 
         self.get_instructor_name_surname(self.student_tab)
+
+
+        
+        # Create a variable to store the selected option
+        self.score_selected_option = tk.StringVar(self.student_tab)
+
+        # List of options for the dropdown
+        score_options = ["Select Point", "1 point and above", "2 point and above", "3 point and above"]
+
+        # Create the OptionMenu widget
+        score_option_menu = tk.OptionMenu(self.student_tab, self.score_selected_option, *score_options)
+        score_option_menu.pack(pady=20)
+
+        # Set the default selected option (optional)
+        self.score_selected_option.set(score_options[0])
+
+        # Bind the function to the selection event
+        self.score_selected_option.trace("w", self.on_score_option_selected)
+
         
         # Create a Treeview widget (the table)
         self.student_tree = ttk.Treeview(self.student_tab, columns=("Student No", "Name", "Surname", "Status", "Field"), show="headings")
@@ -1026,6 +1085,9 @@ class Instructor:
         # Start the tkinter main loop
         window.mainloop()
         
+    def on_mousewheel(self, event):
+        self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
     def add_interests(self):
         selected_interests = [self.interests[i][0] for i, var in enumerate(self.checkbox_vars) if var.get()]
         if selected_interests:
@@ -1091,10 +1153,10 @@ class Instructor:
             select_data_query = "SELECT s.student_no, s.name, s.surname, d.deal_status, inte.field FROM student AS s INNER JOIN student_interest AS si ON s.student_no=si.student_no INNER JOIN interest AS inte ON si.interest_id=inte.interest_id INNER JOIN deal AS d ON si.student_no=d.student_no WHERE d.deal_status=0 AND si.interest_id=%s"
             data = (interest_id,)
             self.db.execute_query(select_data_query, data)
-            results = self.db.fetch_data()
+            self.student_results = self.db.fetch_data()
 
             # Insert data into the table
-            for item in results:
+            for item in self.student_results:
                 item = list(item)
                 if item[3]==1:
                     item[3]="deal"
@@ -1139,6 +1201,11 @@ class Instructor:
         for item in results:
             self.lesson_tree.insert("", "end", values=item)
 
+        score = self.student_score_calculation(0)
+
+        score_label = tk.Label(student_lesson_window, text=score, font=("Helvetica", 25, "bold"), fg="brown", pady=100)
+        score_label.pack()
+
         # Bind the right-click context menu to the Treeview
         #self.lesson_tree.bind("<Button-3>", self.do_popup_instructor)
 
@@ -1172,6 +1239,103 @@ class Instructor:
     def get_instructor_name_surname(self, tab):
         name_surname_label = tk.Label(tab, text=f"{self.result[0][1]} {self.result[0][2]} {self.result[0][3]}", font=("Helvetica", 12, "bold"), fg="brown")
         name_surname_label.place(relx=0.85, rely=0.03)
+
+    def insert_coefficient_table(self):
+        
+        for i, lesson_result in enumerate(self.lesson_results):
+            number = self.lesson_field[i].get()
+            if number == "":
+                number = 1
+            else:
+                number = int(number)
+
+            insert_data_query = """INSERT INTO coefficient (registry_no, lesson_id, number) VALUES (%s, %s, %s)"""
+            data_to_insert = (self.result[0][0], lesson_result[0] , number)
+            self.db.execute_query(insert_data_query, data_to_insert)
+            self.db.commit()
+        
+        self.make_confirmation_window("Successful")
+
+    def student_score_calculation(self, number):
+        select_data_query = "SELECT sl.lesson_id, sl.mark, c.number FROM student_lesson AS sl INNER JOIN coefficient AS c ON sl.lesson_id=c.lesson_id WHERE sl.student_no = %s AND c.registry_no = %s"
+        if number == 0:
+            data_to_insert = (self.selected_student_no, self.result[0][0])
+        else:
+            data_to_insert = (self.item_student_no, self.result[0][0])
+
+        self.db.execute_query(select_data_query, data_to_insert)
+        results = self.db.fetch_data()
+
+        total_point = 0
+        divider = 0
+        for result in results:
+            if result[1] == "AA":
+                point = 4
+            elif result[1] == "BA":
+                point = 3.5
+            elif result[1] == "BB":
+                point = 3
+            elif result[1] == "CB":
+                point = 2.5
+            elif result[1] == "CC":
+                point = 2
+            elif result[1] == "DC":
+                point = 1.5
+
+            total_point += point*result[2]
+            divider += result[2]
+
+        if divider != 0:
+            score = total_point / divider
+        else:
+            score = "enter coefficient for score calculation"
+
+        return score
+
+    def refresh_student_for_score_data(self):
+        # Clear existing data in the Treeview
+        for item in self.student_tree.get_children():
+            self.student_tree.delete(item)
+
+    def on_score_option_selected(self, *args):
+        self.refresh_student_for_score_data()
+        self.selected_score = self.score_selected_option.get()
+        self.get_same_field_student_data_with_score()
+
+        # Bind the right-click context menu to the Treeview
+        #self.lesson_tree.bind("<Button-3>", self.do_popup_instructor)
+
+    def get_same_field_student_data_with_score(self):
+        select_data_query = "SELECT interest_id FROM instructor_interest"
+        self.db.execute_query(select_data_query)
+        interest_ids = self.db.fetch_data()
+
+        for interest_id in interest_ids:
+            select_data_query = "SELECT s.student_no, s.name, s.surname, d.deal_status, inte.field FROM student AS s INNER JOIN student_interest AS si ON s.student_no=si.student_no INNER JOIN interest AS inte ON si.interest_id=inte.interest_id INNER JOIN deal AS d ON si.student_no=d.student_no WHERE d.deal_status=0 AND si.interest_id=%s"
+            data = (interest_id,)
+            self.db.execute_query(select_data_query, data)
+            self.student_results = self.db.fetch_data()
+
+            # Insert data into the table
+            for item in self.student_results:
+                item = list(item)
+                if item[3]==1:
+                    item[3]="deal"
+                else:
+                    item[3]="non-deal"
+                item = tuple(item)
+
+                self.item_student_no = item[0]
+                score = self.student_score_calculation(1)
+                if self.selected_score == "1 point and above" and score>=1:
+                    self.student_tree.insert("", "end", values=item)
+                elif self.selected_score == "2 point and above" and score>=2:
+                    self.student_tree.insert("", "end", values=item)
+                elif self.selected_score == "3 point and above" and score>=3:
+                    self.student_tree.insert("", "end", values=item)
+
+        # Bind the right-click context menu to the Treeview
+        self.student_tree.bind("<Button-3>", self.do_popup_student)
 
 class Student:
     def __init__(self):
