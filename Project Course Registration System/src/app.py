@@ -882,17 +882,18 @@ class Instructor:
 
         self.get_instructor_name_surname(self.student_tab)
 
+        self.sub_student_tab = ttk.Frame(self.student_tab)
+        self.sub_student_tab.pack()
 
-        
         # Create a variable to store the selected option
-        self.score_selected_option = tk.StringVar(self.student_tab)
+        self.score_selected_option = tk.StringVar(self.sub_student_tab)
 
         # List of options for the dropdown
         score_options = ["Select Point", "1 point and above", "2 point and above", "3 point and above"]
 
         # Create the OptionMenu widget
-        score_option_menu = tk.OptionMenu(self.student_tab, self.score_selected_option, *score_options)
-        score_option_menu.pack(pady=20)
+        score_option_menu = tk.OptionMenu(self.sub_student_tab, self.score_selected_option, *score_options)
+        score_option_menu.pack(side="left",padx=30, pady=30)
 
         # Set the default selected option (optional)
         self.score_selected_option.set(score_options[0])
@@ -900,7 +901,22 @@ class Instructor:
         # Bind the function to the selection event
         self.score_selected_option.trace("w", self.on_score_option_selected)
 
-        
+        # Create a variable to store the selected option
+        self.sort_selected_option = tk.StringVar(self.sub_student_tab)
+
+        # List of options for the dropdown
+        sort_options = ["Select Sort", "Sort by Score"]
+
+        # Create the OptionMenu widget
+        sort_option_menu = tk.OptionMenu(self.sub_student_tab, self.sort_selected_option, *sort_options)
+        sort_option_menu.pack(side="left",padx=30, pady=30)
+
+        # Set the default selected option (optional)
+        self.sort_selected_option.set(score_options[0])
+
+        # Bind the function to the selection event
+        self.sort_selected_option.trace("w", self.on_sort_option_selected)
+
         # Create a Treeview widget (the table)
         self.student_tree = ttk.Treeview(self.student_tab, columns=("Student No", "Name", "Surname", "Status", "Field"), show="headings")
         self.student_tree.heading("#1", text="Student No")
@@ -1145,18 +1161,18 @@ class Instructor:
             for item in self.student_tree.get_children():
                 self.student_tree.delete(item)
 
-        select_data_query = "SELECT interest_id FROM instructor_interest"
-        self.db.execute_query(select_data_query)
+        select_data_query = "SELECT interest_id FROM instructor_interest WHERE registry_no = %s"
+        data = (self.result[0][0],)
+        self.db.execute_query(select_data_query, data)
         interest_ids = self.db.fetch_data()
 
         for interest_id in interest_ids:
-            select_data_query = "SELECT s.student_no, s.name, s.surname, d.deal_status, inte.field FROM student AS s INNER JOIN student_interest AS si ON s.student_no=si.student_no INNER JOIN interest AS inte ON si.interest_id=inte.interest_id INNER JOIN deal AS d ON si.student_no=d.student_no WHERE d.deal_status=0 AND si.interest_id=%s"
-            data = (interest_id,)
+            select_data_query = "SELECT s.student_no, s.name, s.surname, d.deal_status, inte.field FROM student AS s INNER JOIN student_interest AS si ON s.student_no=si.student_no INNER JOIN interest AS inte ON si.interest_id=inte.interest_id LEFT JOIN deal AS d ON si.student_no=d.student_no WHERE si.interest_id=%s"
+            data = (interest_id[0],)
             self.db.execute_query(select_data_query, data)
-            self.student_results = self.db.fetch_data()
-
+            results = self.db.fetch_data()
             # Insert data into the table
-            for item in self.student_results:
+            for item in results:
                 item = list(item)
                 if item[3]==1:
                     item[3]="deal"
@@ -1300,24 +1316,47 @@ class Instructor:
     def on_score_option_selected(self, *args):
         self.refresh_student_for_score_data()
         self.selected_score = self.score_selected_option.get()
+        self.selected_sort = ""
+        self.get_same_field_student_data_with_score()
+
+        # Bind the right-click context menu to the Treeview
+        #self.lesson_tree.bind("<Button-3>", self.do_popup_instructor)
+
+    def on_sort_option_selected(self, *args):
+        self.refresh_student_for_score_data()
+        self.selected_sort = self.sort_selected_option.get()
         self.get_same_field_student_data_with_score()
 
         # Bind the right-click context menu to the Treeview
         #self.lesson_tree.bind("<Button-3>", self.do_popup_instructor)
 
     def get_same_field_student_data_with_score(self):
-        select_data_query = "SELECT interest_id FROM instructor_interest"
-        self.db.execute_query(select_data_query)
+        select_data_query = "SELECT interest_id FROM instructor_interest WHERE registry_no = %s"
+        data = (self.result[0][0],)
+        self.db.execute_query(select_data_query, data)
         interest_ids = self.db.fetch_data()
 
         for interest_id in interest_ids:
-            select_data_query = "SELECT s.student_no, s.name, s.surname, d.deal_status, inte.field FROM student AS s INNER JOIN student_interest AS si ON s.student_no=si.student_no INNER JOIN interest AS inte ON si.interest_id=inte.interest_id INNER JOIN deal AS d ON si.student_no=d.student_no WHERE d.deal_status=0 AND si.interest_id=%s"
+            select_data_query = "SELECT s.student_no, s.name, s.surname, d.deal_status, inte.field FROM student AS s INNER JOIN student_interest AS si ON s.student_no=si.student_no INNER JOIN interest AS inte ON si.interest_id=inte.interest_id LEFT JOIN deal AS d ON si.student_no=d.student_no WHERE si.interest_id=%s"
             data = (interest_id,)
             self.db.execute_query(select_data_query, data)
             self.student_results = self.db.fetch_data()
 
-            # Insert data into the table
+            student_score_dict = {}
             for item in self.student_results:
+                self.item_student_no = item[0]
+                score = self.student_score_calculation(1)
+                student_score_dict[self.item_student_no] = score
+
+            # Sort the dictionary by score in descending order
+            sorted_scores = sorted(student_score_dict.items(), key=lambda item: item[1], reverse=True)
+
+            # Create a new dictionary from the sorted list of tuples
+            sorted_student_scores = dict(sorted_scores)
+            key_list = list(sorted_student_scores.keys())
+
+            # Insert data into the table
+            for i,item in enumerate(self.student_results):
                 item = list(item)
                 if item[3]==1:
                     item[3]="deal"
@@ -1325,14 +1364,20 @@ class Instructor:
                     item[3]="non-deal"
                 item = tuple(item)
 
-                self.item_student_no = item[0]
-                score = self.student_score_calculation(1)
-                if self.selected_score == "1 point and above" and score>=1:
-                    self.student_tree.insert("", "end", values=item)
-                elif self.selected_score == "2 point and above" and score>=2:
-                    self.student_tree.insert("", "end", values=item)
-                elif self.selected_score == "3 point and above" and score>=3:
-                    self.student_tree.insert("", "end", values=item)
+                if self.selected_sort == "Sort by Score":
+                    select_data_query = "SELECT s.student_no, s.name, s.surname, d.deal_status, inte.field FROM student AS s INNER JOIN student_interest AS si ON s.student_no=si.student_no INNER JOIN interest AS inte ON si.interest_id=inte.interest_id LEFT JOIN deal AS d ON si.student_no=d.student_no WHERE si.interest_id=%s AND s.student_no = %s"
+                    data = (interest_id, key_list[i])
+                    self.db.execute_query(select_data_query, data)
+                    student_result = self.db.fetch_data()
+
+                    self.student_tree.insert("", "end", values=student_result[0])
+                else:    
+                    if self.selected_score == "1 point and above" and score>=1:
+                        self.student_tree.insert("", "end", values=item)
+                    elif self.selected_score == "2 point and above" and score>=2:
+                        self.student_tree.insert("", "end", values=item)
+                    elif self.selected_score == "3 point and above" and score>=3:
+                        self.student_tree.insert("", "end", values=item)
 
         # Bind the right-click context menu to the Treeview
         self.student_tree.bind("<Button-3>", self.do_popup_student)
