@@ -930,6 +930,7 @@ class Instructor:
         # Create the context menu
         self.student_m = tk.Menu(self.student_tree, tearoff=0)
         self.student_m.add_command(label="Inspect", command=self.get_student_lesson_data)
+        self.student_m.add_command(label="Make Demand", command=self.make_demand)
         self.student_m.add_separator()
 
         """
@@ -1143,7 +1144,7 @@ class Instructor:
             for item in self.demand_tree.get_children():
                 self.demand_tree.delete(item)
 
-        select_data_query = "SELECT ol.name, inte.field, s.student_no, s.name, s.surname, i.quota FROM deal AS d INNER JOIN student AS s ON d.student_no=s.student_no INNER JOIN instructor AS i ON d.registry_no=i.registry_no INNER JOIN instructor_opened_lesson AS iol ON i.registry_no=iol.registry_no INNER JOIN opened_lesson AS ol ON iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte ON oli.interest_id=inte.interest_id WHERE d.deal_status=0 AND d.registry_no=%s"
+        select_data_query = "SELECT ol.name, inte.field, s.student_no, s.name, s.surname, i.quota FROM deal AS d INNER JOIN student AS s ON d.student_no=s.student_no INNER JOIN instructor AS i ON d.registry_no=i.registry_no INNER JOIN instructor_opened_lesson AS iol ON d.registry_no=iol.registry_no AND d.opened_lesson_id=iol.opened_lesson_id INNER JOIN opened_lesson AS ol ON iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte ON oli.interest_id=inte.interest_id WHERE d.deal_status=0 AND d.registry_no=%s"
         data = (self.result[0][0],)
         self.db.execute_query(select_data_query, data)
         results = self.db.fetch_data()
@@ -1194,6 +1195,7 @@ class Instructor:
         item = self.student_tree.item(self.student_tree.selection())  # Get the selected item
         if item:
             self.selected_student_no = item['values'][0]  # Extract the 'registry_no' value
+            self.selected_field = item['values'][4]
             self.student_m.tk_popup(event.x_root, event.y_root)
 
     def get_student_lesson_data(self):
@@ -1382,6 +1384,20 @@ class Instructor:
         # Bind the right-click context menu to the Treeview
         self.student_tree.bind("<Button-3>", self.do_popup_student)
 
+    def make_demand(self):
+        select_query = "SELECT oli.opened_lesson_id FROM interest AS i INNER JOIN opened_lesson_interest AS oli ON i.interest_id=oli.interest_id WHERE i.field=%s"
+        data = (self.selected_field,)
+        self.db.execute_query(select_query, data)
+        results = self.db.fetch_data()
+        
+        insert_query = "INSERT INTO deal (student_no, registry_no, opened_lesson_id, deal_status) VALUES (%s, %s, %s, %s)"
+        data_to_insert = (self.selected_student_no, self.result[0][0], results[0][0], 0)
+        self.db.execute_query(insert_query, data_to_insert)
+        self.db.commit()
+
+        self.make_confirmation_window("Request Send Successfully")
+        #self.refresh_demand_data()
+
 class Student:
     def __init__(self):
         self.login_window = tk.Tk()
@@ -1549,13 +1565,14 @@ class Student:
         self.interest_selected_option.trace("w", self.on_interest_option_selected)
 
          # Create a Treeview widget (the table)
-        self.interest_tree = ttk.Treeview(self.interest_tab, columns=("Lesson Name", "Interest Field", "Instructor Title", "Instructor Name", "Instructor Surname", "Quota"), show="headings")
+        self.interest_tree = ttk.Treeview(self.interest_tab, columns=("Lesson Name", "Interest Field", "Instructor No", "Instructor Title", "Instructor Name", "Instructor Surname", "Quota"), show="headings")
         self.interest_tree.heading("#1", text="Lesson Name")
         self.interest_tree.heading("#2", text="Interest Field")
-        self.interest_tree.heading("#3", text="Instructor Title")
-        self.interest_tree.heading("#4", text="Instructor Name")
-        self.interest_tree.heading("#5", text="Instructor Surname")
-        self.interest_tree.heading("#6", text="Quota")
+        self.interest_tree.heading("#3", text="Instructor No")
+        self.interest_tree.heading("#4", text="Instructor Title")
+        self.interest_tree.heading("#5", text="Instructor Name")
+        self.interest_tree.heading("#6", text="Instructor Surname")
+        self.interest_tree.heading("#7", text="Quota")
         self.interest_tree.pack()
         self.get_interest_data()
 
@@ -1698,7 +1715,7 @@ class Student:
         #self.lesson_tree.bind("<Button-3>", self.do_popup_instructor)
 
     def get_interest_data(self):
-        select_data_query = "SELECT ol.name, inte.field, i.title, i.name, i.surname, i.quota FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson as ol on iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id"
+        select_data_query = "SELECT ol.name, inte.field, i.registry_no, i.title, i.name, i.surname, i.quota FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson as ol on iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id"
         self.db.execute_query(select_data_query)
         results = self.db.fetch_data()
 
@@ -1755,7 +1772,7 @@ class Student:
     def on_lesson_option_selected(self, *args):
         self.refresh_interest_data()
         selected_lesson = self.lesson_selected_option.get()
-        select_data_query = "SELECT ol.name, inte.field, i.title, i.name, i.surname, i.quota FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson as ol on iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id  WHERE ol.name = %s"
+        select_data_query = "SELECT ol.name, inte.field, i.registry_no, i.title, i.name, i.surname, i.quota FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson as ol on iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id  WHERE ol.name = %s"
         data_to_insert = (selected_lesson,)
         self.db.execute_query(select_data_query, data_to_insert)
         results = self.db.fetch_data()
@@ -1770,7 +1787,7 @@ class Student:
     def on_interest_option_selected(self, *args):
         self.refresh_interest_data()
         selected_interest = self.interest_selected_option.get()
-        select_data_query = "SELECT ol.name, inte.field, i.title, i.name, i.surname, i.quota FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson as ol on iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id  WHERE inte.field = %s"
+        select_data_query = "SELECT ol.name, inte.field, i.registry_no, i.title, i.name, i.surname, i.quota FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson as ol on iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id  WHERE inte.field = %s"
         data_to_insert = (selected_interest,)
         self.db.execute_query(select_data_query, data_to_insert)
         results = self.db.fetch_data()
@@ -1786,6 +1803,7 @@ class Student:
         item = self.interest_tree.item(self.interest_tree.selection())  # Get the selected item
         if item:
             self.selected_opened_lesson_name = item['values'][0]  # Extract the 'registry_no' value
+            self.selected_registry_no = item['values'][2] 
             self.interest_m.tk_popup(event.x_root, event.y_root)
             
     def do_popup_demand(self, event):
@@ -1847,8 +1865,8 @@ class Student:
         self.refresh_demand_data()
         
     def make_demand(self):
-        select_query = "SELECT i.registry_no, iol.opened_lesson_id FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson AS ol on iol.opened_lesson_id=ol.opened_lesson_id WHERE ol.name = %s"
-        data = (self.selected_opened_lesson_name,)
+        select_query = "SELECT i.registry_no, iol.opened_lesson_id FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson AS ol on iol.opened_lesson_id=ol.opened_lesson_id WHERE ol.name = %s AND i.registry_no=%s"
+        data = (self.selected_opened_lesson_name, self.selected_registry_no)
         self.db.execute_query(select_query, data)
         results = self.db.fetch_data()
         
