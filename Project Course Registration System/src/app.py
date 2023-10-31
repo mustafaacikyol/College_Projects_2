@@ -3,7 +3,7 @@ import psycopg2
 #from getpass import getpass
 from tkinter import ttk
 import random
-#import time
+import time
 #import tksheet
 #from tksheet import Sheet
 from PIL import Image, ImageTk
@@ -15,6 +15,58 @@ from shutil import copyfile
 import fitz  # PyMuPDF
 
 character_number = 5
+
+class TimerApp:
+    def __init__(self, root, duration_seconds):
+        self.root = root
+        self.root.title("Countdown Timer")
+        
+        self.duration_seconds = duration_seconds
+        self.remaining_seconds = self.duration_seconds
+        self.running = False
+        
+        self.label = tk.Label(root, text=f"Time left: {self.remaining_seconds} seconds", font=("Helvetica", 16))
+        self.label.pack(pady=10)
+        
+        self.start_button = tk.Button(root, text="Start Timer", command=self.start_timer)
+        self.start_button.pack(pady=10)
+        
+        self.stop_button = tk.Button(root, text="Stop Timer", command=self.stop_timer, state=tk.DISABLED)
+        self.stop_button.pack(pady=10)
+        
+        self.finish_button = tk.Button(root, text="Finish Time", command=self.finish_timer, state=tk.DISABLED)
+        self.finish_button.pack(pady=10)
+        
+        self.update_timer()
+
+    def start_timer(self):
+        if not self.running:
+            self.running = True
+            self.update_timer()
+            self.start_button.config(state=tk.DISABLED)
+            self.stop_button.config(state=tk.NORMAL)
+            self.finish_button.config(state=tk.NORMAL)
+
+    def stop_timer(self):
+        self.running = False
+        self.start_button.config(state=tk.NORMAL)
+        self.stop_button.config(state=tk.DISABLED)
+        self.finish_button.config(state=tk.NORMAL)
+
+    def finish_timer(self):
+        self.running = False
+        self.remaining_seconds = 0
+        self.label.config(text="Time left: 0 seconds")
+        self.start_button.config(state=tk.NORMAL)
+        self.stop_button.config(state=tk.DISABLED)
+        self.finish_button.config(state=tk.DISABLED)
+
+    def update_timer(self):
+        if self.running:
+            self.label.config(text=f"Time left: {self.remaining_seconds} seconds")
+            if self.remaining_seconds > 0:
+                self.remaining_seconds -= 1
+                self.label.after(1000, self.update_timer)  # Update every 1000ms (1 second)
 
 class DatabaseConnection:
     def __init__(self):
@@ -84,6 +136,7 @@ class StartApp:
 
         label = tk.Label(self.window, text="Project Course Registration System", font=("Helvetica", 25, "bold"), fg="brown", pady=100)
         label.pack()
+
 
         # Add widgets and logic here
 
@@ -186,6 +239,11 @@ class Admin:
         message_menu = tk.Menu(menu)
         menu.add_cascade(label="Message", menu=message_menu)
         message_menu.add_command(label="Set Number of Characters", command=self.set_number_of_characters_window)
+
+        # Create a Help menu
+        message_menu = tk.Menu(menu)
+        menu.add_cascade(label="Time", menu=message_menu)
+        message_menu.add_command(label="Set Time", command=self.set_time_window)
 
         # Create tabs
         tab_control = ttk.Notebook(window)
@@ -700,11 +758,34 @@ class Admin:
         character_number = self.character_number_field.get()
 
         if(self.character_number_field.get()):
-            success_label = tk.Label(self.number_of_characters_window, text="SUCCESSFUL", font=("Helvetica", 12, "bold"), fg="green")
-            success_label.place(relx=0.3, rely=0.1)
+            self.make_confirmation_window("Successful")
 
             self.number_of_characters_window.after(1000, self.number_of_characters_window.destroy)
         
+    def set_time_window(self):
+        self.time_window = tk.Toplevel()
+        self.time_window.title("Set Time")
+        self.time_window.geometry("300x150+500+250")
+
+        time_label = tk.Label(self.time_window, text="Time to Set : ", font=("Helvetica", 10, "bold"), fg="brown")
+        time_label.place(relx=0.05, rely=0.3)
+
+        self.time_field = tk.Entry(self.time_window, width=7, font=('Arial 12'))
+        self.time_field.place(relx=0.70, rely=0.3)
+        
+        set_time_button = tk.Button(self.time_window, text="Set", bg="#99FFFF", fg="#994C00", padx=5, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=self.set_time)
+        set_time_button.place(relx=0.35, rely=0.6)
+
+    def set_time(self):
+        if(self.time_field.get()):
+            self.make_confirmation_window("Successful")
+
+            self.time_window.after(1000, self.time_window.destroy)
+
+        timer_window = tk.Tk()
+        application = TimerApp(timer_window, duration_seconds=int(self.time_field.get()))
+        timer_window.mainloop()
+
     def make_confirmation_window(self, str):
         confirmation_window = tk.Tk()
         confirmation_window.title("Confirmation Window")
@@ -1900,6 +1981,7 @@ class Student:
         confirmation_window.after(1000, confirmation_window.destroy)
 
 # Creating an instance of the StartApp class and starting the application
+
 app = StartApp()
 app.run()
 
