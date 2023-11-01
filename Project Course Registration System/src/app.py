@@ -15,17 +15,17 @@ from shutil import copyfile
 import fitz  # PyMuPDF
 
 character_number = 5
+duration = 0
 
 class TimerApp:
-    def __init__(self, root, duration_seconds):
+    def __init__(self, root):
         self.root = root
         self.root.title("Countdown Timer")
-        
-        self.duration_seconds = duration_seconds
-        self.remaining_seconds = self.duration_seconds
+
+        global duration
         self.running = False
         
-        self.label = tk.Label(root, text=f"Time left: {self.remaining_seconds} seconds", font=("Helvetica", 16))
+        self.label = tk.Label(root, text=f"Time left: {duration} seconds", font=("Helvetica", 16))
         self.label.pack(pady=10)
         
         self.start_button = tk.Button(root, text="Start Timer", command=self.start_timer)
@@ -55,7 +55,8 @@ class TimerApp:
 
     def finish_timer(self):
         self.running = False
-        self.remaining_seconds = 0
+        global duration
+        duration = 0
         self.label.config(text="Time left: 0 seconds")
         self.start_button.config(state=tk.NORMAL)
         self.stop_button.config(state=tk.DISABLED)
@@ -63,9 +64,10 @@ class TimerApp:
 
     def update_timer(self):
         if self.running:
-            self.label.config(text=f"Time left: {self.remaining_seconds} seconds")
-            if self.remaining_seconds > 0:
-                self.remaining_seconds -= 1
+            global duration
+            self.label.config(text=f"Time left: {duration} seconds")
+            if duration > 0:
+                duration -= 1
                 self.label.after(1000, self.update_timer)  # Update every 1000ms (1 second)
 
 class DatabaseConnection:
@@ -241,9 +243,16 @@ class Admin:
         message_menu.add_command(label="Set Number of Characters", command=self.set_number_of_characters_window)
 
         # Create a Help menu
-        message_menu = tk.Menu(menu)
-        menu.add_cascade(label="Time", menu=message_menu)
-        message_menu.add_command(label="Set Time", command=self.set_time_window)
+        time_menu = tk.Menu(menu)
+        menu.add_cascade(label="Time", menu=time_menu)
+        time_menu.add_command(label="Set Time", command=self.set_time_window)
+
+        # Create a Help menu
+        assign_menu = tk.Menu(menu)
+        menu.add_cascade(label="Assignment", menu=assign_menu)
+        assign_menu.add_command(label="Random Assignment")
+        assign_menu.add_command(label="Assignment by Grade Point Average")
+        assign_menu.add_command(label="Assignment by Specific Lessons")
 
         # Create tabs
         tab_control = ttk.Notebook(window)
@@ -303,6 +312,44 @@ class Admin:
         self.student_m.add_command(label="Update", command=self.update_student)
         self.student_m.add_command(label="Delete", command=self.delete_student)
         self.student_m.add_separator()
+
+        # Tab 4
+        self.lesson_tab = ttk.Frame(tab_control)
+        tab_control.add(self.lesson_tab, text="Agreed Lesson")
+        student_label = tk.Label(self.lesson_tab, text="Agreed Lesson Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        student_label.pack()
+        #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
+        #button2.pack()
+
+        # Create a Treeview widget (the table)
+        self.lesson_tree = ttk.Treeview(self.lesson_tab, columns=("Lesson Name", "Field", "Title", "Instructor Name", "Instructor Surname", "Student No", "Name", "Surname"), show="headings")
+        
+        self.lesson_tree.column("#1", width=100)  # Set the width of column 1 (Lesson Name) to 100 pixels
+        self.lesson_tree.column("#2", width=150)  # Set the width of column 2 (Field) to 100 pixels
+        self.lesson_tree.column("#3", width=100)  # Set the width of column 3 (Title) to 100 pixels
+        self.lesson_tree.column("#4", width=100)  # Set the width of column 4 (Name) to 100 pixels
+        self.lesson_tree.column("#5", width=100)  # Set the width of column 5 (Surname) to 100 pixels
+        self.lesson_tree.column("#6", width=75)  # Set the width of column 6 (Student No) to 100 pixels
+        self.lesson_tree.column("#7", width=100)  # Set the width of column 7 (Name) to 100 pixels
+        self.lesson_tree.column("#8", width=100)
+        
+        
+        self.lesson_tree.heading("#1", text="Lesson Name")
+        self.lesson_tree.heading("#2", text="Field")
+        self.lesson_tree.heading("#3", text="Title")
+        self.lesson_tree.heading("#4", text="Name")
+        self.lesson_tree.heading("#5", text="Surname")
+        self.lesson_tree.heading("#6", text="Student No")
+        self.lesson_tree.heading("#7", text="Name")
+        self.lesson_tree.heading("#8", text="Surname")
+        self.lesson_tree.pack()
+        #self.get_lesson_data() 
+        
+        # Create the context menu
+        #self.lesson_m = tk.Menu(self.lesson_tree, tearoff=0)
+        #self.lesson_m.add_command(label="Update", command=self.update_student)
+        #self.lesson_m.add_command(label="Delete", command=self.delete_student)
+        #self.lesson_m.add_separator()
         
         # Set the default tab to open
         tab_control.select(general_tab)
@@ -783,7 +830,9 @@ class Admin:
             self.time_window.after(1000, self.time_window.destroy)
 
         timer_window = tk.Tk()
-        application = TimerApp(timer_window, duration_seconds=int(self.time_field.get()))
+        global duration
+        duration = int(self.time_field.get())
+        application = TimerApp(timer_window)
         timer_window.mainloop()
 
     def make_confirmation_window(self, str):
@@ -1235,7 +1284,12 @@ class Instructor:
             self.demand_tree.insert("", "end", values=item)
 
         # Bind the right-click context menu to the Treeview
-        self.demand_tree.bind("<Button-3>", self.do_popup_demand)
+        global duration
+        if duration != 0:
+            self.demand_tree.bind("<Button-3>", self.do_popup_demand)
+        elif duration == 0:
+            self.demand_m = None
+            self.demand_tree.unbind("<Button-3>")
 
     def get_same_field_student_data(self, refresh):
         if(refresh==1):
@@ -1592,6 +1646,9 @@ class Student:
         name_surname_label = tk.Label(self.interest_tab, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
         name_surname_label.place(relx=0.85, rely=0.03)
 
+        interest_refresh_button = tk.Button(self.interest_tab, text="Refresh", command=lambda: self.get_interest_data(1))
+        interest_refresh_button.place(relx=0.1, rely=0.03)
+
         self.sub_interest_tab = ttk.Frame(self.interest_tab)
         self.sub_interest_tab.pack()
 
@@ -1655,7 +1712,7 @@ class Student:
         self.interest_tree.heading("#6", text="Instructor Surname")
         self.interest_tree.heading("#7", text="Quota")
         self.interest_tree.pack()
-        self.get_interest_data()
+        self.get_interest_data(0)
 
         # Create the context menu
         self.interest_m = tk.Menu(self.interest_tree, tearoff=0)
@@ -1795,7 +1852,12 @@ class Student:
         # Bind the right-click context menu to the Treeview
         #self.lesson_tree.bind("<Button-3>", self.do_popup_instructor)
 
-    def get_interest_data(self):
+    def get_interest_data(self, refresh):
+        if(refresh==1):
+            # Clear existing data in the Treeview
+            for item in self.interest_tree.get_children():
+                self.interest_tree.delete(item)
+
         select_data_query = "SELECT ol.name, inte.field, i.registry_no, i.title, i.name, i.surname, i.quota FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson as ol on iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id"
         self.db.execute_query(select_data_query)
         results = self.db.fetch_data()
@@ -1805,7 +1867,12 @@ class Student:
             self.interest_tree.insert("", "end", values=item)
 
         # Bind the right-click context menu to the Treeview
-        self.interest_tree.bind("<Button-3>", self.do_popup_interest)
+        global duration
+        if duration != 0:
+            self.interest_tree.bind("<Button-3>", self.do_popup_interest)
+        elif duration == 0:
+            self.interest_m = None
+            self.interest_tree.unbind("<Button-3>")
 
     def get_demand_data(self):
         select_data_query = "SELECT ol.name, inte.field, i.title, i.name, i.surname, i.quota, d.deal_id FROM deal AS d INNER JOIN instructor AS i on d.registry_no=i.registry_no INNER JOIN opened_lesson AS ol on d.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli on ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id WHERE d.student_no = %s"
