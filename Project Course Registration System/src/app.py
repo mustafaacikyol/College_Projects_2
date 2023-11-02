@@ -250,19 +250,19 @@ class Admin:
         # Create a Help menu
         assign_menu = tk.Menu(menu)
         menu.add_cascade(label="Assignment", menu=assign_menu)
-        assign_menu.add_command(label="Random Assignment")
+        assign_menu.add_command(label="Random Assignment", command=self.random_assignment)
         assign_menu.add_command(label="Assignment by Grade Point Average")
         assign_menu.add_command(label="Assignment by Specific Lessons")
 
         # Create tabs
         tab_control = ttk.Notebook(window)
-
+        
         # Tab 1
         general_tab = ttk.Frame(tab_control)
         tab_control.add(general_tab, text="General")
         general_label = tk.Label(general_tab, text="General Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
         general_label.pack()
-
+        
         # Tab 2
         self.instructor_tab = ttk.Frame(tab_control)
         tab_control.add(self.instructor_tab, text="Instructor")
@@ -273,6 +273,9 @@ class Admin:
 
         # Create a Treeview widget (the table)
         self.instructor_tree = ttk.Treeview(self.instructor_tab, columns=("Registry No", "Title", "Name", "Surname", "Quota", "Lesson", "Field"), show="headings")
+        self.instructor_tree.column("#1", width=100)
+        self.instructor_tree.column("#5", width=100)
+
         self.instructor_tree.heading("#1", text="Registry No")
         self.instructor_tree.heading("#2", text="Title")
         self.instructor_tree.heading("#3", text="Name")
@@ -333,7 +336,6 @@ class Admin:
         self.lesson_tree.column("#7", width=100)  # Set the width of column 7 (Name) to 100 pixels
         self.lesson_tree.column("#8", width=100)
         
-        
         self.lesson_tree.heading("#1", text="Lesson Name")
         self.lesson_tree.heading("#2", text="Field")
         self.lesson_tree.heading("#3", text="Title")
@@ -343,7 +345,7 @@ class Admin:
         self.lesson_tree.heading("#7", text="Name")
         self.lesson_tree.heading("#8", text="Surname")
         self.lesson_tree.pack()
-        #self.get_lesson_data() 
+        self.get_lesson_data() 
         
         # Create the context menu
         #self.lesson_m = tk.Menu(self.lesson_tree, tearoff=0)
@@ -358,6 +360,25 @@ class Admin:
 
         # Start the tkinter main loop
         window.mainloop()
+
+    def random_assignment(self):
+        select_data_query = "SELECT s.student_no FROM student s LEFT JOIN deal d ON s.student_no = d.student_no AND d.deal_status = 1 WHERE d.deal_id IS NULL OR d.deal_status = 0"
+        self.db.execute_query(select_data_query)
+        student_results = self.db.fetch_data()
+
+        select_data_query = "SELECT i.registry_no, iol.opened_lesson_id FROM instructor i INNER JOIN instructor_opened_lesson iol ON i.registry_no=iol.registry_no WHERE quota>0"
+        self.db.execute_query(select_data_query)
+        instructor_results = self.db.fetch_data()
+    
+        # Insert data into the table
+        #for item in results:
+            #self.lesson_tree.insert("", "end", values=item)
+        
+        for student in student_results:
+            print(student)
+        print("---------------------------------")
+        for instructor in instructor_results:
+            print(instructor)
 
     def get_instructor_data(self):
         select_data_query = "SELECT i.registry_no, i.title, i.name, i.surname, i.quota, ol.name, inte.field FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson as ol on iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id"
@@ -843,6 +864,18 @@ class Admin:
         confirmation_label = tk.Label(confirmation_window, text=str, font=("Helvetica", 12, "bold"), fg="green")
         confirmation_label.place(relx=0.1, rely=0.4)
         confirmation_window.after(1000, confirmation_window.destroy)
+
+    def get_lesson_data(self):
+        select_data_query = "SELECT ol.name, inte.field, i.title, i.name, i.surname, s.student_no, s.name, s.surname FROM deal AS d INNER JOIN student AS s on d.student_no=s.student_no INNER JOIN instructor as i on d.registry_no=i.registry_no INNER JOIN instructor_opened_lesson AS iol ON d.registry_no=iol.registry_no AND d.opened_lesson_id=iol.opened_lesson_id INNER JOIN opened_lesson AS ol ON d.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON d.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte ON oli.interest_id=inte.interest_id WHERE d.deal_status=1"
+        self.db.execute_query(select_data_query)
+        results = self.db.fetch_data()
+
+        # Insert data into the table
+        for item in results:
+            self.lesson_tree.insert("", "end", values=item)
+
+        # Bind the right-click context menu to the Treeview
+        #self.lesson_tree.bind("<Button-3>", self.do_popup_student)
 
 class Instructor:
     def __init__(self):
