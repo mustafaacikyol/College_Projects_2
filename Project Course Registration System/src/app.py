@@ -329,7 +329,7 @@ class Admin:
         
         self.lesson_tree.column("#1", width=100)  # Set the width of column 1 (Lesson Name) to 100 pixels
         self.lesson_tree.column("#2", width=150)  # Set the width of column 2 (Field) to 100 pixels
-        self.lesson_tree.column("#3", width=100)  # Set the width of column 3 (Title) to 100 pixels
+        self.lesson_tree.column("#3", width=150)  # Set the width of column 3 (Title) to 100 pixels
         self.lesson_tree.column("#4", width=100)  # Set the width of column 4 (Name) to 100 pixels
         self.lesson_tree.column("#5", width=100)  # Set the width of column 5 (Surname) to 100 pixels
         self.lesson_tree.column("#6", width=75)  # Set the width of column 6 (Student No) to 100 pixels
@@ -345,8 +345,11 @@ class Admin:
         self.lesson_tree.heading("#7", text="Name")
         self.lesson_tree.heading("#8", text="Surname")
         self.lesson_tree.pack()
-        self.get_lesson_data() 
+        self.get_lesson_data(0) 
         
+        lesson_refresh_button = tk.Button(self.lesson_tab, text="Refresh", command=lambda: self.get_lesson_data(1))
+        lesson_refresh_button.place(relx=0.1, rely=0.03)
+
         # Create the context menu
         #self.lesson_m = tk.Menu(self.lesson_tree, tearoff=0)
         #self.lesson_m.add_command(label="Update", command=self.update_student)
@@ -373,12 +376,20 @@ class Admin:
         # Insert data into the table
         #for item in results:
             #self.lesson_tree.insert("", "end", values=item)
+    
+        for i,student in enumerate(student_results):
+            insert_query = "INSERT INTO deal (student_no, registry_no, opened_lesson_id, deal_status) VALUES (%s, %s, %s, %s)"
+            data_to_insert = (student_results[i][0], instructor_results[i][0], instructor_results[i][1], 1)
+            self.db.execute_query(insert_query, data_to_insert)
+            self.db.commit()
         
-        for student in student_results:
-            print(student)
-        print("---------------------------------")
-        for instructor in instructor_results:
-            print(instructor)
+            # Perform the update in the database
+            update_query = "UPDATE instructor SET quota = quota-1 WHERE registry_no = %s"
+            data = (instructor_results[i][0],)
+            self.db.execute_query(update_query, data)
+            self.db.commit()
+        
+        self.make_confirmation_window("Successful")
 
     def get_instructor_data(self):
         select_data_query = "SELECT i.registry_no, i.title, i.name, i.surname, i.quota, ol.name, inte.field FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson as ol on iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id"
@@ -865,7 +876,11 @@ class Admin:
         confirmation_label.place(relx=0.1, rely=0.4)
         confirmation_window.after(1000, confirmation_window.destroy)
 
-    def get_lesson_data(self):
+    def get_lesson_data(self, refresh):
+        if(refresh==1):
+            # Clear existing data in the Treeview
+            for item in self.lesson_tree.get_children():
+                self.lesson_tree.delete(item)
         select_data_query = "SELECT ol.name, inte.field, i.title, i.name, i.surname, s.student_no, s.name, s.surname FROM deal AS d INNER JOIN student AS s on d.student_no=s.student_no INNER JOIN instructor as i on d.registry_no=i.registry_no INNER JOIN instructor_opened_lesson AS iol ON d.registry_no=iol.registry_no AND d.opened_lesson_id=iol.opened_lesson_id INNER JOIN opened_lesson AS ol ON d.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON d.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte ON oli.interest_id=inte.interest_id WHERE d.deal_status=1"
         self.db.execute_query(select_data_query)
         results = self.db.fetch_data()
@@ -1373,6 +1388,9 @@ class Instructor:
 
         # Create a Treeview widget (the table)
         self.lesson_tree = ttk.Treeview(student_lesson_window, columns=("Lesson Name", "AKTS", "Mark"), show="headings")
+        self.lesson_tree.column('#1', width=300)
+        self.lesson_tree.column('#2', width=150)
+        self.lesson_tree.column('#3', width=150)
         self.lesson_tree.heading("#1", text="Lesson Name")
         self.lesson_tree.heading("#2", text="AKTS")
         self.lesson_tree.heading("#3", text="Mark")
@@ -1387,13 +1405,59 @@ class Instructor:
         for item in results:
             self.lesson_tree.insert("", "end", values=item)
 
+        select_data_query = "SELECT name, surname FROM student WHERE student_no = %s"
+        data_to_insert = (self.selected_student_no,)
+        self.db.execute_query(select_data_query, data_to_insert)
+        name_results = self.db.fetch_data()
+        name, surname = name_results[0]
+
+        name_surname_label = tk.Label(student_lesson_window, text=f"{name} {surname}", font=("Helvetica", 12, "bold"), fg="brown")
+        name_surname_label.place(relx=0.85, rely=0.13)
+        gpa = self.calculate_student_GPA()
+        gpa_label = tk.Label(student_lesson_window, text=f"GPA : {gpa}", font=("Helvetica", 12, "bold"), fg="brown")
+        gpa_label.place(relx=0.85, rely=0.18)
+
         score = self.student_score_calculation(0)
 
-        score_label = tk.Label(student_lesson_window, text=score, font=("Helvetica", 25, "bold"), fg="brown", pady=100)
+        score_label = tk.Label(student_lesson_window, text=f"SCORE : {score}", font=("Helvetica", 25, "bold"), fg="brown", pady=100)
         score_label.pack()
 
         # Bind the right-click context menu to the Treeview
         #self.lesson_tree.bind("<Button-3>", self.do_popup_instructor)
+
+    def calculate_student_GPA(self):
+        select_data_query = "SELECT sl.mark, l.AKTS FROM student_lesson AS sl INNER JOIN lesson AS l on sl.lesson_id=l.lesson_id WHERE sl.student_no = %s"
+        data = (self.selected_student_no,)
+        self.db.execute_query(select_data_query, data)
+        results = self.db.fetch_data()
+
+        total_point = 0
+        divider = 0
+        for result in results:
+            mark, akts = result
+            if mark == "AA":
+                point = 4
+            elif mark == "BA":
+                point = 3.5
+            elif mark == "BB":
+                point = 3
+            elif mark == "CB":
+                point = 2.5
+            elif mark == "CC":
+                point = 2
+            elif mark == "DC":
+                point = 1.5
+
+            total_point += point*akts
+            divider += akts
+
+        if divider != 0:
+            gpa = total_point / divider
+        else:
+            gpa = "enter coefficient for score calculation"
+
+        formatted_gpa = f"{gpa:.2f}"
+        return formatted_gpa
 
     def approve_deal(self):
         update_query = "UPDATE deal SET deal_status = %s WHERE student_no = %s"
@@ -1476,7 +1540,8 @@ class Instructor:
         else:
             score = "enter coefficient for score calculation"
 
-        return score
+        formatted_score = f"{score:.2f}"
+        return formatted_score
 
     def refresh_student_for_score_data(self):
         # Clear existing data in the Treeview
@@ -1646,8 +1711,7 @@ class Student:
         general_label = tk.Label(general_tab, text="General Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
         general_label.pack()
 
-        name_surname_label = tk.Label(general_tab, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
-        name_surname_label.place(relx=0.85, rely=0.03)
+        self.get_student_name_surname(general_tab)
 
         # Tab 2
         self.lesson_taken_tab = ttk.Frame(tab_control)
@@ -1657,16 +1721,22 @@ class Student:
         #button1 = tk.Button(tab1, text="Open Tab 2", command=lambda: open_tab(tab2))
         #button1.pack()
 
-        name_surname_label = tk.Label(self.lesson_taken_tab, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
-        name_surname_label.place(relx=0.85, rely=0.03)
+        self.get_student_name_surname(self.lesson_taken_tab)
 
         # Create a Treeview widget (the table)
         self.lesson_taken_tree = ttk.Treeview(self.lesson_taken_tab, columns=("Lesson Name", "AKTS", "Mark"), show="headings")
+        self.lesson_taken_tree.column('#1', width=300)
+        self.lesson_taken_tree.column('#2', width=150)
+        self.lesson_taken_tree.column('#3', width=150)
         self.lesson_taken_tree.heading("#1", text="Lesson Name")
         self.lesson_taken_tree.heading("#2", text="AKTS")
         self.lesson_taken_tree.heading("#3", text="Mark")
         self.lesson_taken_tree.pack()
         self.get_lesson_taken_data()
+
+        gpa = self.calculate_GPA()
+        gpa_label = tk.Label(self.lesson_taken_tab, text=f"GPA : {gpa}", font=("Helvetica", 12, "bold"), fg="brown")
+        gpa_label.place(relx=0.85, rely=0.1)
 
         # Tab 3
         self.interest_tab = ttk.Frame(tab_control)
@@ -1676,8 +1746,7 @@ class Student:
         #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
         #button2.pack()
 
-        name_surname_label = tk.Label(self.interest_tab, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
-        name_surname_label.place(relx=0.85, rely=0.03)
+        self.get_student_name_surname(self.interest_tab)
 
         interest_refresh_button = tk.Button(self.interest_tab, text="Refresh", command=lambda: self.get_interest_data(1))
         interest_refresh_button.place(relx=0.1, rely=0.03)
@@ -1737,6 +1806,9 @@ class Student:
 
          # Create a Treeview widget (the table)
         self.interest_tree = ttk.Treeview(self.interest_tab, columns=("Lesson Name", "Interest Field", "Instructor No", "Instructor Title", "Instructor Name", "Instructor Surname", "Quota"), show="headings")
+        self.interest_tree.column('#1', width=150)
+        self.interest_tree.column('#3', width=150)
+        self.interest_tree.column('#7', width=75)
         self.interest_tree.heading("#1", text="Lesson Name")
         self.interest_tree.heading("#2", text="Interest Field")
         self.interest_tree.heading("#3", text="Instructor No")
@@ -1761,8 +1833,7 @@ class Student:
         #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
         #button2.pack()
 
-        name_surname_label = tk.Label(self.demand_tab, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
-        name_surname_label.place(relx=0.85, rely=0.03)
+        self.get_student_name_surname(self.demand_tab)
 
         # Create a Treeview widget (the table)
         self.demand_tree = ttk.Treeview(self.demand_tab, columns=("Lesson Name", "Interest Field", "Instructor Title", "Instructor Name", "Instructor Surname", "Quota"), show="headings")
@@ -1788,8 +1859,7 @@ class Student:
         #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
         #button2.pack()
 
-        name_surname_label = tk.Label(self.lesson_tab, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
-        name_surname_label.place(relx=0.85, rely=0.03)
+        self.get_student_name_surname(self.lesson_tab)
 
         # Create a Treeview widget (the table)
         self.lesson_tree = ttk.Treeview(self.lesson_tab, columns=("Lesson Name", "Interest Field", "Instructor Title", "Instructor Name", "Instructor Surname", "Quota"), show="headings")
@@ -1802,8 +1872,8 @@ class Student:
         self.lesson_tree.pack()
         self.get_lesson_data(0)
 
-        lesson_refresh_button = tk.Button(self.lesson_tab, text="Refresh", bg="#99FFFF", fg="#994C00", padx=5, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=lambda: self.get_lesson_data(1))
-        lesson_refresh_button.place(relx=0.7, rely=0.02)
+        lesson_refresh_button = tk.Button(self.lesson_tab, text="Refresh", command=lambda: self.get_lesson_data(1))
+        lesson_refresh_button.place(relx=0.1, rely=0.03)
 
         # Create the context menu
         #self.lesson_m = tk.Menu(self.lesson_tree, tearoff=0)
@@ -1817,6 +1887,10 @@ class Student:
         
         # Start the tkinter main loop
         window.mainloop()
+
+    def get_student_name_surname(self, tab):
+        name_surname_label = tk.Label(tab, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
+        name_surname_label.place(relx=0.85, rely=0.03)
 
     def upload_pdf_file(self):
         file_path = filedialog.askopenfilename(
@@ -2080,8 +2154,41 @@ class Student:
         confirmation_label.place(relx=0.1, rely=0.4)
         confirmation_window.after(1000, confirmation_window.destroy)
 
-# Creating an instance of the StartApp class and starting the application
+    def calculate_GPA(self):
+        select_data_query = "SELECT sl.mark, l.AKTS FROM student_lesson AS sl INNER JOIN lesson AS l on sl.lesson_id=l.lesson_id WHERE sl.student_no = %s"
+        data = (self.result[0][0],)
+        self.db.execute_query(select_data_query, data)
+        results = self.db.fetch_data()
 
+        total_point = 0
+        divider = 0
+        for result in results:
+            mark, akts = result
+            if mark == "AA":
+                point = 4
+            elif mark == "BA":
+                point = 3.5
+            elif mark == "BB":
+                point = 3
+            elif mark == "CB":
+                point = 2.5
+            elif mark == "CC":
+                point = 2
+            elif mark == "DC":
+                point = 1.5
+
+            total_point += point*akts
+            divider += akts
+
+        if divider != 0:
+            gpa = total_point / divider
+        else:
+            gpa = "enter coefficient for score calculation"
+
+        formatted_gpa = f"{gpa:.2f}"
+        return formatted_gpa
+
+# Creating an instance of the StartApp class and starting the application
 app = StartApp()
 app.run()
 
