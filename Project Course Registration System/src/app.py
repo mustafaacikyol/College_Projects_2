@@ -314,9 +314,50 @@ class Admin:
         self.student_m = tk.Menu(self.student_tree, tearoff=0)
         self.student_m.add_command(label="Update", command=self.update_student)
         self.student_m.add_command(label="Delete", command=self.delete_student)
+        self.student_m.add_command(label="Assign Instructor", command=self.assign_instructor)
         self.student_m.add_separator()
 
         # Tab 4
+        self.demand_tab = ttk.Frame(tab_control)
+        tab_control.add(self.demand_tab, text="Demand")
+        student_label = tk.Label(self.demand_tab, text="Demand Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        student_label.pack()
+        #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
+        #button2.pack()
+
+        # Create a Treeview widget (the table)
+        self.demand_tree = ttk.Treeview(self.demand_tab, columns=("Lesson Name", "Field", "Title", "Instructor Name", "Instructor Surname", "Student No", "Name", "Surname"), show="headings")
+        
+        self.demand_tree.column("#1", width=100)  # Set the width of column 1 (Lesson Name) to 100 pixels
+        self.demand_tree.column("#2", width=150)  # Set the width of column 2 (Field) to 100 pixels
+        self.demand_tree.column("#3", width=150)  # Set the width of column 3 (Title) to 100 pixels
+        self.demand_tree.column("#4", width=100)  # Set the width of column 4 (Name) to 100 pixels
+        self.demand_tree.column("#5", width=100)  # Set the width of column 5 (Surname) to 100 pixels
+        self.demand_tree.column("#6", width=75)  # Set the width of column 6 (Student No) to 100 pixels
+        self.demand_tree.column("#7", width=100)  # Set the width of column 7 (Name) to 100 pixels
+        self.demand_tree.column("#8", width=100)
+        
+        self.demand_tree.heading("#1", text="Lesson Name")
+        self.demand_tree.heading("#2", text="Field")
+        self.demand_tree.heading("#3", text="Title")
+        self.demand_tree.heading("#4", text="Name")
+        self.demand_tree.heading("#5", text="Surname")
+        self.demand_tree.heading("#6", text="Student No")
+        self.demand_tree.heading("#7", text="Name")
+        self.demand_tree.heading("#8", text="Surname")
+        self.demand_tree.pack()
+        self.get_demand_data(0) 
+        
+        demand_refresh_button = tk.Button(self.demand_tab, text="Refresh", command=lambda: self.get_demand_data(1))
+        demand_refresh_button.place(relx=0.1, rely=0.03)
+
+        # Create the context menu
+        #self.lesson_m = tk.Menu(self.lesson_tree, tearoff=0)
+        #self.lesson_m.add_command(label="Update", command=self.update_student)
+        #self.lesson_m.add_command(label="Delete", command=self.delete_student)
+        #self.lesson_m.add_separator()
+
+        # Tab 5
         self.lesson_tab = ttk.Frame(tab_control)
         tab_control.add(self.lesson_tab, text="Agreed Lesson")
         student_label = tk.Label(self.lesson_tab, text="Agreed Lesson Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
@@ -369,7 +410,7 @@ class Admin:
         self.db.execute_query(select_data_query)
         student_results = self.db.fetch_data()
 
-        select_data_query = "SELECT i.registry_no, iol.opened_lesson_id FROM instructor i INNER JOIN instructor_opened_lesson iol ON i.registry_no=iol.registry_no WHERE quota>0"
+        select_data_query = "SELECT i.registry_no, iol.opened_lesson_id FROM instructor i INNER JOIN instructor_opened_lesson iol ON i.registry_no=iol.registry_no WHERE i.quota>0"
         self.db.execute_query(select_data_query)
         instructor_results = self.db.fetch_data()
     
@@ -711,7 +752,7 @@ class Admin:
         else:
             status = 0
         # Perform the update in the database
-        update_query = "UPDATE student SET student_no = %s, name = %s, surname = %s, WHERE student_no = %s"
+        update_query = "UPDATE student SET student_no = %s, name = %s, surname = %s WHERE student_no = %s"
         data = (student_no, name, surname, self.selected_student_no)
         self.db.execute_query(update_query, data)
         self.db.commit()
@@ -891,6 +932,54 @@ class Admin:
 
         # Bind the right-click context menu to the Treeview
         #self.lesson_tree.bind("<Button-3>", self.do_popup_student)
+
+    def get_demand_data(self, refresh):
+        if(refresh==1):
+            # Clear existing data in the Treeview
+            for item in self.demand_tree.get_children():
+                self.demand_tree.delete(item)
+        select_data_query = "SELECT ol.name, inte.field, i.title, i.name, i.surname, s.student_no, s.name, s.surname FROM deal AS d INNER JOIN student AS s on d.student_no=s.student_no INNER JOIN instructor as i on d.registry_no=i.registry_no INNER JOIN instructor_opened_lesson AS iol ON d.registry_no=iol.registry_no AND d.opened_lesson_id=iol.opened_lesson_id INNER JOIN opened_lesson AS ol ON d.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON d.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte ON oli.interest_id=inte.interest_id WHERE d.deal_status=0"
+        self.db.execute_query(select_data_query)
+        results = self.db.fetch_data()
+
+        # Insert data into the table
+        for item in results:
+            self.demand_tree.insert("", "end", values=item)
+
+        # Bind the right-click context menu to the Treeview
+        #self.lesson_tree.bind("<Button-3>", self.do_popup_student)
+
+    def assign_instructor(self):
+        selected_item = self.student_tree.selection()
+        if selected_item:
+            selected_values = self.student_tree.item(selected_item, "values")
+            if selected_values:
+                self.open_assign_instructor_window(selected_values)
+
+    def open_assign_instructor_window(self, selected_values):
+        self.assign_instructor_window = tk.Toplevel()
+        self.assign_instructor_window.title("Assign Instructor")
+        self.assign_instructor_window.state("zoomed")
+        # Create input fields and labels for updating instructor data
+        # You can design and populate this window as needed
+
+        select_data_query = "SELECT i.registry_no, i.title, i.name, i.surname, ol.name, iol.opened_lesson_id FROM instructor i INNER JOIN instructor_opened_lesson iol ON i.registry_no=iol.registry_no INNER JOIN opened_lesson AS ol ON iol.opened_lesson_id=ol.opened_lesson_id WHERE i.quota>0"
+        self.db.execute_query(select_data_query)
+        instructor_results = self.db.fetch_data()
+
+        for instructor in instructor_results:
+            # Create a Tkinter IntVar to track the checkbox state (0 for unchecked, 1 for checked)
+            checkbox_var = tk.IntVar()
+
+            # Create a Checkbutton widget
+            checkbox = tk.Checkbutton(self.assign_instructor_window, text=f"{instructor[1]} {instructor[2]} {instructor[3]}    {instructor[4]}", variable=checkbox_var)
+
+            # Place the Checkbutton and Label widgets in the window
+            checkbox.pack()
+
+        # Create a button to save the updates
+        #save_button = tk.Button(self.update_instructor_window, text="Save", command=self.save_instructor_updates, bg="#99FFFF", fg="#994C00", padx=10, pady=2, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge")
+        #save_button.place(relx=0.48, rely=0.32)
 
 class Instructor:
     def __init__(self):
