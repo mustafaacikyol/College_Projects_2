@@ -1384,7 +1384,7 @@ class Instructor:
         sort_option_menu.pack(side="left",padx=30, pady=30)
 
         # Set the default selected option (optional)
-        self.sort_selected_option.set(score_options[0])
+        self.sort_selected_option.set(sort_options[0])
 
         # Bind the function to the selection event
         self.sort_selected_option.trace("w", self.on_sort_option_selected)
@@ -1535,7 +1535,7 @@ class Instructor:
         interest_ids = self.db.fetch_data()
 
         for interest_id in interest_ids:
-            select_data_query = "SELECT s.student_no, s.name, s.surname, d.deal_status, inte.field FROM student AS s INNER JOIN student_interest AS si ON s.student_no=si.student_no INNER JOIN interest AS inte ON si.interest_id=inte.interest_id LEFT JOIN deal AS d ON si.student_no=d.student_no WHERE si.interest_id=%s"
+            select_data_query = "SELECT s.student_no, s.name, s.surname, d.deal_status, inte.field FROM student AS s INNER JOIN student_interest AS si ON s.student_no=si.student_no INNER JOIN interest AS inte ON si.interest_id=inte.interest_id LEFT JOIN deal AS d ON si.student_no=d.student_no WHERE (d.deal_status=0 OR d.deal_status IS NULL) AND si.interest_id=%s"
             data = (interest_id[0],)
             self.db.execute_query(select_data_query, data)
             results = self.db.fetch_data()
@@ -1672,7 +1672,7 @@ class Instructor:
 
     def get_instructor_name_surname(self, tab):
         name_surname_label = tk.Label(tab, text=f"{self.result[0][1]} {self.result[0][2]} {self.result[0][3]}", font=("Helvetica", 12, "bold"), fg="brown")
-        name_surname_label.place(relx=0.85, rely=0.03)
+        name_surname_label.place(relx=0.75, rely=0.03)
 
     def insert_coefficient_table(self):
         
@@ -1721,11 +1721,11 @@ class Instructor:
 
         if divider != 0:
             score = total_point / divider
+            score = f"{score:.2f}"
         else:
             score = "enter coefficient for score calculation"
 
-        formatted_score = f"{score:.2f}"
-        return formatted_score
+        return score
 
     def refresh_student_for_score_data(self):
         # Clear existing data in the Treeview
