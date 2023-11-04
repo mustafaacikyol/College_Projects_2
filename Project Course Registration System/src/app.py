@@ -421,8 +421,8 @@ class Admin:
         
         # Create the context menu
         self.interest_m = tk.Menu(self.interest_tree, tearoff=0)
-        self.interest_m.add_command(label="Update", command=self.update_instructor)
-        self.interest_m.add_command(label="Delete", command=self.delete_instructor)
+        self.interest_m.add_command(label="Update", command=self.update_interest)
+        self.interest_m.add_command(label="Delete", command=self.delete_interest)
         self.interest_m.add_separator()
 
         # Button to add selected interests to the instructor_interest table
@@ -1130,6 +1130,83 @@ class Admin:
 
         # Refresh the Treeview to reflect the changes
         self.get_interest_data(1)
+
+    def update_interest(self):
+        selected_item = self.interest_tree.selection()
+        if selected_item:
+            selected_values = self.interest_tree.item(selected_item, "values")
+            if selected_values:
+                # Open the update window with the instructor's data for editing
+                self.open_interest_update_window(selected_values)
+
+    def open_interest_update_window(self, selected_values):
+        self.update_interest_window = tk.Toplevel()
+        self.update_interest_window.title("Update Interest Field")
+        self.update_interest_window.state("zoomed")
+        # Create input fields and labels for updating instructor data
+        # You can design and populate this window as needed
+
+        # Example: Create an entry field for updating the instructor's name
+        self.interest_label = tk.Label(self.update_interest_window, text="Interest Field")
+        self.interest_label.pack(pady=50)
+        self.interest_entry = tk.Entry(self.update_interest_window, width=30)
+        self.interest_entry.insert(0, selected_values[1])  # Pre-fill with the instructor's current name
+        self.interest_entry.pack()
+
+        # Create a button to save the updates
+        save_button = tk.Button(self.update_interest_window, text="Save", command=self.save_interest_updates, bg="#99FFFF", fg="#994C00", padx=10, pady=2, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge")
+        save_button.place(relx=0.48, rely=0.3)
+
+    def save_interest_updates(self):
+        # Get the values from the input fields in the update window
+        interest = self.interest_entry.get()
+        
+        # Check if all required fields are filled
+        if not (interest):
+            messagebox.showerror("Error", "Field must be filled.")
+            return
+
+        # Perform the update in the database
+        update_query = "UPDATE interest SET field = %s WHERE interest_id = %s"
+        data = (interest, self.selected_interest_id)
+        self.db.execute_query(update_query, data)
+        self.db.commit()
+
+        # Close the update window
+        self.update_interest_window.destroy()
+
+        # Refresh the Treeview to reflect the changes
+        self.get_interest_data(1)
+
+    def delete_interest(self):
+        if hasattr(self, 'selected_interest_id'):
+            select_query = "SELECT opened_lesson_id FROM opened_lesson_interest WHERE interest_id = %s"
+            data = (self.selected_interest_id,)
+            self.db.execute_query(select_query, data)
+            opened_lesson_id = self.db.fetch_data()
+
+            delete_query_1 = "DELETE FROM opened_lesson_interest WHERE interest_id = %s AND opened_lesson_id = %s"
+            data = (self.selected_interest_id, opened_lesson_id[0])
+            self.db.execute_query(delete_query_1, data)
+            self.db.commit()
+
+            delete_query_2 = "DELETE FROM interest WHERE interest_id = %s"
+            data = (self.selected_interest_id,)
+            self.db.execute_query(delete_query_2, data)
+            self.db.commit()
+
+            delete_query_3 = "DELETE FROM opened_lesson WHERE opened_lesson_id = %s"
+            data = (opened_lesson_id[0],)
+            self.db.execute_query(delete_query_3, data)
+            self.db.commit()
+
+            # Remove the deleted item from the Treeview
+            selected_item = self.interest_tree.selection()
+            if selected_item:
+                self.interest_tree.delete(selected_item)
+
+            # Optionally clear the selected_registry_no attribute
+            del self.selected_interest_id
 
 class Instructor:
     def __init__(self):
