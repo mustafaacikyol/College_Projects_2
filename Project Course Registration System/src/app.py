@@ -284,13 +284,16 @@ class Admin:
         self.instructor_tree.heading("#6", text="Lesson")
         self.instructor_tree.heading("#7", text="Field")
         self.instructor_tree.pack()
-        self.get_instructor_data()
+        self.get_instructor_data(0)
         
         # Create the context menu
         self.instructor_m = tk.Menu(self.instructor_tree, tearoff=0)
         self.instructor_m.add_command(label="Update", command=self.update_instructor)
         self.instructor_m.add_command(label="Delete", command=self.delete_instructor)
         self.instructor_m.add_separator()
+
+        instructor_refresh_button = tk.Button(self.instructor_tab, text="Refresh", command=lambda: self.get_instructor_data(1))
+        instructor_refresh_button.place(relx=0.1, rely=0.03)
         
         # Tab 3
         self.student_tab = ttk.Frame(tab_control)
@@ -308,7 +311,7 @@ class Admin:
         self.student_tree.heading("#4", text="Status")
         self.student_tree.heading("#5", text="Field")
         self.student_tree.pack()
-        self.get_student_data() 
+        self.get_student_data(0) 
         
         # Create the context menu
         self.student_m = tk.Menu(self.student_tree, tearoff=0)
@@ -316,6 +319,9 @@ class Admin:
         self.student_m.add_command(label="Delete", command=self.delete_student)
         self.student_m.add_command(label="Assign Instructor", command=self.assign_instructor)
         self.student_m.add_separator()
+
+        student_refresh_button = tk.Button(self.student_tab, text="Refresh", command=lambda: self.get_student_data(1))
+        student_refresh_button.place(relx=0.1, rely=0.03)
 
         # Tab 4
         self.demand_tab = ttk.Frame(tab_control)
@@ -396,6 +402,35 @@ class Admin:
         #self.lesson_m.add_command(label="Update", command=self.update_student)
         #self.lesson_m.add_command(label="Delete", command=self.delete_student)
         #self.lesson_m.add_separator()
+
+        # Tab 6
+        self.interest_tab = ttk.Frame(tab_control)
+        tab_control.add(self.interest_tab, text="Interest Field")
+        interest_label = tk.Label(self.interest_tab, text="Interest Field Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        interest_label.pack()
+        #button1 = tk.Button(tab1, text="Open Tab 2", command=lambda: open_tab(tab2))
+        #button1.pack()
+
+        # Create a Treeview widget (the table)
+        self.interest_tree = ttk.Treeview(self.interest_tab, columns=("Field No", "Interest Field"), show="headings")
+        
+        self.interest_tree.heading("#1", text="Field No")
+        self.interest_tree.heading("#2", text="Interest Field")
+        self.interest_tree.pack()
+        self.get_interest_data(0)
+        
+        # Create the context menu
+        self.interest_m = tk.Menu(self.interest_tree, tearoff=0)
+        self.interest_m.add_command(label="Update", command=self.update_instructor)
+        self.interest_m.add_command(label="Delete", command=self.delete_instructor)
+        self.interest_m.add_separator()
+
+        # Button to add selected interests to the instructor_interest table
+        add_button = tk.Button(self.interest_tab, text="Add Interest", bg="#99FFFF", fg="#994C00", padx=5, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=self.open_add_interest_window)
+        add_button.pack(pady=50)
+
+        interest_refresh_button = tk.Button(self.interest_tab, text="Refresh", command=lambda: self.get_instructor_data(1))
+        interest_refresh_button.place(relx=0.1, rely=0.03)
         
         # Set the default tab to open
         tab_control.select(general_tab)
@@ -432,7 +467,12 @@ class Admin:
         
         self.make_confirmation_window("Successful")
 
-    def get_instructor_data(self):
+    def get_instructor_data(self, refresh):
+        if(refresh==1):
+            # Clear existing data in the Treeview
+            for item in self.instructor_tree.get_children():
+                self.instructor_tree.delete(item)
+        
         select_data_query = "SELECT i.registry_no, i.title, i.name, i.surname, i.quota, ol.name, inte.field FROM instructor AS i INNER JOIN instructor_opened_lesson AS iol on i.registry_no=iol.registry_no INNER JOIN opened_lesson as ol on iol.opened_lesson_id=ol.opened_lesson_id INNER JOIN opened_lesson_interest AS oli ON ol.opened_lesson_id=oli.opened_lesson_id INNER JOIN interest AS inte on oli.interest_id=inte.interest_id"
         self.db.execute_query(select_data_query)
         results = self.db.fetch_data()
@@ -450,7 +490,7 @@ class Admin:
             self.instructor_tree.delete(item)
 
         # Fetch and insert the updated data
-        self.get_instructor_data()
+        self.get_instructor_data(0)
 
     def do_popup_instructor(self, event):
         item = self.instructor_tree.item(self.instructor_tree.selection())  # Get the selected item
@@ -626,13 +666,18 @@ class Admin:
             self.db.execute_query(insert_query_3, data_to_insert_3)
             self.db.commit()  
 
-        self.get_instructor_data()
+        self.get_instructor_data(0)
         success_label = tk.Label(self.define_generate_instructor_window, text="SUCCESSFUL", font=("Helvetica", 12, "bold"), fg="green")
         success_label.place(relx=0.3, rely=0.1)
 
         self.define_generate_instructor_window.after(1000, self.define_generate_instructor_window.destroy)
 
-    def get_student_data(self):
+    def get_student_data(self, refresh):
+        if(refresh==1):
+            # Clear existing data in the Treeview
+            for item in self.student_tree.get_children():
+                self.student_tree.delete(item)
+
         select_data_query = "SELECT s.student_no, s.name, s.surname, d.deal_status, i.field FROM student AS s INNER JOIN student_interest AS si on s.student_no=si.student_no INNER JOIN interest as i on si.interest_id=i.interest_id LEFT JOIN deal AS d ON s.student_no=d.student_no"
         self.db.execute_query(select_data_query)
         results = self.db.fetch_data()
@@ -656,7 +701,7 @@ class Admin:
             self.student_tree.delete(item)
 
         # Fetch and insert the updated data
-        self.get_student_data()
+        self.get_student_data(0)
 
     def do_popup_student(self, event):
         item = self.student_tree.item(self.student_tree.selection())  # Get the selected item
@@ -967,19 +1012,124 @@ class Admin:
         self.db.execute_query(select_data_query)
         instructor_results = self.db.fetch_data()
 
+        selected_instructor_var = tk.StringVar(value="")  # Variable to track the selected instructor
+        
         for instructor in instructor_results:
-            # Create a Tkinter IntVar to track the checkbox state (0 for unchecked, 1 for checked)
-            checkbox_var = tk.IntVar()
+            # Create a Radio button for each instructor
+            info = (instructor[0], instructor[5])
+            radio_button = ttk.Radiobutton(self.assign_instructor_window, text=f"{instructor[1]} {instructor[2]} {instructor[3]}    {instructor[4]}", value=info, variable=selected_instructor_var)
 
-            # Create a Checkbutton widget
-            checkbox = tk.Checkbutton(self.assign_instructor_window, text=f"{instructor[1]} {instructor[2]} {instructor[3]}    {instructor[4]}", variable=checkbox_var)
-
-            # Place the Checkbutton and Label widgets in the window
-            checkbox.pack()
+            # Place the Radio button in the window
+            radio_button.pack()
 
         # Create a button to save the updates
-        #save_button = tk.Button(self.update_instructor_window, text="Save", command=self.save_instructor_updates, bg="#99FFFF", fg="#994C00", padx=10, pady=2, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge")
-        #save_button.place(relx=0.48, rely=0.32)
+        assign_instructor_button = tk.Button(self.assign_instructor_window, text="Assign Instructor", command=lambda: self.save_assign_instructor(selected_instructor_var.get()), bg="#99FFFF", fg="#994C00", padx=10, pady=2, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge")
+        assign_instructor_button.place(relx=0.7, rely=0.15)
+
+    def save_assign_instructor(self, selected_instructor_info):
+        # Split the string by whitespace
+        registry_no, lesson = selected_instructor_info.split()
+
+        # Convert the resulting substrings to integers if needed
+        registry_no = int(registry_no)
+        lesson = int(lesson)
+
+        insert_query = "INSERT INTO deal (student_no, registry_no, opened_lesson_id, deal_status) VALUES (%s, %s, %s, %s)"
+        data_to_insert = (self.selected_student_no, registry_no, lesson, 1)
+        self.db.execute_query(insert_query, data_to_insert)
+        self.db.commit()        
+
+        # Perform the update in the database
+        update_query = "UPDATE instructor SET quota = quota-1 WHERE registry_no = %s"
+        data = (registry_no,)
+        self.db.execute_query(update_query, data)
+        self.db.commit()
+
+        self.make_confirmation_window("Successful")
+
+    def get_interest_data(self, refresh):
+        if(refresh==1):
+            # Clear existing data in the Treeview
+            for item in self.interest_tree.get_children():
+                self.interest_tree.delete(item)
+        
+        select_data_query = "SELECT interest_id, field FROM interest"
+        self.db.execute_query(select_data_query)
+        results = self.db.fetch_data()
+
+        # Insert data into the table
+        for item in results:
+            self.interest_tree.insert("", "end", values=item)
+
+        # Bind the right-click context menu to the Treeview
+        self.interest_tree.bind("<Button-3>", self.do_popup_interest)
+
+    def do_popup_interest(self, event):
+        item = self.interest_tree.item(self.interest_tree.selection())  # Get the selected item
+        if item:
+            self.selected_interest_id = item['values'][0]  # Extract the 'registry_no' value
+            self.interest_m.tk_popup(event.x_root, event.y_root)
+
+    def open_add_interest_window(self):
+        self.add_interest_window = tk.Toplevel()
+        self.add_interest_window.title("Add Interest")
+        self.add_interest_window.state("zoomed")
+        # Create input fields and labels for updating instructor data
+        # You can design and populate this window as needed
+
+        # Example: Create an entry field for updating the instructor's name
+        self.interest_field_label = tk.Label(self.add_interest_window, text="Interest Field")
+        self.interest_field_label.pack(pady=50)
+        self.interest_field_entry = tk.Entry(self.add_interest_window, width=30)
+        self.interest_field_entry.pack()
+
+        # Create a button to save the updates
+        add_button = tk.Button(self.add_interest_window, text="Add",  bg="#99FFFF", fg="#994C00", padx=10, pady=2, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=self.add_interest)
+        add_button.place(relx=0.48, rely=0.3)
+
+    def add_interest(self):
+        # Get the values from the input fields in the update window
+        field = self.interest_field_entry.get()
+        
+        # Check if all required fields are filled
+        if not (field):
+            messagebox.showerror("Error", "Field must be filled.")
+            return
+
+        insert_query = "INSERT INTO interest (field) VALUES (%s)"
+        data_to_insert = (field,)
+        self.db.execute_query(insert_query, data_to_insert)
+        self.db.commit()
+
+        select_query = "SELECT opened_lesson_id, name FROM opened_lesson ORDER BY opened_lesson_id DESC LIMIT 1"
+        self.db.execute_query(select_query)
+        results = self.db.fetch_data()
+
+        number = int(results[0][0])+1
+
+        insert_query = "INSERT INTO opened_lesson (name) VALUES (%s)"
+        data_to_insert = (f"Lesson {number}",)
+        self.db.execute_query(insert_query, data_to_insert)
+        self.db.commit()
+
+        select_query = "SELECT interest_id FROM interest ORDER BY interest_id DESC LIMIT 1"
+        self.db.execute_query(select_query)
+        interest_id = self.db.fetch_data()
+
+        select_query = "SELECT opened_lesson_id FROM opened_lesson ORDER BY opened_lesson_id DESC LIMIT 1"
+        self.db.execute_query(select_query)
+        opened_lesson_id = self.db.fetch_data()
+
+        insert_query = "INSERT INTO opened_lesson_interest (opened_lesson_id, interest_id) VALUES (%s, %s)"
+        data_to_insert = (opened_lesson_id[0], interest_id[0])
+        self.db.execute_query(insert_query, data_to_insert)
+        self.db.commit()
+
+        # Close the update window
+        self.add_interest_window.destroy()
+
+        # Refresh the Treeview to reflect the changes
+        self.get_interest_data(1)
 
 class Instructor:
     def __init__(self):
