@@ -258,12 +258,6 @@ class Admin:
         tab_control = ttk.Notebook(window)
         
         # Tab 1
-        general_tab = ttk.Frame(tab_control)
-        tab_control.add(general_tab, text="General")
-        general_label = tk.Label(general_tab, text="General Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
-        general_label.pack()
-        
-        # Tab 2
         self.instructor_tab = ttk.Frame(tab_control)
         tab_control.add(self.instructor_tab, text="Instructor")
         instructor_label = tk.Label(self.instructor_tab, text="Instructor Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
@@ -295,7 +289,7 @@ class Admin:
         instructor_refresh_button = tk.Button(self.instructor_tab, text="Refresh", command=lambda: self.get_instructor_data(1))
         instructor_refresh_button.place(relx=0.1, rely=0.03)
         
-        # Tab 3
+        # Tab 2
         self.student_tab = ttk.Frame(tab_control)
         tab_control.add(self.student_tab, text="Student")
         student_label = tk.Label(self.student_tab, text="Student Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
@@ -323,7 +317,7 @@ class Admin:
         student_refresh_button = tk.Button(self.student_tab, text="Refresh", command=lambda: self.get_student_data(1))
         student_refresh_button.place(relx=0.1, rely=0.03)
 
-        # Tab 4
+        # Tab 3
         self.demand_tab = ttk.Frame(tab_control)
         tab_control.add(self.demand_tab, text="Demand")
         student_label = tk.Label(self.demand_tab, text="Demand Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
@@ -363,7 +357,7 @@ class Admin:
         #self.lesson_m.add_command(label="Delete", command=self.delete_student)
         #self.lesson_m.add_separator()
 
-        # Tab 5
+        # Tab 4
         self.lesson_tab = ttk.Frame(tab_control)
         tab_control.add(self.lesson_tab, text="Agreed Lesson")
         student_label = tk.Label(self.lesson_tab, text="Agreed Lesson Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
@@ -403,7 +397,7 @@ class Admin:
         #self.lesson_m.add_command(label="Delete", command=self.delete_student)
         #self.lesson_m.add_separator()
 
-        # Tab 6
+        # Tab 5
         self.interest_tab = ttk.Frame(tab_control)
         tab_control.add(self.interest_tab, text="Interest Field")
         interest_label = tk.Label(self.interest_tab, text="Interest Field Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
@@ -433,7 +427,7 @@ class Admin:
         interest_refresh_button.place(relx=0.1, rely=0.03)
         
         # Set the default tab to open
-        tab_control.select(general_tab)
+        tab_control.select(self.instructor_tab)
 
         tab_control.pack(expand=1, fill="both")
 
@@ -1262,35 +1256,10 @@ class Instructor:
         window.title("Instructor Dashboard")
         window.state("zoomed")
 
-        # Create a menu bar
-        menu = tk.Menu(window)
-        window.config(menu=menu)
-
-        # Create a File menu
-        file_menu = tk.Menu(menu)
-        menu.add_cascade(label="File", menu=file_menu)
-        file_menu.add_command(label="Open")
-        #file_menu.add_command(label="Open")
-        file_menu.add_separator()
-        file_menu.add_command(label="Exit", command=window.quit)
-
-        # Create a Help menu
-        help_menu = tk.Menu(menu)
-        menu.add_cascade(label="About", menu=help_menu)
-        help_menu.add_command(label="About")
-        
         # Create tabs
         tab_control = ttk.Notebook(window)
 
         # Tab 1
-        general_tab = ttk.Frame(tab_control)
-        tab_control.add(general_tab, text="General")
-        general_label = tk.Label(general_tab, text="General Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
-        general_label.pack()
-
-        self.get_instructor_name_surname(general_tab)
-
-        # Tab 2
         self.interest_tab = ttk.Frame(tab_control)
         tab_control.add(self.interest_tab, text="Interest Field")
         interest_label = tk.Label(self.interest_tab, text="Interest Field", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
@@ -1299,6 +1268,15 @@ class Instructor:
         #button1.pack()
 
         self.get_instructor_name_surname(self.interest_tab)
+
+        select_data_query = "SELECT ii.interest_id, i.field FROM instructor_interest AS ii INNER JOIN interest AS i ON ii.interest_id=i.interest_id WHERE ii.registry_no = %s"
+        data = (self.result[0][0],)
+        self.db.execute_query(select_data_query, data)
+        instructor_interests = self.db.fetch_data()
+
+        for (id, interest) in instructor_interests:
+            interest_field_label = tk.Label(self.interest_tab, text=interest, padx=80, font=("Helvatica", 9, "bold"), fg="brown")
+            interest_field_label.pack(anchor='ne')
 
         select_data_query = "SELECT interest_id, field FROM interest"
         self.db.execute_query(select_data_query)
@@ -1316,7 +1294,7 @@ class Instructor:
         add_button = tk.Button(self.interest_tab, text="Add Interests", bg="#99FFFF", fg="#994C00", padx=5, font=("Helvetica", 10, "bold"), borderwidth=5, relief="ridge", command=self.add_interests)
         add_button.pack(pady=50)
 
-        # Tab 3
+        # Tab 2
         self.score_tab = ttk.Frame(tab_control)
         tab_control.add(self.score_tab, text="Lesson Scoring")
         score_label = tk.Label(self.score_tab, text="Lesson Scoring", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
@@ -1366,7 +1344,7 @@ class Instructor:
         # Bind the mouse wheel event to scroll the canvas
         self.canvas.bind("<MouseWheel>", self.on_mousewheel)
 
-        # Tab 4
+        # Tab 3
         self.student_tab = ttk.Frame(tab_control)
         tab_control.add(self.student_tab, text="Student")
         student_label = tk.Label(self.student_tab, text="Student Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
@@ -1427,35 +1405,7 @@ class Instructor:
         self.student_m.add_command(label="Make Demand", command=self.make_demand)
         self.student_m.add_separator()
 
-        """
-        # Create checkboxes based on the retrieved data
-        for row in interest_results:
-            checkbox_var = tk.IntVar()
-            self.checkbox_vars = [20]
-            self.checkbox_vars.append(checkbox_var)  # Append the IntVar to the list
-            checkbox = tk.Checkbutton(self.interest_tab, text=row[1], variable=checkbox_var, command=lambda id=row[0]: self.on_checkbox_click(id))
-            checkbox.pack()
-        """
-        """
-        # Create variables to store the checkbox states
-        self.checkbox_var1 = tk.IntVar()
-        self.checkbox_var2 = tk.IntVar()
-
-        # Create checkboxes
-        checkbox1 = tk.Checkbutton(self.interest_tab, text="Checkbox 1", variable=self.checkbox_var1, command=lambda: self.on_checkbox_click(1))
-        checkbox2 = tk.Checkbutton(self.interest_tab, text="Checkbox 2", variable=self.checkbox_var2, command=lambda: self.on_checkbox_click(2))
-
-        # Create labels to display the checkbox state
-        self.checkbox_label1 = tk.Label(self.interest_tab, text="Checkbox 1: Unchecked")
-        self.checkbox_label2 = tk.Label(self.interest_tab, text="Checkbox 2: Unchecked")
-
-        # Place checkboxes and labels in the window
-        checkbox1.pack()
-        checkbox2.pack()
-        self.checkbox_label1.pack()
-        self.checkbox_label2.pack()
-        """
-        # Tab 5
+        # Tab 4
         self.message_tab = ttk.Frame(tab_control)
         tab_control.add(self.message_tab, text="Messages")
         message_label = tk.Label(self.message_tab, text="Messages", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
@@ -1476,89 +1426,7 @@ class Instructor:
         message_refresh_button = tk.Button(self.message_tab, text="Refresh", command=lambda: self.get_message_data(1))
         message_refresh_button.place(relx=0.1, rely=0.03)
 
-        """
-        # Tab 3
-        self.interest_tab = ttk.Frame(tab_control)
-        tab_control.add(self.interest_tab, text="Interest Field")
-        student_label = tk.Label(self.interest_tab, text="Interest Field Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
-        student_label.pack()
-        #button2 = tk.Button(tab2, text="Open Tab 1", command=lambda: open_tab(tab1))
-        #button2.pack()
-
-        name_surname_label = tk.Label(self.interest_tab, text=f"{self.result[0][1]} {self.result[0][2]}", font=("Helvetica", 12, "bold"), fg="brown")
-        name_surname_label.place(relx=0.85, rely=0.03)
-
-        self.sub_interest_tab = ttk.Frame(self.interest_tab)
-        self.sub_interest_tab.pack()
-
-        #def on_option_selected(*args):
-            #selected = selected_option.get()
-
-        # Create a variable to store the selected option
-        self.lesson_selected_option = tk.StringVar(self.sub_interest_tab)
-
-        # List of options for the dropdown
-        lesson_options = ["Select Lesson"]
-
-        select_data_query = "SELECT name FROM opened_lesson"
-        self.db.execute_query(select_data_query)
-        results = self.db.fetch_data()
-        for result in results:
-            lesson_name = result[0]
-            lesson_options.append(lesson_name)
-
-        # Create the OptionMenu widget
-        lesson_option_menu = tk.OptionMenu(self.sub_interest_tab, self.lesson_selected_option, *lesson_options)
-        lesson_option_menu.pack(side="left", padx=30, pady=30)
-
-        # Set the default selected option (optional)
-        self.lesson_selected_option.set(lesson_options[0])
-
-        # Bind the function to the selection event
-        self.lesson_selected_option.trace("w", self.on_lesson_option_selected)
-
-
-        # Create a variable to store the selected option
-        self.interest_selected_option = tk.StringVar(self.sub_interest_tab)
-
-        # List of options for the dropdown
-        interest_options = ["Select Interest"]
-
-        select_data_query = "SELECT field FROM interest"
-        self.db.execute_query(select_data_query)
-        results = self.db.fetch_data()
-        for result in results:
-            interest_name = result[0]
-            interest_options.append(interest_name)
-
-        # Create the OptionMenu widget
-        interest_option_menu = tk.OptionMenu(self.sub_interest_tab, self.interest_selected_option, *interest_options)
-        interest_option_menu.pack(side="left",padx=30, pady=30)
-
-        # Set the default selected option (optional)
-        self.interest_selected_option.set(interest_options[0])
-
-        # Bind the function to the selection event
-        self.interest_selected_option.trace("w", self.on_interest_option_selected)
-
-         # Create a Treeview widget (the table)
-        self.interest_tree = ttk.Treeview(self.interest_tab, columns=("Lesson Name", "Interest Field", "Instructor Title", "Instructor Name", "Instructor Surname", "Quota"), show="headings")
-        self.interest_tree.heading("#1", text="Lesson Name")
-        self.interest_tree.heading("#2", text="Interest Field")
-        self.interest_tree.heading("#3", text="Instructor Title")
-        self.interest_tree.heading("#4", text="Instructor Name")
-        self.interest_tree.heading("#5", text="Instructor Surname")
-        self.interest_tree.heading("#6", text="Quota")
-        self.interest_tree.pack()
-        self.get_interest_data()
-
-        # Create the context menu
-        self.interest_m = tk.Menu(self.interest_tree, tearoff=0)
-        self.interest_m.add_command(label="Demand", command=self.make_demand)
-        self.interest_m.add_command(label="Demand with Message", command=self.write_message)
-        self.interest_m.add_separator()
-        """
-        # Tab 6
+        # Tab 5
         self.demand_tab = ttk.Frame(tab_control)
         tab_control.add(self.demand_tab, text="Demand")
         student_label = tk.Label(self.demand_tab, text="Demand Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
@@ -1589,7 +1457,7 @@ class Instructor:
         demand_refresh_button.place(relx=0.1, rely=0.03)
         
         # Set the default tab to open
-        tab_control.select(general_tab)
+        tab_control.select(self.interest_tab)
 
         tab_control.pack(expand=1, fill="both")
         
@@ -2013,23 +1881,10 @@ class Student:
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=window.quit)
 
-        # Create a Help menu
-        help_menu = tk.Menu(menu)
-        menu.add_cascade(label="About", menu=help_menu)
-        help_menu.add_command(label="About")
-        
         # Create tabs
         tab_control = ttk.Notebook(window)
 
         # Tab 1
-        general_tab = ttk.Frame(tab_control)
-        tab_control.add(general_tab, text="General")
-        general_label = tk.Label(general_tab, text="General Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
-        general_label.pack()
-
-        self.get_student_name_surname(general_tab)
-
-        # Tab 2
         self.lesson_taken_tab = ttk.Frame(tab_control)
         tab_control.add(self.lesson_taken_tab, text="Lessons Taken")
         lesson_taken_label = tk.Label(self.lesson_taken_tab, text="Lessons Taken and Grades", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
@@ -2054,7 +1909,7 @@ class Student:
         gpa_label = tk.Label(self.lesson_taken_tab, text=f"GPA : {gpa}", font=("Helvetica", 12, "bold"), fg="brown")
         gpa_label.place(relx=0.85, rely=0.1)
 
-        # Tab 3
+        # Tab 2
         self.interest_tab = ttk.Frame(tab_control)
         tab_control.add(self.interest_tab, text="Interest Field")
         student_label = tk.Label(self.interest_tab, text="Interest Field Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
@@ -2141,7 +1996,7 @@ class Student:
         self.interest_m.add_command(label="Demand with Message", command=self.write_message)
         self.interest_m.add_separator()
 
-        # Tab 4
+        # Tab 3
         self.demand_tab = ttk.Frame(tab_control)
         tab_control.add(self.demand_tab, text="Demand")
         student_label = tk.Label(self.demand_tab, text="Demand Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
@@ -2167,7 +2022,7 @@ class Student:
         self.demand_m.add_command(label="Withdraw", command=self.withdraw_demand)
         self.demand_m.add_separator()
 
-        # Tab 5
+        # Tab 4
         self.lesson_tab = ttk.Frame(tab_control)
         tab_control.add(self.lesson_tab, text="Lesson")
         student_label = tk.Label(self.lesson_tab, text="Lesson Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
@@ -2197,7 +2052,7 @@ class Student:
         #self.lesson_m.add_separator()
         
         # Set the default tab to open
-        tab_control.select(general_tab)
+        tab_control.select(self.lesson_taken_tab)
 
         tab_control.pack(expand=1, fill="both")
         
