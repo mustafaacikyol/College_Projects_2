@@ -213,12 +213,6 @@ class Admin:
         window.title("Admin Dashboard")
         window.state("zoomed")
 
-        """
-        def open_tab(tab_name):
-            # Function to open a tab
-            tab_control.select(tab_name)
-        """
-
         # Create a menu bar
         menu = tk.Menu(window)
         window.config(menu=menu)
@@ -279,6 +273,7 @@ class Admin:
         self.instructor_tree.heading("#7", text="Field")
         self.instructor_tree.pack()
         self.get_instructor_data(0)
+        self.instructor_tree["height"] = 25
         
         # Create the context menu
         self.instructor_m = tk.Menu(self.instructor_tree, tearoff=0)
@@ -306,6 +301,7 @@ class Admin:
         self.student_tree.heading("#5", text="Field")
         self.student_tree.pack()
         self.get_student_data(0) 
+        self.student_tree["height"] = 25
         
         # Create the context menu
         self.student_m = tk.Menu(self.student_tree, tearoff=0)
@@ -347,6 +343,7 @@ class Admin:
         self.demand_tree.heading("#8", text="Surname")
         self.demand_tree.pack()
         self.get_demand_data(0) 
+        self.demand_tree["height"] = 25
         
         demand_refresh_button = tk.Button(self.demand_tab, text="Refresh", command=lambda: self.get_demand_data(1))
         demand_refresh_button.place(relx=0.1, rely=0.03)
@@ -387,6 +384,7 @@ class Admin:
         self.lesson_tree.heading("#8", text="Surname")
         self.lesson_tree.pack()
         self.get_lesson_data(0) 
+        self.lesson_tree["height"] = 25
         
         lesson_refresh_button = tk.Button(self.lesson_tab, text="Refresh", command=lambda: self.get_lesson_data(1))
         lesson_refresh_button.place(relx=0.1, rely=0.03)
@@ -412,6 +410,7 @@ class Admin:
         self.interest_tree.heading("#2", text="Interest Field")
         self.interest_tree.pack()
         self.get_interest_data(0)
+        self.interest_tree["height"] = 20
         
         # Create the context menu
         self.interest_m = tk.Menu(self.interest_tree, tearoff=0)
@@ -844,7 +843,7 @@ class Admin:
         names = ["Akasya", "Arda", "Alya", "Baha", "Barış", "Beren", "Berkan", "Cemre", "Ceyda", "Caner", "Çağla", "Çağdaş", "Deren", "Dilara", "Demirkan", "Edis", "Efe", "Ece", "Ezgi", "Ferda", "Fulya", "Cemre", "Hakan", "İlkay", "İlker", "Kaan", "Gizem", "Helin", "Irmak", "Işıl", "İdil", "Kuzey", "Mert", "Nusret", "Olcay", "Jale", "Kumru", "Melda", "Naz", "Nil", "Oya", "Övünç", "Reha", "Sertaç", "Öykü", "Pelin", "Selin", "Şule", "Taner", "Turgay", "Vedat", "Zafer", "Tülin", "Yonca"]
         surnames = ["Şen", "Kandemir", "Çevik", "Tüten", "Yücel", "Sönmez", "Ertekin", "Dede", "Uyanık", "Aslan", "Akbulut", "Uz", "Kaya", "Kulaç", "Selvi", "Akpınar", "Abacıoğlu", "Işık", "Özer", "Özdemir", "Tahtacı", "Büyükcam", "Kulaksız", "Aksel", "Eroğlu", "Karakum", "Dal", "Yiğit", "Gümüşay", "Yılmaz", "Sezer", "Doğan", "Demir", "Kayayurt", "Turgut", "Aldinç", "Tekin", "Almacıoğlu", "Öner", "Yaman", "Şentürk", "Yıldız", "Güler", "Koç", "Korkmaz", "Aydoğan"]
         grades = ["AA", "BA", "BB", "CB", "CC", "DC"]
-        lessons = ["Atatürk İlkeleri ve İnkilap Tarihi I (UE)", "Atatürk İlkeleri ve İnkilap Tarihi II (UE)", "Oyun Teorisi", "AFETLER VE ZARALARININ AZALTILMASI", "Türk Dili I (UE)", "Türk Dili II (UE)", "İngilizce I (UE)", "Bilgisayar Laboratuvarı I", "Bilgisayar Mühendisliğine Giriş", "Programlama I", "Fizik I", "Lineer Cebir", "Matematik I", "Bilgisayar Laboratuvarı II", "Elektrik Devre Temelleri ve Uygulamaları", "Programlama II", "Fizik II", "Matematik II", "Veri Yapıları ve Algoritmaları", "Programlama Laboratuvarı - I", "Mantıksal Tasarım ve Uygulamaları", "Diferansiyel Denklemler", "Kesikli Matematik", "Nesneye Yönelik Programlama", "Bilgisayar Organizasyonu ve Mimarisi", "electronic", "Veritabanı Yönetimi", "Programlama Laboratuvarı – II", "Sistem Programlama", "Türkiye İktisat Tarihi", "Olasılık ve Raslantı Değişkenleri", "Elektronik ve Uygulamaları", "İngilizce II (UE)"]
+        lessons = ["Atatürk İlkeleri ve İnkilap Tarihi I (UE)", "Atatürk İlkeleri ve İnkilap Tarihi II (UE)", "Oyun Teorisi", "AFETLER VE ZARALARININ AZALTILMASI", "Türk Dili I (UE)", "Türk Dili II (UE)", "İngilizce I (UE)", "İngilizce II (UE)", "Bilgisayar Laboratuvarı I", "Bilgisayar Mühendisliğine Giriş", "Programlama I", "Fizik I", "Lineer Cebir", "Matematik I", "Bilgisayar Laboratuvarı II", "Elektrik Devre Temelleri ve Uygulamaları", "Programlama II", "Fizik II", "Matematik II", "Veri Yapıları ve Algoritmaları", "Programlama Laboratuvarı - I", "Mantıksal Tasarım ve Uygulamaları", "Diferansiyel Denklemler", "Kesikli Matematik", "Nesneye Yönelik Programlama", "Bilgisayar Organizasyonu ve Mimarisi", "Veritabanı Yönetimi", "Programlama Laboratuvarı – II", "Sistem Programlama", "Türkiye İktisat Tarihi", "Olasılık ve Raslantı Değişkenleri", "Elektronik ve Uygulamaları"]
         total_lessons_number = [10, 15, 20, 25, 30]
         self.student_number = self.student_number_field.get()
         number = int(self.student_number)
@@ -1275,7 +1274,7 @@ class Instructor:
         instructor_interests = self.db.fetch_data()
 
         for (id, interest) in instructor_interests:
-            interest_field_label = tk.Label(self.interest_tab, text=interest, padx=80, font=("Helvatica", 9, "bold"), fg="brown")
+            interest_field_label = tk.Label(self.interest_tab, text=interest, padx=220, font=("Helvatica", 9, "bold"), fg="brown")
             interest_field_label.pack(anchor='ne')
 
         select_data_query = "SELECT interest_id, field FROM interest"
