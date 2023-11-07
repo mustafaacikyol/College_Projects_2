@@ -98,4 +98,6 @@ Production should be possible for up to 50 students at a time.
 
 Students can work with only one instructor for a course, and a instructor can work with more than one student.  
 
-I developed this project using Python programming language, tkinter(for GUI) and postgresql database
+### Development Process  
+
+***I developed this project using Python programming language, tkinter(for GUI) and postgresql database.***
