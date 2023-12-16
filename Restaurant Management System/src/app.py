@@ -35,7 +35,6 @@ class StartApp:
     def open_second_problem(self):
         second_problem = SecondProblem()
 
-
 class FirstProblem:
     def __init__(self):
         # Create a main window
@@ -64,28 +63,43 @@ class FirstProblem:
         self.scenario_window = tk.Toplevel()
         self.scenario_window.state('zoomed')
         self.scenario_window.title("First Problem")
-
+        # Lists to store customer and priority values
+        customer_values = []
+        priority_values = []
         y = 0.1
         for step in range(step_number):
             step_label = tk.Label(self.scenario_window, text=f"Step {step + 1} : ", font=("Helvetica", 15, "bold"), fg="brown")
             step_label.place(relx=0.3, rely=y)
 
-            self.customer_field = tk.Entry(self.scenario_window, width=3, font=('Arial 15'))
-            self.customer_field.place(relx=0.4, rely=y)
-            
+            customer_field = tk.Entry(self.scenario_window, width=3, font=('Arial 15'))
+            customer_field.place(relx=0.4, rely=y)
+
             customer_label = tk.Label(self.scenario_window, text=" Customer", font=("Helvetica", 15, "bold"))
             customer_label.place(relx=0.43, rely=y)
 
-            self.priority_field = tk.Entry(self.scenario_window, width=3, font=('Arial 15'), show="*")
-            self.priority_field.place(relx=0.58, rely=y)
+            priority_field = tk.Entry(self.scenario_window, width=3, font=('Arial 15'))
+            priority_field.place(relx=0.58, rely=y)
 
             priority_label = tk.Label(self.scenario_window, text=" Prioritized", font=("Helvetica", 15, "bold"))
             priority_label.place(relx=0.61, rely=y)
 
-            y+=0.1
-        
-        self.start_app_btn = tk.Button(self.scenario_window, text="Start", bg="#99FFFF", fg="#994C00", padx=15, pady=4, font=("Helvetica", 12, "bold"), borderwidth=5, relief="ridge", command=self.open_scenario)
-        self.start_app_btn.place(relx=0.47, rely=y)
+            # Append Entry widgets to the lists
+            customer_values.append(customer_field)
+            priority_values.append(priority_field)
+
+            y += 0.1
+
+        start_app_btn = tk.Button(self.scenario_window, text="Start", bg="#99FFFF", fg="#994C00", padx=15, pady=4, font=("Helvetica", 12, "bold"), borderwidth=5, relief="ridge", command=lambda: self.start_scenario(customer_values, priority_values))
+        start_app_btn.place(relx=0.47, rely=y)
+
+    def start_scenario(self, customer_values, priority_values):
+        # Access values from the lists
+        for customer, priority in zip(customer_values, priority_values):
+            customer_value = customer.get()
+            priority_value = priority.get()
+
+            # Do something with the values (e.g., print or process them)
+            print(f"Customer: {customer_value}, Priority: {priority_value}")
 
 class SecondProblem:
     def __init__(self):
@@ -97,6 +111,8 @@ class SecondProblem:
 
         # Set the title of the window
         self.second_problem_window.title("Second Problem")
+
+
 
 # Creating an instance of the StartApp class and starting the application
 app = StartApp()
