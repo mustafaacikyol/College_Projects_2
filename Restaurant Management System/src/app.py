@@ -1,10 +1,15 @@
 import tkinter as tk
 from tkinter import ttk
+import threading
 
 table = 6
 waiter = 3
 chef = 2
 payment = 1
+total_customers = 0
+total_non_priority = 0
+total_priority = 0
+total_payment = 0
 
 class StartApp:
     def __init__(self):
@@ -77,8 +82,8 @@ class FirstProblem:
         interface_menu = tk.Menu(menu)
         menu.add_cascade(label="Interface", menu=interface_menu)
         interface_menu.add_command(label="Waiter", command=self.generate_waiter_gui)
-        interface_menu.add_command(label="Chef")
-        interface_menu.add_command(label="Payment")
+        interface_menu.add_command(label="Chef", command=self.generate_chef_gui)
+        interface_menu.add_command(label="Payment", command=self.generate_payment_gui)
         interface_menu.add_separator()
         interface_menu.add_command(label="Exit", command=self.scenario_window.quit)
         # Lists to store customer and priority values
@@ -113,12 +118,28 @@ class FirstProblem:
     def start_scenario(self, customer_values, priority_values):
         # Access values from the lists
         for customer, priority in zip(customer_values, priority_values):
-            customer_value = customer.get()
-            priority_value = priority.get()
+            customer_value = int(customer.get())
+            priority_value = int(priority.get())
 
             # Do something with the values (e.g., print or process them)
             # print(f"Customer: {customer_value}, Priority: {priority_value}")
 
+            global total_non_priority, total_priority
+            total_non_priority += customer_value
+            total_priority += priority_value
+
+        # print(f"Total Non Priority: {total_non_priority}, Total Priority: {total_priority}")
+        
+        if(total_priority<6):
+            for item in range(total_priority):
+                t1 = threading.Thread(target=self.generate_priority_customer)
+                t1.start()
+            
+            for item in range(6-total_priority):
+                t2 = threading.Thread(target=self.generate_non_priority_customer)
+                t2.start()
+                t2.join()
+                
     def generate_waiter_gui(self):
         self.waiter_gui = tk.Toplevel()
         self.waiter_gui.state('zoomed')
@@ -240,8 +261,124 @@ class FirstProblem:
         # Start the tkinter main loop
         self.waiter_gui.mainloop()
 
-    #def generate_chef_gui(self):
+    def generate_chef_gui(self):
+        self.chef_gui = tk.Toplevel()
+        self.chef_gui.state('zoomed')
+        self.chef_gui.title("Chef Interface")
 
+        # Create tabs
+        tab_control = ttk.Notebook(self.chef_gui)
+        
+        # Tab 1
+        self.chef_one_tab = ttk.Frame(tab_control)
+        tab_control.add(self.chef_one_tab, text="Chef 1")
+        chef_label = tk.Label(self.chef_one_tab, text="Order Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        chef_label.pack()
+
+        # Get the screen width and height
+        screen_width = self.chef_one_tab.winfo_screenwidth()
+        screen_height = self.chef_one_tab.winfo_screenheight()
+
+        # Set the size of each square and the gap between them
+        square_size = 150
+        gap = 50
+
+        # Calculate the total width and height of all squares and gaps
+        total_width = 2 * square_size + gap
+        total_height = square_size + gap
+
+        # Calculate the starting position to center the squares
+        start_x = (screen_width - total_width) // 2
+        start_y = (screen_height - total_height) // 2
+
+        # Create and display two squares in one row and two columns
+        for col in range(2):  # Adjusted to two columns
+            square_frame = tk.Frame(self.chef_one_tab, width=square_size, height=square_size, bd=2, relief="solid")
+            square_frame.place(x=start_x + col * (square_size + gap), y=start_y)
+
+            # Display information in the top right of each square
+            label_table_state = tk.Label(square_frame, text="Order state: empty", anchor="e", padx=5)
+            label_order_state = tk.Label(square_frame, text="Meal state: empty", anchor="e", padx=5)
+
+            label_table_state.pack(side="top", fill="both")
+            label_order_state.pack(side="top", fill="both")
+
+        # Tab 2
+        self.chef_two_tab = ttk.Frame(tab_control)
+        tab_control.add(self.chef_two_tab, text="Chef 2")
+        chef_label = tk.Label(self.chef_two_tab, text="Order Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        chef_label.pack()
+
+        # Get the screen width and height
+        screen_width = self.chef_two_tab.winfo_screenwidth()
+        screen_height = self.chef_two_tab.winfo_screenheight()
+
+        # Set the size of each square and the gap between them
+        square_size = 150
+        gap = 50
+
+        # Calculate the total width and height of all squares and gaps
+        total_width = 2 * square_size + gap
+        total_height = square_size + gap
+
+        # Calculate the starting position to center the squares
+        start_x = (screen_width - total_width) // 2
+        start_y = (screen_height - total_height) // 2
+
+        # Create and display two squares in one row and two columns
+        for col in range(2):  # Adjusted to two columns
+            square_frame = tk.Frame(self.chef_two_tab, width=square_size, height=square_size, bd=2, relief="solid")
+            square_frame.place(x=start_x + col * (square_size + gap), y=start_y)
+
+            # Display information in the top right of each square
+            label_table_state = tk.Label(square_frame, text="Order state: empty", anchor="e", padx=5)
+            label_order_state = tk.Label(square_frame, text="Meal state: empty", anchor="e", padx=5)
+
+            label_table_state.pack(side="top", fill="both")
+            label_order_state.pack(side="top", fill="both")
+
+        # Set the default tab to open
+        tab_control.select(self.chef_one_tab)
+
+        tab_control.pack(expand=1, fill="both")
+
+        # Start the tkinter main loop
+        self.chef_gui.mainloop()
+
+    def generate_payment_gui(self):
+        self.payment_gui = tk.Toplevel()
+        self.payment_gui.state('zoomed')
+        self.payment_gui.title("Payment Interface")
+
+        # Get the screen width and height
+        screen_width = self.payment_gui.winfo_screenwidth()
+        screen_height = self.payment_gui.winfo_screenheight()
+
+        # Set the total customer and payment amount
+        global total_customers,total_payment
+        total_customers = 0
+        total_payment = 0
+
+        # Create and display labels in the center of the page
+        label_customers = tk.Label(self.payment_gui, text=f"Total Customers: {total_customers}", font=("Helvetica", 14))
+        label_payment = tk.Label(self.payment_gui, text=f"Total Payment: ${total_payment:.2f}", font=("Helvetica", 14))
+
+        label_customers.place(x=(screen_width - label_customers.winfo_reqwidth()) // 2, y=screen_height // 2 - 130)
+        label_payment.place(x=(screen_width - label_payment.winfo_reqwidth()) // 2, y=screen_height // 2 - 70)
+
+    def generate_priority_customer(self):
+        priority_customer = Customer(1)
+
+    def generate_non_priority_customer(self):
+        non_priority_customer = Customer()
+
+
+class Customer:
+    def __init__(self, number=None):
+        if number is not None:
+            print('Priority customer generated')
+        else:
+            print('Non-priority customer generated')
 
 class SecondProblem:
     def __init__(self):
@@ -253,8 +390,6 @@ class SecondProblem:
 
         # Set the title of the window
         self.second_problem_window.title("Second Problem")
-
-
 
 # Creating an instance of the StartApp class and starting the application
 app = StartApp()
