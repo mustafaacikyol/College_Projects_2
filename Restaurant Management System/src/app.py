@@ -132,22 +132,27 @@ class FirstProblem:
             total_priority += priority_value
 
         # print(f"Total Non Priority: {total_non_priority}, Total Priority: {total_priority}")
+        total_customers = total_non_priority + total_priority
         
         if(total_priority<6):
             for item in range(total_priority):
                 t1 = threading.Thread(target=self.generate_priority_customer)
                 t1.start()
-                
+                t1.join()
                 table_list[table_counter].set_state()
                 table_counter += 1
+                t3 = threading.Thread(target=self.update_waiter_gui).start()
             
             for item in range(6-total_priority):
                 t2 = threading.Thread(target=self.generate_non_priority_customer)
                 t2.start()
                 t2.join()
-
                 table_list[table_counter].set_state()
                 table_counter += 1
+                t4 = threading.Thread(target=self.update_waiter_gui).start()
+
+            with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
+                file.write(f'{total_customers} customers came. There are {total_priority} priotity customers.\n')
                 
     def generate_waiter_gui(self):
         self.waiter_gui = tk.Toplevel()
@@ -162,7 +167,31 @@ class FirstProblem:
         tab_control.add(self.waiter_one_tab, text="Waiter 1")
         waiter_label = tk.Label(self.waiter_one_tab, text="Table Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
         waiter_label.pack()
+        self.generate_waiter_gui_content(self.waiter_one_tab)
 
+        # Tab 2
+        self.waiter_two_tab = ttk.Frame(tab_control)
+        tab_control.add(self.waiter_two_tab, text="Waiter 2")
+        waiter_label = tk.Label(self.waiter_two_tab, text="Table Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        waiter_label.pack()
+        self.generate_waiter_gui_content(self.waiter_two_tab)
+
+        # Tab 3
+        self.waiter_three_tab = ttk.Frame(tab_control)
+        tab_control.add(self.waiter_three_tab, text="Waiter 3")
+        waiter_label = tk.Label(self.waiter_three_tab, text="Table Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
+        waiter_label.pack()
+        self.generate_waiter_gui_content(self.waiter_three_tab)
+
+        # Set the default tab to open
+        tab_control.select(self.waiter_one_tab)
+
+        tab_control.pack(expand=1, fill="both")
+
+        # Start the tkinter main loop
+        self.waiter_gui.mainloop()
+
+    def generate_waiter_gui_content(self, waiter_tab):
         # Get the screen width and height
         screen_width = self.waiter_one_tab.winfo_screenwidth()
         screen_height = self.waiter_one_tab.winfo_screenheight()
@@ -184,7 +213,7 @@ class FirstProblem:
             global table_list
             table_obj = Table()
             table_list.append(table_obj)
-            square_frame = tk.Frame(self.waiter_one_tab, width=square_size, height=square_size, bd=2, relief="solid")
+            square_frame = tk.Frame(waiter_tab, width=square_size, height=square_size, bd=2, relief="solid")
             square_frame.place(x=start_x + col * (square_size + gap), y=start_y)
 
             # Display information in the top right of each square
@@ -194,15 +223,11 @@ class FirstProblem:
             label_table_state.pack(side="top", fill="both")
             label_order_state.pack(side="top", fill="both")
 
-        # Tab 2
-        self.waiter_two_tab = ttk.Frame(tab_control)
-        tab_control.add(self.waiter_two_tab, text="Waiter 2")
-        waiter_label = tk.Label(self.waiter_two_tab, text="Table Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
-        waiter_label.pack()
-
+    def update_waiter_gui(self):
+        waiter_tab_list = [self.waiter_one_tab, self.waiter_two_tab, self.waiter_three_tab]
         # Get the screen width and height
-        screen_width = self.waiter_two_tab.winfo_screenwidth()
-        screen_height = self.waiter_two_tab.winfo_screenheight()
+        screen_width = self.waiter_one_tab.winfo_screenwidth()
+        screen_height = self.waiter_one_tab.winfo_screenheight()
 
         # Set the size of each square and the gap between them
         square_size = 150
@@ -215,62 +240,20 @@ class FirstProblem:
         # Calculate the starting position to center the squares
         start_x = (screen_width - total_width) // 4
         start_y = (screen_height - total_height) // 2
-
-        # Create and display six squares in two rows and three columns
-        for row in range(2):
-            for col in range(3):
-                square_frame = tk.Frame(self.waiter_two_tab, width=square_size, height=square_size, bd=2, relief="solid")
-                square_frame.place(x=start_x + col * (square_size + gap), y=start_y + row * (square_size + gap))
+        for waiter_tab in waiter_tab_list:
+            for col in range(6):
+                global table_list
+                table_obj = Table()
+                table_list.append(table_obj)
+                square_frame = tk.Frame(waiter_tab, width=square_size, height=square_size, bd=2, relief="solid")
+                square_frame.place(x=start_x + col * (square_size + gap), y=start_y)
 
                 # Display information in the top right of each square
-                label_table_state = tk.Label(square_frame, text="Table state: empty", anchor="e", padx=5)
+                label_table_state = tk.Label(square_frame, text=f"Table state: {table_list[col].get_state()}", anchor="e", padx=5)
                 label_order_state = tk.Label(square_frame, text="Order state: empty", anchor="e", padx=5)
 
                 label_table_state.pack(side="top", fill="both")
                 label_order_state.pack(side="top", fill="both")
-
-        # Tab 3
-        self.waiter_three_tab = ttk.Frame(tab_control)
-        tab_control.add(self.waiter_three_tab, text="Waiter 3")
-        waiter_label = tk.Label(self.waiter_three_tab, text="Table Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
-        waiter_label.pack()
-
-        # Get the screen width and height
-        screen_width = self.waiter_three_tab.winfo_screenwidth()
-        screen_height = self.waiter_three_tab.winfo_screenheight()
-
-        # Set the size of each square and the gap between them
-        square_size = 150
-        gap = 20
-
-        # Calculate the total width and height of all squares and gaps
-        total_width = 3 * square_size + 2 * gap
-        total_height = 2 * square_size + gap
-
-        # Calculate the starting position to center the squares
-        start_x = (screen_width - total_width) // 4
-        start_y = (screen_height - total_height) // 2
-
-        # Create and display six squares in two rows and three columns
-        for row in range(2):
-            for col in range(3):
-                square_frame = tk.Frame(self.waiter_three_tab, width=square_size, height=square_size, bd=2, relief="solid")
-                square_frame.place(x=start_x + col * (square_size + gap), y=start_y + row * (square_size + gap))
-
-                # Display information in the top right of each square
-                label_table_state = tk.Label(square_frame, text="Table state: empty", anchor="e", padx=5)
-                label_order_state = tk.Label(square_frame, text="Order state: empty", anchor="e", padx=5)
-
-                label_table_state.pack(side="top", fill="both")
-                label_order_state.pack(side="top", fill="both")
-
-        # Set the default tab to open
-        tab_control.select(self.waiter_one_tab)
-
-        tab_control.pack(expand=1, fill="both")
-
-        # Start the tkinter main loop
-        self.waiter_gui.mainloop()
 
     def generate_chef_gui(self):
         self.chef_gui = tk.Toplevel()
