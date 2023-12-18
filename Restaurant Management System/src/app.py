@@ -10,6 +10,8 @@ total_customers = 0
 total_non_priority = 0
 total_priority = 0
 total_payment = 0
+table_list = []
+table_counter = 0
 
 class StartApp:
     def __init__(self):
@@ -116,6 +118,7 @@ class FirstProblem:
         start_app_btn.place(relx=0.47, rely=y)
 
     def start_scenario(self, customer_values, priority_values):
+        global table_list, table_counter
         # Access values from the lists
         for customer, priority in zip(customer_values, priority_values):
             customer_value = int(customer.get())
@@ -134,11 +137,17 @@ class FirstProblem:
             for item in range(total_priority):
                 t1 = threading.Thread(target=self.generate_priority_customer)
                 t1.start()
+                
+                table_list[table_counter].set_state()
+                table_counter += 1
             
             for item in range(6-total_priority):
                 t2 = threading.Thread(target=self.generate_non_priority_customer)
                 t2.start()
                 t2.join()
+
+                table_list[table_counter].set_state()
+                table_counter += 1
                 
     def generate_waiter_gui(self):
         self.waiter_gui = tk.Toplevel()
@@ -159,7 +168,7 @@ class FirstProblem:
         screen_height = self.waiter_one_tab.winfo_screenheight()
 
         # Set the size of each square and the gap between them
-        square_size = 200
+        square_size = 150
         gap = 20
 
         # Calculate the total width and height of all squares and gaps
@@ -167,21 +176,23 @@ class FirstProblem:
         total_height = 2 * square_size + gap
 
         # Calculate the starting position to center the squares
-        start_x = (screen_width - total_width) // 2
+        start_x = (screen_width - total_width) // 4
         start_y = (screen_height - total_height) // 2
 
-        # Create and display six squares in two rows and three columns
-        for row in range(2):
-            for col in range(3):
-                square_frame = tk.Frame(self.waiter_one_tab, width=square_size, height=square_size, bd=2, relief="solid")
-                square_frame.place(x=start_x + col * (square_size + gap), y=start_y + row * (square_size + gap))
+        # Create and display six squares in a single row with six columns
+        for col in range(6):
+            global table_list
+            table_obj = Table()
+            table_list.append(table_obj)
+            square_frame = tk.Frame(self.waiter_one_tab, width=square_size, height=square_size, bd=2, relief="solid")
+            square_frame.place(x=start_x + col * (square_size + gap), y=start_y)
 
-                # Display information in the top right of each square
-                label_table_state = tk.Label(square_frame, text="Table state: empty", anchor="e", padx=5)
-                label_order_state = tk.Label(square_frame, text="Order state: empty", anchor="e", padx=5)
+            # Display information in the top right of each square
+            label_table_state = tk.Label(square_frame, text=f"Table state: {table_list[col].get_state()}", anchor="e", padx=5)
+            label_order_state = tk.Label(square_frame, text="Order state: empty", anchor="e", padx=5)
 
-                label_table_state.pack(side="top", fill="both")
-                label_order_state.pack(side="top", fill="both")
+            label_table_state.pack(side="top", fill="both")
+            label_order_state.pack(side="top", fill="both")
 
         # Tab 2
         self.waiter_two_tab = ttk.Frame(tab_control)
@@ -194,7 +205,7 @@ class FirstProblem:
         screen_height = self.waiter_two_tab.winfo_screenheight()
 
         # Set the size of each square and the gap between them
-        square_size = 200
+        square_size = 150
         gap = 20
 
         # Calculate the total width and height of all squares and gaps
@@ -202,7 +213,7 @@ class FirstProblem:
         total_height = 2 * square_size + gap
 
         # Calculate the starting position to center the squares
-        start_x = (screen_width - total_width) // 2
+        start_x = (screen_width - total_width) // 4
         start_y = (screen_height - total_height) // 2
 
         # Create and display six squares in two rows and three columns
@@ -229,7 +240,7 @@ class FirstProblem:
         screen_height = self.waiter_three_tab.winfo_screenheight()
 
         # Set the size of each square and the gap between them
-        square_size = 200
+        square_size = 150
         gap = 20
 
         # Calculate the total width and height of all squares and gaps
@@ -237,7 +248,7 @@ class FirstProblem:
         total_height = 2 * square_size + gap
 
         # Calculate the starting position to center the squares
-        start_x = (screen_width - total_width) // 2
+        start_x = (screen_width - total_width) // 4
         start_y = (screen_height - total_height) // 2
 
         # Create and display six squares in two rows and three columns
@@ -372,6 +383,18 @@ class FirstProblem:
     def generate_non_priority_customer(self):
         non_priority_customer = Customer()
 
+class Table:
+    def __init__(self):
+        self.state = 'empty'
+
+    def get_state(self):
+        return self.state
+    
+    def set_state(self):
+        if(self.state == 'empty'):
+            self.state = 'full'
+        else:
+            self.state = 'empty'
 
 class Customer:
     def __init__(self, number=None):
