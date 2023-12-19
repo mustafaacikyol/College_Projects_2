@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 import threading
+import time
 
 table = 6
 waiter = 3
@@ -14,6 +15,7 @@ table_list = []
 table_counter = 0
 waiter_list = []
 #waiter_counter = 0
+chef_list = []
 
 class StartApp:
     def __init__(self):
@@ -120,11 +122,15 @@ class FirstProblem:
         start_app_btn.place(relx=0.47, rely=y)
 
     def start_scenario(self, customer_values, priority_values):
-        global waiter_list
+        global total_customers, total_non_priority, total_priority, table_list, table_counter, waiter_list, chef_list
         for i in range(3):
             waiter_obj = Waiter()
             waiter_list.append(waiter_obj)
-        global table_list, table_counter
+        
+        for i in range(2):
+            chef_obj = Chef()
+            chef_list.append(chef_obj)
+
         # Access values from the lists
         for customer, priority in zip(customer_values, priority_values):
             customer_value = int(customer.get())
@@ -133,7 +139,6 @@ class FirstProblem:
             # Do something with the values (e.g., print or process them)
             # print(f"Customer: {customer_value}, Priority: {priority_value}")
 
-            global total_non_priority, total_priority
             total_non_priority += customer_value
             total_priority += priority_value
 
@@ -166,13 +171,13 @@ class FirstProblem:
             for waiter in waiter_list:
                 table_list[table_counter].set_order_state()
                 table_counter += 1
-            t5 = threading.Thread(target=self.update_waiter_gui)
+            t5 = threading.Thread(target=self.update_waiter_gui(True))
             t5.start()
+            t5.join()
 
             with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
                 file.write(f"Waiter 1 took customer 1's order, waiter 2 took customer 2's order and waiter 3 took customer 3's order. Customer 4, customer 5 and customer 6 are waiting for their orders.\n")
-
-                
+            
     def generate_waiter_gui(self):
         self.waiter_gui = tk.Toplevel()
         self.waiter_gui.state('zoomed')
@@ -242,7 +247,14 @@ class FirstProblem:
             label_table_state.pack(side="top", fill="both")
             label_order_state.pack(side="top", fill="both")
 
-    def update_waiter_gui(self):
+    def update_waiter_gui(self, is_order=False):
+        if(is_order):
+            # Set the time for the thread to sleep (in seconds)
+            sleep_time = 2
+            
+            # Sleep for the specified time
+            time.sleep(sleep_time)
+        
         waiter_tab_list = [self.waiter_one_tab, self.waiter_two_tab, self.waiter_three_tab]
         # Get the screen width and height
         screen_width = self.waiter_one_tab.winfo_screenwidth()
@@ -420,6 +432,10 @@ class Waiter:
         print('Waiter generated')
 
     #def take_order(self):
+
+class Chef:
+    def __init__(self):
+        print('Chef generated')
 
 
 class SecondProblem:
