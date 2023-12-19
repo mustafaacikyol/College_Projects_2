@@ -12,6 +12,8 @@ total_priority = 0
 total_payment = 0
 table_list = []
 table_counter = 0
+waiter_list = []
+#waiter_counter = 0
 
 class StartApp:
     def __init__(self):
@@ -118,6 +120,10 @@ class FirstProblem:
         start_app_btn.place(relx=0.47, rely=y)
 
     def start_scenario(self, customer_values, priority_values):
+        global waiter_list
+        for i in range(3):
+            waiter_obj = Waiter()
+            waiter_list.append(waiter_obj)
         global table_list, table_counter
         # Access values from the lists
         for customer, priority in zip(customer_values, priority_values):
@@ -141,7 +147,7 @@ class FirstProblem:
                 t1.join()
                 table_list[table_counter].set_state()
                 table_counter += 1
-                t3 = threading.Thread(target=self.update_waiter_gui).start()
+            t3 = threading.Thread(target=self.update_waiter_gui).start()
             
             for item in range(6-total_priority):
                 t2 = threading.Thread(target=self.generate_non_priority_customer)
@@ -149,10 +155,23 @@ class FirstProblem:
                 t2.join()
                 table_list[table_counter].set_state()
                 table_counter += 1
-                t4 = threading.Thread(target=self.update_waiter_gui).start()
+            t4 = threading.Thread(target=self.update_waiter_gui).start()
+
 
             with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
                 file.write(f'{total_customers} customers came. There are {total_priority} priotity customers.\n')
+                file.write(f'6 customers placed on tables. {total_customers-6} customers on hold.\n')
+
+            table_counter = 0
+            for waiter in waiter_list:
+                table_list[table_counter].set_order_state()
+                table_counter += 1
+            t5 = threading.Thread(target=self.update_waiter_gui)
+            t5.start()
+
+            with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
+                file.write(f"Waiter 1 took customer 1's order, waiter 2 took customer 2's order and waiter 3 took customer 3's order. Customer 4, customer 5 and customer 6 are waiting for their orders.\n")
+
                 
     def generate_waiter_gui(self):
         self.waiter_gui = tk.Toplevel()
@@ -217,8 +236,8 @@ class FirstProblem:
             square_frame.place(x=start_x + col * (square_size + gap), y=start_y)
 
             # Display information in the top right of each square
-            label_table_state = tk.Label(square_frame, text=f"Table state: {table_list[col].get_state()}", anchor="e", padx=5)
-            label_order_state = tk.Label(square_frame, text="Order state: empty", anchor="e", padx=5)
+            label_table_state = tk.Label(square_frame, text=f"Table state: {table_list[col].get_state()}", anchor="e", padx=15)
+            label_order_state = tk.Label(square_frame, text=f"Order state: {table_list[col].get_order_state()}", anchor="e", padx=15)
 
             label_table_state.pack(side="top", fill="both")
             label_order_state.pack(side="top", fill="both")
@@ -249,8 +268,8 @@ class FirstProblem:
                 square_frame.place(x=start_x + col * (square_size + gap), y=start_y)
 
                 # Display information in the top right of each square
-                label_table_state = tk.Label(square_frame, text=f"Table state: {table_list[col].get_state()}", anchor="e", padx=5)
-                label_order_state = tk.Label(square_frame, text="Order state: empty", anchor="e", padx=5)
+                label_table_state = tk.Label(square_frame, text=f"Table state: {table_list[col].get_state()}", anchor="e", padx=15)
+                label_order_state = tk.Label(square_frame, text=f"Order state: {table_list[col].get_order_state()}", anchor="e", padx=15)
 
                 label_table_state.pack(side="top", fill="both")
                 label_order_state.pack(side="top", fill="both")
@@ -369,6 +388,7 @@ class FirstProblem:
 class Table:
     def __init__(self):
         self.state = 'empty'
+        self.order_state = 'empty'
 
     def get_state(self):
         return self.state
@@ -379,12 +399,28 @@ class Table:
         else:
             self.state = 'empty'
 
+    def get_order_state(self):
+        return self.order_state
+    
+    def set_order_state(self):
+        if(self.order_state == 'empty'):
+            self.order_state = ' taken '
+        else:
+            self.order_state = 'empty'
+
 class Customer:
     def __init__(self, number=None):
         if number is not None:
             print('Priority customer generated')
         else:
             print('Non-priority customer generated')
+
+class Waiter:
+    def __init__(self):
+        print('Waiter generated')
+
+    #def take_order(self):
+
 
 class SecondProblem:
     def __init__(self):
