@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import threading
 import time
+import asyncio
 
 table = 6
 waiter = 3
@@ -153,16 +154,15 @@ class FirstProblem:
                 generate_priority_customer_thread.join()
                 table_list[table_counter].set_state()
                 table_counter += 1
-            update_waiter_gui_thread = threading.Thread(target=self.update_waiter_gui).start()
-            
+            #update_waiter_gui_thread = threading.Thread(target=self.update_waiter_gui).start()
+                
             for item in range(6-total_priority):
                 generate_non_priority_customer_thread = threading.Thread(target=self.generate_non_priority_customer)
                 generate_non_priority_customer_thread.start()
                 generate_non_priority_customer_thread.join()
                 table_list[table_counter].set_state()
                 table_counter += 1
-            update_waiter_gui_thread = threading.Thread(target=self.update_waiter_gui).start()
-
+            #update_waiter_gui_thread = threading.Thread(target=self.update_waiter_gui).start()
 
             with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
                 file.write(f'{total_customers} customers came. There are {total_priority} priotity customers.\n')
@@ -172,18 +172,19 @@ class FirstProblem:
             for waiter in waiter_list:
                 table_list[table_counter].set_order_state()
                 table_counter += 1
-            update_waiter_gui_thread = threading.Thread(target=self.update_waiter_gui(True))
+
+            # Schedule the thread to run after 5 seconds
+            update_waiter_gui_thread = threading.Timer(2.0, self.update_waiter_gui)
+            # Start the timer thread
             update_waiter_gui_thread.start()
-            update_waiter_gui_thread.join()
 
             with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
                 file.write(f"Waiter 1 took customer 1's order, waiter 2 took customer 2's order and waiter 3 took customer 3's order. Customer 4, customer 5 and customer 6 are waiting for their orders.\n")
             
             for i,waiter in enumerate(waiter_list):
                 chef_list[i].set_order_state()
-            update_chef_gui_thread = threading.Thread(target=self.update_chef_gui(True))
+            update_chef_gui_thread = threading.Timer(5.0, self.update_chef_gui)
             update_chef_gui_thread.start()
-            update_chef_gui_thread.join()
 
             with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
                 file.write(f"Waiter 1 passed the order of customer 1, waiter 2 passed the order of customer 2 and waiter 3 passed the order of customer 3 to the chef.\n")
@@ -259,12 +260,12 @@ class FirstProblem:
             label_order_state.pack(side="top", fill="both")
 
     def update_waiter_gui(self, is_order=False):
-        if(is_order):
+        """ if(is_order):
             # Set the time for the thread to sleep (in seconds)
             sleep_time = 2
             
             # Sleep for the specified time
-            time.sleep(sleep_time)
+            time.sleep(sleep_time) """
         
         waiter_tab_list = [self.waiter_one_tab, self.waiter_two_tab, self.waiter_three_tab]
         # Get the screen width and height
@@ -403,12 +404,12 @@ class FirstProblem:
 
             label_table_state.pack(side="top", fill="both")
             label_order_state.pack(side="top", fill="both")
-        if(is_order):
+        """ if(is_order):
             # Set the time for the thread to sleep (in seconds)
             sleep_time = 3
             
             # Sleep for the specified time
-            time.sleep(sleep_time)
+            time.sleep(sleep_time) """
 
     def generate_payment_gui(self):
         self.payment_gui = tk.Toplevel()

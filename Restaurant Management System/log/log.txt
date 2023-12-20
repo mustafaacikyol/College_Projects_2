@@ -1,5 +1,0 @@
-16 customers came. There are 4 priotity customers.
-6 customers placed on tables. 10 customers on hold.
-Waiter 1 took customer 1's order, waiter 2 took customer 2's order and waiter 3 took customer 3's order. Customer 4, customer 5 and customer 6 are waiting for their orders.
-Waiter 1 passed the order of customer 1, waiter 2 passed the order of customer 2 and waiter 3 passed the order of customer 3 to the chef.
-Chef 1 took the order for customer 1 and customer 2 and started to prepare them. Chef 2 has started preparing customer 3's order and is waiting for the new order.
