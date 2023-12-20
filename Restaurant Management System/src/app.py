@@ -75,6 +75,10 @@ class FirstProblem:
         self.set_step_number_btn.place(relx=0.43, rely=0.5)
         
     def open_scenario(self):
+        for i in range(4):
+            chef_obj = Chef(f'Chef {i}')
+            chef_list.append(chef_obj)
+        
         step_number = int(self.step_number_field.get())
         self.first_problem_window.destroy()
         self.scenario_window = tk.Toplevel()
@@ -126,10 +130,6 @@ class FirstProblem:
         for i in range(3):
             waiter_obj = Waiter()
             waiter_list.append(waiter_obj)
-        
-        for i in range(2):
-            chef_obj = Chef()
-            chef_list.append(chef_obj)
 
         # Access values from the lists
         for customer, priority in zip(customer_values, priority_values):
@@ -217,8 +217,8 @@ class FirstProblem:
 
     def generate_waiter_gui_content(self, waiter_tab):
         # Get the screen width and height
-        screen_width = self.waiter_one_tab.winfo_screenwidth()
-        screen_height = self.waiter_one_tab.winfo_screenheight()
+        screen_width = waiter_tab.winfo_screenwidth()
+        screen_height = waiter_tab.winfo_screenheight()
 
         # Set the size of each square and the gap between them
         square_size = 150
@@ -299,68 +299,14 @@ class FirstProblem:
         tab_control.add(self.chef_one_tab, text="Chef 1")
         chef_label = tk.Label(self.chef_one_tab, text="Order Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
         chef_label.pack()
-
-        # Get the screen width and height
-        screen_width = self.chef_one_tab.winfo_screenwidth()
-        screen_height = self.chef_one_tab.winfo_screenheight()
-
-        # Set the size of each square and the gap between them
-        square_size = 150
-        gap = 50
-
-        # Calculate the total width and height of all squares and gaps
-        total_width = 2 * square_size + gap
-        total_height = square_size + gap
-
-        # Calculate the starting position to center the squares
-        start_x = (screen_width - total_width) // 2
-        start_y = (screen_height - total_height) // 2
-
-        # Create and display two squares in one row and two columns
-        for col in range(2):  # Adjusted to two columns
-            square_frame = tk.Frame(self.chef_one_tab, width=square_size, height=square_size, bd=2, relief="solid")
-            square_frame.place(x=start_x + col * (square_size + gap), y=start_y)
-
-            # Display information in the top right of each square
-            label_table_state = tk.Label(square_frame, text="Order state: empty", anchor="e", padx=5)
-            label_order_state = tk.Label(square_frame, text="Meal state: empty", anchor="e", padx=5)
-
-            label_table_state.pack(side="top", fill="both")
-            label_order_state.pack(side="top", fill="both")
+        self.generate_chef_gui_content(self.chef_one_tab)
 
         # Tab 2
         self.chef_two_tab = ttk.Frame(tab_control)
         tab_control.add(self.chef_two_tab, text="Chef 2")
         chef_label = tk.Label(self.chef_two_tab, text="Order Informations", padx=20, pady=20, font=("Helvatica", 15, "bold"), fg="brown")
         chef_label.pack()
-
-        # Get the screen width and height
-        screen_width = self.chef_two_tab.winfo_screenwidth()
-        screen_height = self.chef_two_tab.winfo_screenheight()
-
-        # Set the size of each square and the gap between them
-        square_size = 150
-        gap = 50
-
-        # Calculate the total width and height of all squares and gaps
-        total_width = 2 * square_size + gap
-        total_height = square_size + gap
-
-        # Calculate the starting position to center the squares
-        start_x = (screen_width - total_width) // 2
-        start_y = (screen_height - total_height) // 2
-
-        # Create and display two squares in one row and two columns
-        for col in range(2):  # Adjusted to two columns
-            square_frame = tk.Frame(self.chef_two_tab, width=square_size, height=square_size, bd=2, relief="solid")
-            square_frame.place(x=start_x + col * (square_size + gap), y=start_y)
-
-            # Display information in the top right of each square
-            label_table_state = tk.Label(square_frame, text="Order state: empty", anchor="e", padx=5)
-            label_order_state = tk.Label(square_frame, text="Meal state: empty", anchor="e", padx=5)
-
-            label_table_state.pack(side="top", fill="both")
-            label_order_state.pack(side="top", fill="both")
+        self.generate_chef_gui_content(self.chef_two_tab)
 
         # Set the default tab to open
         tab_control.select(self.chef_one_tab)
@@ -369,6 +315,44 @@ class FirstProblem:
 
         # Start the tkinter main loop
         self.chef_gui.mainloop()
+
+    def generate_chef_gui_content(self, chef_tab):
+        # Get the screen width and height
+        screen_width = chef_tab.winfo_screenwidth()
+        screen_height = chef_tab.winfo_screenheight()
+
+        # Set the size of each square and the gap between them
+        square_size = 150
+        gap = 50
+
+        # Calculate the total width and height of all squares and gaps
+        total_width = 2 * square_size + gap
+        total_height = square_size + gap
+
+        # Calculate the starting position to center the squares
+        start_x = (screen_width - total_width) // 2
+        start_y = (screen_height - total_height) // 2
+
+        if(chef_tab == self.chef_one_tab):
+            a = (0,2)
+        elif(chef_tab == self.chef_two_tab):
+            a = (2,4)
+
+        for col in range(*a):  
+            square_frame = tk.Frame(chef_tab, width=square_size, height=square_size, bd=2, relief="solid")
+            if(col<2):
+                square_frame.place(x=start_x + col * (square_size + gap), y=start_y)
+            elif(col==2):
+                square_frame.place(x=start_x, y=start_y)
+            elif(col==3):
+                square_frame.place(x=start_x + (square_size + gap), y=start_y)
+
+            # Display information in the top right of each square
+            label_table_state = tk.Label(square_frame, text=f"Order state: {chef_list[col].get_order_state()}", anchor="e", padx=5)
+            label_order_state = tk.Label(square_frame, text=f"Meal state: {chef_list[col].get_meal_state()}", anchor="e", padx=5)
+
+            label_table_state.pack(side="top", fill="both")
+            label_order_state.pack(side="top", fill="both")
 
     def generate_payment_gui(self):
         self.payment_gui = tk.Toplevel()
@@ -434,9 +418,29 @@ class Waiter:
     #def take_order(self):
 
 class Chef:
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
         print('Chef generated')
+        self.order_state = 'empty'
+        self.meal_state = 'empty'
 
+    def get_order_state(self):
+        return self.order_state
+    
+    def set_order_state(self):
+        if(self.order_state == 'empty'):
+            self.order_state = ' taken '
+        else:
+            self.order_state = 'empty'
+
+    def get_meal_state(self):
+        return self.meal_state
+    
+    def set_meal_state(self):
+        if(self.meal_state == 'empty'):
+            self.meal_state = 'full'
+        else:
+            self.meal_state = 'empty'
 
 class SecondProblem:
     def __init__(self):
