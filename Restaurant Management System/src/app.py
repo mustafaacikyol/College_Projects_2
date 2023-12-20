@@ -7,6 +7,7 @@ table = 6
 waiter = 3
 chef = 2
 payment = 1
+customer_counter = 1
 total_customers = 0
 total_non_priority = 0
 total_priority = 0
@@ -76,7 +77,7 @@ class FirstProblem:
         
     def open_scenario(self):
         for i in range(4):
-            chef_obj = Chef(f'Chef {i}')
+            chef_obj = Chef(f'Chef {i+1}')
             chef_list.append(chef_obj)
         
         step_number = int(self.step_number_field.get())
@@ -128,7 +129,7 @@ class FirstProblem:
     def start_scenario(self, customer_values, priority_values):
         global total_customers, total_non_priority, total_priority, table_list, table_counter, waiter_list, chef_list
         for i in range(3):
-            waiter_obj = Waiter()
+            waiter_obj = Waiter(f"Waiter {i+1}")
             waiter_list.append(waiter_obj)
 
         # Access values from the lists
@@ -147,20 +148,20 @@ class FirstProblem:
         
         if(total_priority<6):
             for item in range(total_priority):
-                t1 = threading.Thread(target=self.generate_priority_customer)
-                t1.start()
-                t1.join()
+                generate_priority_customer_thread = threading.Thread(target=self.generate_priority_customer)
+                generate_priority_customer_thread.start()
+                generate_priority_customer_thread.join()
                 table_list[table_counter].set_state()
                 table_counter += 1
-            t3 = threading.Thread(target=self.update_waiter_gui).start()
+            update_waiter_gui_thread = threading.Thread(target=self.update_waiter_gui).start()
             
             for item in range(6-total_priority):
-                t2 = threading.Thread(target=self.generate_non_priority_customer)
-                t2.start()
-                t2.join()
+                generate_non_priority_customer_thread = threading.Thread(target=self.generate_non_priority_customer)
+                generate_non_priority_customer_thread.start()
+                generate_non_priority_customer_thread.join()
                 table_list[table_counter].set_state()
                 table_counter += 1
-            t4 = threading.Thread(target=self.update_waiter_gui).start()
+            update_waiter_gui_thread = threading.Thread(target=self.update_waiter_gui).start()
 
 
             with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
@@ -171,13 +172,23 @@ class FirstProblem:
             for waiter in waiter_list:
                 table_list[table_counter].set_order_state()
                 table_counter += 1
-            t5 = threading.Thread(target=self.update_waiter_gui(True))
-            t5.start()
-            t5.join()
+            update_waiter_gui_thread = threading.Thread(target=self.update_waiter_gui(True))
+            update_waiter_gui_thread.start()
+            update_waiter_gui_thread.join()
 
             with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
                 file.write(f"Waiter 1 took customer 1's order, waiter 2 took customer 2's order and waiter 3 took customer 3's order. Customer 4, customer 5 and customer 6 are waiting for their orders.\n")
             
+            for i,waiter in enumerate(waiter_list):
+                chef_list[i].set_order_state()
+            update_chef_gui_thread = threading.Thread(target=self.update_chef_gui(True))
+            update_chef_gui_thread.start()
+            update_chef_gui_thread.join()
+
+            with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
+                file.write(f"Waiter 1 passed the order of customer 1, waiter 2 passed the order of customer 2 and waiter 3 passed the order of customer 3 to the chef.\n")
+                file.write(f"Chef 1 took the order for customer 1 and customer 2 and started to prepare them. Chef 2 has started preparing customer 3's order and is waiting for the new order.\n")
+
     def generate_waiter_gui(self):
         self.waiter_gui = tk.Toplevel()
         self.waiter_gui.state('zoomed')
@@ -354,6 +365,51 @@ class FirstProblem:
             label_table_state.pack(side="top", fill="both")
             label_order_state.pack(side="top", fill="both")
 
+    def update_chef_gui(self, is_order=False):
+        chef_tab_list = [self.chef_one_tab, self.chef_two_tab]
+        # Get the screen width and height
+        screen_width = self.chef_one_tab.winfo_screenwidth()
+        screen_height = self.chef_one_tab.winfo_screenheight()
+
+        # Set the size of each square and the gap between them
+        square_size = 150
+        gap = 50
+
+        # Calculate the total width and height of all squares and gaps
+        total_width = 2 * square_size + gap
+        total_height = square_size + gap
+
+        # Calculate the starting position to center the squares
+        start_x = (screen_width - total_width) // 2
+        start_y = (screen_height - total_height) // 2
+
+        for col in range(0,2):  
+            square_frame = tk.Frame(self.chef_one_tab, width=square_size, height=square_size, bd=2, relief="solid")
+            square_frame.place(x=start_x + col * (square_size + gap), y=start_y)
+
+            # Display information in the top right of each square
+            label_table_state = tk.Label(square_frame, text=f"Order state: {chef_list[col].get_order_state()}", anchor="e", padx=5)
+            label_order_state = tk.Label(square_frame, text=f"Meal state: {chef_list[col].get_meal_state()}", anchor="e", padx=5)
+
+            label_table_state.pack(side="top", fill="both")
+            label_order_state.pack(side="top", fill="both")
+        for col in range(2,4):  
+            square_frame = tk.Frame(self.chef_two_tab, width=square_size, height=square_size, bd=2, relief="solid")
+            square_frame.place(x=start_x + (col-2) * (square_size + gap), y=start_y)
+
+            # Display information in the top right of each square
+            label_table_state = tk.Label(square_frame, text=f"Orders state: {chef_list[col].get_order_state()}", anchor="e", padx=5)
+            label_order_state = tk.Label(square_frame, text=f"Meal state: {chef_list[col].get_meal_state()}", anchor="e", padx=5)
+
+            label_table_state.pack(side="top", fill="both")
+            label_order_state.pack(side="top", fill="both")
+        if(is_order):
+            # Set the time for the thread to sleep (in seconds)
+            sleep_time = 3
+            
+            # Sleep for the specified time
+            time.sleep(sleep_time)
+
     def generate_payment_gui(self):
         self.payment_gui = tk.Toplevel()
         self.payment_gui.state('zoomed')
@@ -376,10 +432,10 @@ class FirstProblem:
         label_payment.place(x=(screen_width - label_payment.winfo_reqwidth()) // 2, y=screen_height // 2 - 70)
 
     def generate_priority_customer(self):
-        priority_customer = Customer(1)
+        priority_customer = Customer(f'Customer {customer_counter}',1)
 
     def generate_non_priority_customer(self):
-        non_priority_customer = Customer()
+        non_priority_customer = Customer(f'Customer {customer_counter}')
 
 class Table:
     def __init__(self):
@@ -405,22 +461,26 @@ class Table:
             self.order_state = 'empty'
 
 class Customer:
-    def __init__(self, number=None):
+    def __init__(self, name, number=None):
+        global customer_counter
+        self.name = name
         if number is not None:
-            print('Priority customer generated')
+            print(f'Priority customer {self.name} generated')
         else:
-            print('Non-priority customer generated')
+            print(f'Non-priority customer {self.name} generated')
+        customer_counter += 1
 
 class Waiter:
-    def __init__(self):
-        print('Waiter generated')
+    def __init__(self, name):
+        self.name = name
+        print(f'{self.name} generated')
 
     #def take_order(self):
 
 class Chef:
     def __init__(self, name):
         self.name = name
-        print('Chef generated')
+        print(f'{self.name} generated')
         self.order_state = 'empty'
         self.meal_state = 'empty'
 
