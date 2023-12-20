@@ -149,20 +149,16 @@ class FirstProblem:
         
         if(total_priority<6):
             for item in range(total_priority):
-                generate_priority_customer_thread = threading.Thread(target=self.generate_priority_customer)
-                generate_priority_customer_thread.start()
-                generate_priority_customer_thread.join()
+                self.generate_priority_customer()
                 table_list[table_counter].set_state()
                 table_counter += 1
             #update_waiter_gui_thread = threading.Thread(target=self.update_waiter_gui).start()
                 
             for item in range(6-total_priority):
-                generate_non_priority_customer_thread = threading.Thread(target=self.generate_non_priority_customer)
-                generate_non_priority_customer_thread.start()
-                generate_non_priority_customer_thread.join()
+                self.generate_non_priority_customer()
                 table_list[table_counter].set_state()
                 table_counter += 1
-            #update_waiter_gui_thread = threading.Thread(target=self.update_waiter_gui).start()
+            self.update_waiter_gui()
 
             with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
                 file.write(f'{total_customers} customers came. There are {total_priority} priotity customers.\n')
@@ -180,15 +176,16 @@ class FirstProblem:
 
             with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
                 file.write(f"Waiter 1 took customer 1's order, waiter 2 took customer 2's order and waiter 3 took customer 3's order. Customer 4, customer 5 and customer 6 are waiting for their orders.\n")
-            
-            for i,waiter in enumerate(waiter_list):
-                chef_list[i].set_order_state()
-            update_chef_gui_thread = threading.Timer(5.0, self.update_chef_gui)
+      
+            update_chef_gui_thread = threading.Timer(2.0, self.update_chef_gui)
             update_chef_gui_thread.start()
 
             with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
                 file.write(f"Waiter 1 passed the order of customer 1, waiter 2 passed the order of customer 2 and waiter 3 passed the order of customer 3 to the chef.\n")
                 file.write(f"Chef 1 took the order for customer 1 and customer 2 and started to prepare them. Chef 2 has started preparing customer 3's order and is waiting for the new order.\n")
+
+            update_chef_gui_thread = threading.Timer(5.0, self.update_chef_gui)
+            update_chef_gui_thread.start()
 
     def generate_waiter_gui(self):
         self.waiter_gui = tk.Toplevel()
@@ -259,14 +256,7 @@ class FirstProblem:
             label_table_state.pack(side="top", fill="both")
             label_order_state.pack(side="top", fill="both")
 
-    def update_waiter_gui(self, is_order=False):
-        """ if(is_order):
-            # Set the time for the thread to sleep (in seconds)
-            sleep_time = 2
-            
-            # Sleep for the specified time
-            time.sleep(sleep_time) """
-        
+    def update_waiter_gui(self):
         waiter_tab_list = [self.waiter_one_tab, self.waiter_two_tab, self.waiter_three_tab]
         # Get the screen width and height
         screen_width = self.waiter_one_tab.winfo_screenwidth()
@@ -361,13 +351,14 @@ class FirstProblem:
 
             # Display information in the top right of each square
             label_table_state = tk.Label(square_frame, text=f"Order state: {chef_list[col].get_order_state()}", anchor="e", padx=5)
-            label_order_state = tk.Label(square_frame, text=f"Meal state: {chef_list[col].get_meal_state()}", anchor="e", padx=5)
+            #label_order_state = tk.Label(square_frame, text=f"Meal state: {chef_list[col].get_meal_state()}", anchor="e", padx=5)
 
             label_table_state.pack(side="top", fill="both")
-            label_order_state.pack(side="top", fill="both")
+            #label_order_state.pack(side="top", fill="both")
 
-    def update_chef_gui(self, is_order=False):
-        chef_tab_list = [self.chef_one_tab, self.chef_two_tab]
+    def update_chef_gui(self):
+        for i,waiter in enumerate(waiter_list):
+            chef_list[i].set_order_state()
         # Get the screen width and height
         screen_width = self.chef_one_tab.winfo_screenwidth()
         screen_height = self.chef_one_tab.winfo_screenheight()
@@ -390,27 +381,21 @@ class FirstProblem:
 
             # Display information in the top right of each square
             label_table_state = tk.Label(square_frame, text=f"Order state: {chef_list[col].get_order_state()}", anchor="e", padx=5)
-            label_order_state = tk.Label(square_frame, text=f"Meal state: {chef_list[col].get_meal_state()}", anchor="e", padx=5)
+            #label_order_state = tk.Label(square_frame, text=f"Meal state: {chef_list[col].get_meal_state()}", anchor="e", padx=5)
 
             label_table_state.pack(side="top", fill="both")
-            label_order_state.pack(side="top", fill="both")
+            #label_order_state.pack(side="top", fill="both")
         for col in range(2,4):  
             square_frame = tk.Frame(self.chef_two_tab, width=square_size, height=square_size, bd=2, relief="solid")
             square_frame.place(x=start_x + (col-2) * (square_size + gap), y=start_y)
 
             # Display information in the top right of each square
-            label_table_state = tk.Label(square_frame, text=f"Orders state: {chef_list[col].get_order_state()}", anchor="e", padx=5)
-            label_order_state = tk.Label(square_frame, text=f"Meal state: {chef_list[col].get_meal_state()}", anchor="e", padx=5)
+            label_table_state = tk.Label(square_frame, text=f"Order state: {chef_list[col].get_order_state()}", anchor="e", padx=5)
+            #label_order_state = tk.Label(square_frame, text=f"Meal state: {chef_list[col].get_meal_state()}", anchor="e", padx=5)
 
             label_table_state.pack(side="top", fill="both")
-            label_order_state.pack(side="top", fill="both")
-        """ if(is_order):
-            # Set the time for the thread to sleep (in seconds)
-            sleep_time = 3
-            
-            # Sleep for the specified time
-            time.sleep(sleep_time) """
-
+            #label_order_state.pack(side="top", fill="both")
+        
     def generate_payment_gui(self):
         self.payment_gui = tk.Toplevel()
         self.payment_gui.state('zoomed')
@@ -494,14 +479,14 @@ class Chef:
         else:
             self.order_state = 'empty'
 
-    def get_meal_state(self):
+    """ def get_meal_state(self):
         return self.meal_state
     
     def set_meal_state(self):
         if(self.meal_state == 'empty'):
             self.meal_state = 'full'
         else:
-            self.meal_state = 'empty'
+            self.meal_state = 'empty' """
 
 class SecondProblem:
     def __init__(self):
