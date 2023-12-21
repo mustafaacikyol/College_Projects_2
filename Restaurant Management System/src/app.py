@@ -246,6 +246,8 @@ class FirstProblem:
             global table_list
             table_obj = Table()
             table_list.append(table_obj)
+            table_label = tk.Label(waiter_tab, padx=35, text=f"Table {col+1}", font=("Helvatica", 15, "bold"), fg="brown")
+            table_label.place(x=start_x + col * (square_size + gap), y=180)
             square_frame = tk.Frame(waiter_tab, width=square_size, height=square_size, bd=2, relief="solid")
             square_frame.place(x=start_x + col * (square_size + gap), y=start_y)
 
@@ -278,6 +280,8 @@ class FirstProblem:
                 global table_list
                 table_obj = Table()
                 table_list.append(table_obj)
+                table_label = tk.Label(waiter_tab, padx=35, text=f"Table {col+1}", font=("Helvatica", 15, "bold"), fg="brown")
+                table_label.place(x=start_x + col * (square_size + gap), y=180)
                 square_frame = tk.Frame(waiter_tab, width=square_size, height=square_size, bd=2, relief="solid")
                 square_frame.place(x=start_x + col * (square_size + gap), y=start_y)
 
@@ -344,16 +348,22 @@ class FirstProblem:
             square_frame = tk.Frame(chef_tab, width=square_size, height=square_size, bd=2, relief="solid")
             if(col<2):
                 square_frame.place(x=start_x + col * (square_size + gap), y=start_y)
+                meal_label = tk.Label(chef_tab, padx=30, text=f"Meal {col+1}", font=("Helvatica", 15, "bold"), fg="brown")
+                meal_label.place(x=start_x + col * (square_size + gap), y=230)
             elif(col==2):
                 square_frame.place(x=start_x, y=start_y)
+                meal_label = tk.Label(chef_tab, padx=30, text=f"Meal {col-1}", font=("Helvatica", 15, "bold"), fg="brown")
+                meal_label.place(x=start_x, y=230)
             elif(col==3):
                 square_frame.place(x=start_x + (square_size + gap), y=start_y)
+                meal_label = tk.Label(chef_tab, padx=30, text=f"Meal {col-1}", font=("Helvatica", 15, "bold"), fg="brown")
+                meal_label.place(x=start_x + (square_size + gap), y=230)
 
             # Display information in the top right of each square
-            label_table_state = tk.Label(square_frame, text=f"Order state: {chef_list[col].get_order_state()}", anchor="e", padx=5)
+            label_order_state = tk.Label(square_frame, text=f"Order state: {chef_list[col].get_order_state()}", anchor="e", padx=5)
             #label_order_state = tk.Label(square_frame, text=f"Meal state: {chef_list[col].get_meal_state()}", anchor="e", padx=5)
 
-            label_table_state.pack(side="top", fill="both")
+            label_order_state.pack(side="top", fill="both")
             #label_order_state.pack(side="top", fill="both")
 
     def update_chef_gui(self):
@@ -376,24 +386,28 @@ class FirstProblem:
         start_y = (screen_height - total_height) // 2
 
         for col in range(0,2):  
+            meal_label = tk.Label(self.chef_one_tab, padx=30, text=f"Meal {col+1}", font=("Helvatica", 15, "bold"), fg="brown")
+            meal_label.place(x=start_x + col * (square_size + gap), y=230)
             square_frame = tk.Frame(self.chef_one_tab, width=square_size, height=square_size, bd=2, relief="solid")
             square_frame.place(x=start_x + col * (square_size + gap), y=start_y)
 
             # Display information in the top right of each square
-            label_table_state = tk.Label(square_frame, text=f"Order state: {chef_list[col].get_order_state()}", anchor="e", padx=5)
+            label_order_state = tk.Label(square_frame, text=f"Order state: {chef_list[col].get_order_state()}", anchor="e", padx=5)
             #label_order_state = tk.Label(square_frame, text=f"Meal state: {chef_list[col].get_meal_state()}", anchor="e", padx=5)
 
-            label_table_state.pack(side="top", fill="both")
+            label_order_state.pack(side="top", fill="both")
             #label_order_state.pack(side="top", fill="both")
         for col in range(2,4):  
+            meal_label = tk.Label(self.chef_two_tab, padx=30, text=f"Meal {col-1}", font=("Helvatica", 15, "bold"), fg="brown")
+            meal_label.place(x=start_x + (col-2) * (square_size + gap), y=230)
             square_frame = tk.Frame(self.chef_two_tab, width=square_size, height=square_size, bd=2, relief="solid")
             square_frame.place(x=start_x + (col-2) * (square_size + gap), y=start_y)
 
             # Display information in the top right of each square
-            label_table_state = tk.Label(square_frame, text=f"Order state: {chef_list[col].get_order_state()}", anchor="e", padx=5)
+            label_order_state = tk.Label(square_frame, text=f"Order state: {chef_list[col].get_order_state()}", anchor="e", padx=5)
             #label_order_state = tk.Label(square_frame, text=f"Meal state: {chef_list[col].get_meal_state()}", anchor="e", padx=5)
 
-            label_table_state.pack(side="top", fill="both")
+            label_order_state.pack(side="top", fill="both")
             #label_order_state.pack(side="top", fill="both")
         
     def generate_payment_gui(self):
