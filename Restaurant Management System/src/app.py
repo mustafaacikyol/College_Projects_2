@@ -168,19 +168,11 @@ class FirstProblem:
                 table_counter += 1
 
             # Schedule the thread to run after 5 seconds
-            update_waiter_gui_thread = threading.Timer(2.0, self.update_waiter_gui)
-            # Start the timer thread
-            update_waiter_gui_thread.start()
-
-            self.write_to_txt_file(f"Waiter 1 took customer 1's order, waiter 2 took customer 2's order and waiter 3 took customer 3's order. Customer 4, customer 5 and customer 6 are waiting for their orders.\n")
-
-            update_chef_gui_thread = threading.Timer(2.0, self.update_chef_gui)
-            update_chef_gui_thread.start()
-
-            self.write_to_txt_file(f"Waiter 1 passed the order of customer 1, waiter 2 passed the order of customer 2 and waiter 3 passed the order of customer 3 to the chef.\n", f"Chef 1 took the order for customer 1 and customer 2 and started to prepare them. Chef 2 has started preparing customer 3's order and is waiting for the new order.\n")
-
-            update_chef_gui_thread = threading.Timer(5.0, self.update_chef_gui)
-            update_chef_gui_thread.start()
+            update_waiter_gui_thread = threading.Timer(2.0, self.update_waiter_gui).start()
+            write_order_thread = threading.Timer(2.0, self.write_to_txt_file, args=["Waiter 1 took customer 1's order, waiter 2 took customer 2's order and waiter 3 took customer 3's order. Customer 4, customer 5 and customer 6 are waiting for their orders.\n"]).start()
+            update_chef_gui_thread = threading.Timer(2.0, self.update_chef_gui).start()
+            write_chef_order_thread = threading.Timer(2.0, self.write_to_txt_file, args=[f"Waiter 1 passed the order of customer 1, waiter 2 passed the order of customer 2 and waiter 3 passed the order of customer 3 to the chef.\n", f"Chef 1 took the order for customer 1 and customer 2 and started to prepare them. Chef 2 has started preparing customer 3's order and is waiting for the new order.\n"]).start()
+            update_chef_gui_thread = threading.Timer(5.0, self.update_chef_gui).start()
 
     def write_to_txt_file(self, text1, text2 = None):
         with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
