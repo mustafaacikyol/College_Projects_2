@@ -160,9 +160,7 @@ class FirstProblem:
                 table_counter += 1
             self.update_waiter_gui()
 
-            with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
-                file.write(f'{total_customers} customers came. There are {total_priority} priotity customers.\n')
-                file.write(f'6 customers placed on tables. {total_customers-6} customers on hold.\n')
+            self.write_to_txt_file(f'{total_customers} customers came. There are {total_priority} priotity customers.\n',f'6 customers placed on tables. {total_customers-6} customers on hold.\n')
 
             table_counter = 0
             for waiter in waiter_list:
@@ -174,18 +172,23 @@ class FirstProblem:
             # Start the timer thread
             update_waiter_gui_thread.start()
 
-            with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
-                file.write(f"Waiter 1 took customer 1's order, waiter 2 took customer 2's order and waiter 3 took customer 3's order. Customer 4, customer 5 and customer 6 are waiting for their orders.\n")
-      
+            self.write_to_txt_file(f"Waiter 1 took customer 1's order, waiter 2 took customer 2's order and waiter 3 took customer 3's order. Customer 4, customer 5 and customer 6 are waiting for their orders.\n")
+
             update_chef_gui_thread = threading.Timer(2.0, self.update_chef_gui)
             update_chef_gui_thread.start()
 
-            with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
-                file.write(f"Waiter 1 passed the order of customer 1, waiter 2 passed the order of customer 2 and waiter 3 passed the order of customer 3 to the chef.\n")
-                file.write(f"Chef 1 took the order for customer 1 and customer 2 and started to prepare them. Chef 2 has started preparing customer 3's order and is waiting for the new order.\n")
+            self.write_to_txt_file(f"Waiter 1 passed the order of customer 1, waiter 2 passed the order of customer 2 and waiter 3 passed the order of customer 3 to the chef.\n", f"Chef 1 took the order for customer 1 and customer 2 and started to prepare them. Chef 2 has started preparing customer 3's order and is waiting for the new order.\n")
 
             update_chef_gui_thread = threading.Timer(5.0, self.update_chef_gui)
             update_chef_gui_thread.start()
+
+    def write_to_txt_file(self, text1, text2 = None):
+        with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
+            if(text2 != None):
+                file.write(f'{text1}')
+                file.write(f'{text2}')
+            else:
+                file.write(f'{text1}')
 
     def generate_waiter_gui(self):
         self.waiter_gui = tk.Toplevel()
