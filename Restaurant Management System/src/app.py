@@ -386,10 +386,12 @@ class FirstProblem:
 
     def order_waiter_to_chef(self):
         global waiter_queue
+        meal_indexes = []
         order_count = 3
         for i,chef in enumerate(chef_list):
             if(chef_list[i].get_order_state() == 'empty'):
                 chef_list[i].set_order_state()
+                meal_indexes.append(i)
                 order_count -= 1
                 if(order_count == 0):
                     break
@@ -400,11 +402,18 @@ class FirstProblem:
         elif(order_count == 1):
             waiter_queue.put(waiter_list[2])
 
+        time.sleep(3)
+        self.meal_ready(meal_indexes)
+
     """ def check_empty_chef(self):
         if(len(waiter_queue)>0):
             for chef in chef_list:
                 if(chef.get_order_state == 'empty'): """
 
+    def meal_ready(self, list):
+        for i in list:
+            chef_list[i].set_order_state()
+        
 
     def update_chef_gui(self):
         # Get the screen width and height
