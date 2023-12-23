@@ -166,19 +166,18 @@ class FirstProblem:
             self.update_waiter_gui(0)
 
             self.write_to_txt_file(f'{total_customers} customers came. There are {total_priority} priotity customers.\n',f'6 customers placed on tables. {total_customers-6} customers on hold.\n')
+            check_waiter_queue_thread = threading.Thread(target=self.check_empty_chef).start() 
 
             # Schedule the thread to run after 5 seconds
             update_waiter_gui_thread = threading.Timer(2.0, self.update_waiter_gui, args=[1]).start()
             write_order_thread = threading.Timer(2.0, self.write_to_txt_file, args=["Waiter 1 took customer 1's order, waiter 2 took customer 2's order and waiter 3 took customer 3's order. Customer 4, customer 5 and customer 6 are waiting for their orders.\n"]).start()
             order_waiter_to_chef_thread = threading.Timer(2.0, self.order_waiter_to_chef).start()
-            update_chef_gui_thread = threading.Timer(2.0, self.update_chef_gui).start()
             write_chef_order_thread = threading.Timer(2.1, self.write_to_txt_file, args=[f"Waiter 1 passed the order of customer 1, waiter 2 passed the order of customer 2 and waiter 3 passed the order of customer 3 to the chef.\n", f"Chef 1 took the order for customer 1 and customer 2 and started to prepare them. Chef 2 has started preparing customer 3's order and is waiting for the new order.\n"]).start()
             update_waiter_gui_thread = threading.Timer(4.0, self.update_waiter_gui, args=[1]).start()
             write_order_thread = threading.Timer(4.0, self.write_to_txt_file, args=["Waiter 1 took customer 4's order, waiter 2 took customer 5's order and waiter 3 took customer 6's order.\n"]).start()
             order_waiter_to_chef_thread = threading.Timer(4.0, self.order_waiter_to_chef).start()
-            update_chef_gui_thread = threading.Timer(4.0, self.update_chef_gui).start()
             write_chef_order_thread = threading.Timer(4.1, self.write_to_txt_file, args=[f"Waiter 1 passed the order of customer 4 to the chef.\n", f"Chef 2 took the order for customer 4 and started to prepare them.\n"]).start()
-            update_chef_gui_thread = threading.Timer(5.0, self.update_chef_gui).start()
+            
             
     """ def check_chef_is_empty(self, waiter_list_indexes):
         empty_chef_list = []
@@ -191,7 +190,17 @@ class FirstProblem:
         if(len(empty_chef_list) == 4): """
 
         
-    
+    def check_empty_chef(self):
+        global chef_list, waiter_queue
+        while(1):
+            if(waiter_queue.qsize()>0):
+                for chef in chef_list:
+                    if(chef.get_order_state() == 'empty'):
+                        chef.set_order_state()
+                        waiter_queue.get_nowait()
+                        self.update_chef_gui()
+                        if(waiter_queue.qsize() == 0): break
+            time.sleep(1)
 
     def write_to_txt_file(self, text1, text2 = None):
         with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
@@ -402,6 +411,7 @@ class FirstProblem:
         elif(order_count == 1):
             waiter_queue.put(waiter_list[2])
 
+        self.update_chef_gui()
         time.sleep(3)
         self.meal_ready(meal_indexes)
 
@@ -413,6 +423,7 @@ class FirstProblem:
     def meal_ready(self, list):
         for i in list:
             chef_list[i].set_order_state()
+        self.update_chef_gui()
         
 
     def update_chef_gui(self):
