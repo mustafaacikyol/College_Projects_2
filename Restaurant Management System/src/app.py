@@ -82,7 +82,7 @@ class FirstProblem:
         
     def open_scenario(self):
         for i in range(4):
-            chef_obj = Chef(f'Chef {i+1}')
+            chef_obj = Chef(f'{i+1}')
             chef_list.append(chef_obj)
             empty_chef_list.append(chef_obj)
         
@@ -173,12 +173,13 @@ class FirstProblem:
 
             # Schedule the thread to run after 5 seconds
             order_table_to_waiter_thread = threading.Timer(2.0, self.order_table_to_waiter).start()
-            order_waiter_to_chef_thread = threading.Timer(2.0, self.order_waiter_to_chef).start()
-            write_chef_order_thread = threading.Timer(2.5, self.write_to_txt_file, args=[f"Waiter 1 passed the order of customer 1, waiter 2 passed the order of customer 2 and waiter 3 passed the order of customer 3 to the chef.\n", f"Chef 1 took the order for customer 1 and customer 2 and started to prepare them. Chef 2 has started preparing customer 3's order and is waiting for the new order.\n"]).start()
-            update_waiter_gui_thread = threading.Timer(4.0, self.update_waiter_gui).start()
+            order_waiter_to_chef_thread = threading.Timer(2.5, self.order_waiter_to_chef).start()
+            
+            
+            """ update_waiter_gui_thread = threading.Timer(4.0, self.update_waiter_gui).start()
             write_order_thread = threading.Timer(4.0, self.write_to_txt_file, args=["Waiter 1 took customer 4's order, waiter 2 took customer 5's order and waiter 3 took customer 6's order.\n"]).start()
             order_waiter_to_chef_thread = threading.Timer(4.0, self.order_waiter_to_chef).start()
-            write_chef_order_thread = threading.Timer(4.1, self.write_to_txt_file, args=[f"Waiter 1 passed the order of customer 4 to the chef.\n", f"Chef 2 took the order for customer 4 and started to prepare them.\n"]).start()
+            write_chef_order_thread = threading.Timer(4.1, self.write_to_txt_file, args=[f"Waiter 1 passed the order of customer 4 to the chef.\n", f"Chef 2 took the order for customer 4 and started to prepare them.\n"]).start() """
 
 
     def check_empty_chef(self):
@@ -395,21 +396,46 @@ class FirstProblem:
         for waiter in waiter_list:
             if waiter.get_order() == True:
                 self.write_to_txt_file(f"{waiter.name} took Customer {waiter.get_customer()}'s order ")
-
         self.write_to_txt_file("\n")
+
+        for waiter in waiter_list:
+            if waiter.get_order() == True:
+                self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} ")
+        self.write_to_txt_file(".\n")
         self.update_waiter_gui()
 
     def order_waiter_to_chef(self):
-        global waiter_queue
+        global waiter_queue, waiter_list
         meal_indexes = []
         order_count = 3
-        for i,chef in enumerate(chef_list):
+
+        for waiter in waiter_list:
+            if(waiter.get_order() == True):
+                for i,chef in enumerate(chef_list):
+                    if(chef.get_order_state() == 'empty'):
+                        chef.set_customer(waiter.get_customer())
+                        chef.set_order_state()
+                        if(i==0):
+                            self.write_to_txt_file(f"123Chef {chef.name} took the order for customer {chef.get_customer()} ")
+                        elif(i==1 or i==2):
+                            self.write_to_txt_file(f"123Chef {int(chef.name)-1} took the order for customer {chef.get_customer()} ")
+                        elif(i==3):
+                            self.write_to_txt_file(f"123Chef {int(chef.name)-2} took the order for customer {chef.get_customer()} ")
+                        meal_indexes.append(i)
+                        order_count -= 1
+                        break
+            if(order_count == 0):
+                break
+        self.write_to_txt_file(f"\n")
+
+        """ for i,chef in enumerate(chef_list):
             if(chef_list[i].get_order_state() == 'empty'):
+                chef_list[i].set_customer(waiter_list[i].get_customer())
                 chef_list[i].set_order_state()
                 meal_indexes.append(i)
                 order_count -= 1
                 if(order_count == 0):
-                    break
+                    break """
 
         if(order_count == 2):
             waiter_queue.put(waiter_list[1])
@@ -419,9 +445,9 @@ class FirstProblem:
 
         self.update_chef_gui()
         time.sleep(3)
-        self.meal_ready(meal_indexes)
+        self.chef_meal_ready(meal_indexes)
 
-    def meal_ready(self, list):
+    def chef_meal_ready(self, list):
         for i in list:
             chef_list[i].set_order_state()
         self.update_chef_gui()
@@ -562,9 +588,16 @@ class Waiter:
 class Chef:
     def __init__(self, name):
         self.name = name
+        self.customer = None
         print(f'{self.name} generated')
         self.order_state = 'empty'
-        self.meal_state = 'empty'
+        #self.meal_state = 'empty'
+
+    def get_customer(self):
+        return self.customer
+    
+    def set_customer(self, customer_id):
+        self.customer = customer_id
 
     def get_order_state(self):
         return self.order_state
