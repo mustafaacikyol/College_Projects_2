@@ -4,6 +4,7 @@ import threading
 import time
 import asyncio
 import queue
+from concurrent.futures import ThreadPoolExecutor
 
 table = 6
 waiter = 3
@@ -132,7 +133,7 @@ class FirstProblem:
         start_app_btn.place(relx=0.47, rely=y)
 
     def start_scenario(self, customer_values, priority_values):
-        global total_customers, total_non_priority, total_priority, table_list, table_counter, waiter_list, chef_list, waiter_queue
+        global total_customers, total_non_priority, total_priority, table_list, table_counter, waiter_list, chef_list, waiter_queue, customer_counter
         for i in range(3):
             waiter_obj = Waiter(f"Waiter {i+1}")
             waiter_list.append(waiter_obj)
@@ -155,41 +156,31 @@ class FirstProblem:
             for item in range(total_priority):
                 self.generate_priority_customer()
                 table_list[table_counter].set_state()
+                table_list[table_counter].set_customer(customer_counter-1)
                 table_counter += 1
             #update_waiter_gui_thread = threading.Thread(target=self.update_waiter_gui).start()
                 
             for item in range(6-total_priority):
                 self.generate_non_priority_customer()
                 table_list[table_counter].set_state()
+                table_list[table_counter].set_customer(customer_counter-1)
                 table_counter += 1
             table_counter = 0
-            self.update_waiter_gui(0)
+            self.update_waiter_gui()
 
             self.write_to_txt_file(f'{total_customers} customers came. There are {total_priority} priotity customers.\n',f'6 customers placed on tables. {total_customers-6} customers on hold.\n')
             check_waiter_queue_thread = threading.Thread(target=self.check_empty_chef).start() 
 
             # Schedule the thread to run after 5 seconds
-            update_waiter_gui_thread = threading.Timer(2.0, self.update_waiter_gui, args=[1]).start()
-            write_order_thread = threading.Timer(2.0, self.write_to_txt_file, args=["Waiter 1 took customer 1's order, waiter 2 took customer 2's order and waiter 3 took customer 3's order. Customer 4, customer 5 and customer 6 are waiting for their orders.\n"]).start()
+            order_table_to_waiter_thread = threading.Timer(2.0, self.order_table_to_waiter).start()
             order_waiter_to_chef_thread = threading.Timer(2.0, self.order_waiter_to_chef).start()
-            write_chef_order_thread = threading.Timer(2.1, self.write_to_txt_file, args=[f"Waiter 1 passed the order of customer 1, waiter 2 passed the order of customer 2 and waiter 3 passed the order of customer 3 to the chef.\n", f"Chef 1 took the order for customer 1 and customer 2 and started to prepare them. Chef 2 has started preparing customer 3's order and is waiting for the new order.\n"]).start()
-            update_waiter_gui_thread = threading.Timer(4.0, self.update_waiter_gui, args=[1]).start()
+            write_chef_order_thread = threading.Timer(2.5, self.write_to_txt_file, args=[f"Waiter 1 passed the order of customer 1, waiter 2 passed the order of customer 2 and waiter 3 passed the order of customer 3 to the chef.\n", f"Chef 1 took the order for customer 1 and customer 2 and started to prepare them. Chef 2 has started preparing customer 3's order and is waiting for the new order.\n"]).start()
+            update_waiter_gui_thread = threading.Timer(4.0, self.update_waiter_gui).start()
             write_order_thread = threading.Timer(4.0, self.write_to_txt_file, args=["Waiter 1 took customer 4's order, waiter 2 took customer 5's order and waiter 3 took customer 6's order.\n"]).start()
             order_waiter_to_chef_thread = threading.Timer(4.0, self.order_waiter_to_chef).start()
             write_chef_order_thread = threading.Timer(4.1, self.write_to_txt_file, args=[f"Waiter 1 passed the order of customer 4 to the chef.\n", f"Chef 2 took the order for customer 4 and started to prepare them.\n"]).start()
-            
-            
-    """ def check_chef_is_empty(self, waiter_list_indexes):
-        empty_chef_list = []
-        for i,j in enumerate(waiter_list_indexes):
-            for k,chef in enumerate(chef_list):
-                if(chef.get_order_state == 'empty'):
-                    empty_chef_list.append(k)
-            
 
-        if(len(empty_chef_list) == 4): """
 
-        
     def check_empty_chef(self):
         global chef_list, waiter_queue
         while(1):
@@ -197,8 +188,9 @@ class FirstProblem:
                 for chef in chef_list:
                     if(chef.get_order_state() == 'empty'):
                         chef.set_order_state()
-                        waiter_queue.get_nowait()
                         self.update_chef_gui()
+                        self.write_to_txt_file(f"{waiter_queue.get().name} passed the order of customer to the chef.\n", f"{chef.name} took the order for customer and started to prepare them.\n")
+                        waiter_queue.get_nowait()
                         if(waiter_queue.qsize() == 0): break
             time.sleep(1)
 
@@ -275,19 +267,15 @@ class FirstProblem:
             square_frame.place(x=start_x + col * (square_size + gap), y=start_y)
 
             # Display information in the top right of each square
+            label_customer = tk.Label(square_frame, text=f"Customer: {table_list[col].get_customer()}", anchor="e", padx=15)
             label_table_state = tk.Label(square_frame, text=f"Table state: {table_list[col].get_state()}", anchor="e", padx=15)
             label_order_state = tk.Label(square_frame, text=f"Order state: {table_list[col].get_order_state()}", anchor="e", padx=15)
 
+            label_customer.pack(side="top", fill="both")
             label_table_state.pack(side="top", fill="both")
             label_order_state.pack(side="top", fill="both")
 
-    def update_waiter_gui(self, number):
-        global table_list, table_counter
-        if(number == 1):
-            for waiter in waiter_list:
-                table_list[table_counter].set_order_state()
-                table_counter += 1
-               
+    def update_waiter_gui(self):  
         waiter_tab_list = [self.waiter_one_tab, self.waiter_two_tab, self.waiter_three_tab]
         # Get the screen width and height
         screen_width = self.waiter_one_tab.winfo_screenwidth()
@@ -313,9 +301,11 @@ class FirstProblem:
                 square_frame = tk.Frame(waiter_tab, width=square_size, height=square_size, bd=2, relief="solid")
                 square_frame.place(x=start_x + col * (square_size + gap), y=start_y)
                 # Display information in the top right of each square
+                label_customer = tk.Label(square_frame, text=f"Customer: {table_list[col].get_customer()}", anchor="e", padx=15)
                 label_table_state = tk.Label(square_frame, text=f"Table state: {table_list[col].get_state()}", anchor="e", padx=15)
                 label_order_state = tk.Label(square_frame, text=f"Order state: {table_list[col].get_order_state()}", anchor="e", padx=15)
 
+                label_customer.pack(side="top", fill="both")
                 label_table_state.pack(side="top", fill="both")
                 label_order_state.pack(side="top", fill="both")
 
@@ -393,6 +383,22 @@ class FirstProblem:
             label_order_state.pack(side="top", fill="both")
             #label_order_state.pack(side="top", fill="both")
 
+    def order_table_to_waiter(self):
+        global table_list, waiter_list
+        for table, waiter in zip(table_list, waiter_list):
+            if table.get_state() == 'full' and table.get_order_state() == 'empty':
+                table.set_order_state()
+                self.update_waiter_gui()
+                waiter.set_customer(table.get_customer())
+                waiter.set_order()
+
+        for waiter in waiter_list:
+            if waiter.get_order() == True:
+                self.write_to_txt_file(f"{waiter.name} took Customer {waiter.get_customer()}'s order ")
+
+        self.write_to_txt_file("\n")
+        self.update_waiter_gui()
+
     def order_waiter_to_chef(self):
         global waiter_queue
         meal_indexes = []
@@ -415,17 +421,11 @@ class FirstProblem:
         time.sleep(3)
         self.meal_ready(meal_indexes)
 
-    """ def check_empty_chef(self):
-        if(len(waiter_queue)>0):
-            for chef in chef_list:
-                if(chef.get_order_state == 'empty'): """
-
     def meal_ready(self, list):
         for i in list:
             chef_list[i].set_order_state()
         self.update_chef_gui()
         
-
     def update_chef_gui(self):
         # Get the screen width and height
         screen_width = self.chef_one_tab.winfo_screenwidth()
@@ -499,6 +499,13 @@ class Table:
     def __init__(self):
         self.state = 'empty'
         self.order_state = 'empty'
+        self.customer = None
+
+    def get_customer(self):
+        return self.customer
+    
+    def set_customer(self, customer_id):
+        self.customer = customer_id
 
     def get_state(self):
         return self.state
@@ -531,7 +538,24 @@ class Customer:
 class Waiter:
     def __init__(self, name):
         self.name = name
+        self.customer = None
+        self.order = False
         print(f'{self.name} generated')
+
+    def get_customer(self):
+        return self.customer
+    
+    def set_customer(self, customer_id):
+        self.customer = customer_id
+
+    def get_order(self):
+        return self.order
+
+    def set_order(self):
+        if(self.order == False):
+            self.order = True
+        else:
+            self.order = False
 
     #def take_order(self):
 
