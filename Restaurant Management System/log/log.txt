@@ -5,3 +5,81 @@ Waiter 1 passed the order of customer 1 Waiter 2 passed the order of customer 2 
 Chef 1 took the order for customer 1 Chef 1 took the order for customer 2 Chef 2 took the order for customer 3 
 Waiter 1 took Customer 4's order Waiter 2 took Customer 5's order Waiter 3 took Customer 6's order 
 Waiter 1 passed the order of customer 4 .
+Chef 2 took the order for customer 4 
+Waiter 2 and waiter 3 are on standby as there are no chef available at the moment.
+Waiter 2 passed the order of customer 6 to the chef.
+1 took the order for customer and started to prepare them.
+10 customers came. There are 3 priotity customers.
+6 customers placed on tables. 4 customers on hold.
+Waiter 1 took Customer 1's order Waiter 2 took Customer 2's order Waiter 3 took Customer 3's order 
+Waiter 1 passed the order of customer 1 Waiter 2 passed the order of customer 2 Waiter 3 passed the order of customer 3 .
+Chef 1 took the order for customer 1 Chef 1 took the order for customer 2 Chef 2 took the order for customer 3 
+Waiter 1 took Customer 4's order Waiter 2 took Customer 5's order Waiter 3 took Customer 6's order 
+Waiter 1 passed the order of customer 4 .
+Chef 2 took the order for customer 4 
+Waiter 2 and waiter 3 are on standby as there are no chef available at the moment.
+Waiter 2 passed the order of customer 5 to the chef.
+1 took the order for customer and started to prepare them.
+Waiter 3 passed the order of customer 6 to the chef.
+2 took the order for customer and started to prepare them.
+10 customers came. There are 3 priotity customers.
+6 customers placed on tables. 4 customers on hold.
+Waiter 1 took Customer 1's order Waiter 2 took Customer 2's order Waiter 3 took Customer 3's order 
+Waiter 1 passed the order of customer 1 Waiter 2 passed the order of customer 2 Waiter 3 passed the order of customer 3 .
+Chef 1 took the order for customer 1 Chef 1 took the order for customer 2 Chef 2 took the order for customer 3 
+Waiter 1 took Customer 4's order Waiter 2 took Customer 5's order Waiter 3 took Customer 6's order 
+Waiter 1 passed the order of customer 4 .
+Chef 2 took the order for customer 4 
+Waiter 2 and waiter 3 are on standby as there are no chef available at the moment.
+Waiter 2 passed the order of customer 5 to the chef.
+Chef 1 took the order for customer and started to prepare them.
+Waiter 3 passed the order of customer 6 to the chef.
+Chef 2 took the order for customer and started to prepare them.
+10 customers came. There are 3 priotity customers.
+6 customers placed on tables. 4 customers on hold.
+Waiter 1 took Customer 1's order Waiter 2 took Customer 2's order Waiter 3 took Customer 3's order 
+Waiter 1 passed the order of customer 1 Waiter 2 passed the order of customer 2 Waiter 3 passed the order of customer 3 .
+Chef 1 took the order for customer 1 Chef 1 took the order for customer 2 Chef 2 took the order for customer 3 
+Waiter 1 took Customer 4's order Waiter 2 took Customer 5's order Waiter 3 took Customer 6's order 
+Waiter 1 passed the order of customer 4 .
+Chef 2 took the order for customer 4 
+Waiter 2 and waiter 3 are on standby as there are no chef available at the moment.
+10 customers came. There are 3 priotity customers.
+6 customers placed on tables. 4 customers on hold.
+Waiter 1 took Customer 1's order Waiter 2 took Customer 2's order Waiter 3 took Customer 3's order 
+Waiter 1 passed the order of customer 1 Waiter 2 passed the order of customer 2 Waiter 3 passed the order of customer 3 .
+Chef 1 took the order for customer 1 Chef 1 took the order for customer 2 Chef 2 took the order for customer 3 
+Waiter 1 took Customer 4's order Waiter 2 took Customer 5's order Waiter 3 took Customer 6's order 
+Waiter 1 passed the order of customer 4 .
+Chef 2 took the order for customer 4 
+Waiter 2 and waiter 3 are on standby as there are no chef available at the moment.
+Waiter 2 passed the order of customer 5 to the chef.
+Chef 1 took the order for customer and started to prepare them.
+Waiter 3 passed the order of customer 6 to the chef.
+Chef 1 took the order for customer and started to prepare them.
+10 customers came. There are 3 priotity customers.
+6 customers placed on tables. 4 customers on hold.
+Waiter 1 took Customer 1's order Waiter 2 took Customer 2's order Waiter 3 took Customer 3's order 
+Waiter 1 passed the order of customer 1 Waiter 2 passed the order of customer 2 Waiter 3 passed the order of customer 3 .
+Chef 1 took the order for customer 1 Chef 1 took the order for customer 2 Chef 2 took the order for customer 3 
+Waiter 1 took Customer 4's order Waiter 2 took Customer 5's order Waiter 3 took Customer 6's order 
+Waiter 1 passed the order of customer 4 .
+Chef 2 took the order for customer 4 
+Waiter 2 and waiter 3 are on standby as there are no chef available at the moment.
+Waiter 2 passed the order of customer 5 to the chef.
+Chef 1 took the order for customer None and started to prepare them.
+Waiter 3 passed the order of customer 6 to the chef.
+Chef 1 took the order for customer None and started to prepare them.
+10 customers came. There are 3 priotity customers.
+6 customers placed on tables. 4 customers on hold.
+Waiter 1 took Customer 1's order Waiter 2 took Customer 2's order Waiter 3 took Customer 3's order 
+Waiter 1 passed the order of customer 1 Waiter 2 passed the order of customer 2 Waiter 3 passed the order of customer 3 .
+Chef 1 took the order for customer 1 Chef 1 took the order for customer 2 Chef 2 took the order for customer 3 
+Waiter 1 took Customer 4's order Waiter 2 took Customer 5's order Waiter 3 took Customer 6's order 
+Waiter 1 passed the order of customer 4 .
+Chef 2 took the order for customer 4 
+Waiter 2 and waiter 3 are on standby as there are no chef available at the moment.
+Waiter 2 passed the order of customer 5 to the chef.
+Chef 1 took the order for customer 5 and started to prepare them.
+Waiter 3 passed the order of customer 6 to the chef.
+Chef 1 took the order for customer 6 and started to prepare them.
