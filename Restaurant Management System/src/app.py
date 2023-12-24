@@ -174,7 +174,7 @@ class FirstProblem:
             # Schedule the thread to run after 5 seconds
             order_table_to_waiter_thread = threading.Timer(2.0, self.order_table_to_waiter).start()
             order_waiter_to_chef_thread = threading.Timer(2.5, self.order_waiter_to_chef).start()
-            
+            order_table_to_waiter_thread = threading.Timer(4.0, self.order_table_to_waiter).start()
             
             """ update_waiter_gui_thread = threading.Timer(4.0, self.update_waiter_gui).start()
             write_order_thread = threading.Timer(4.0, self.write_to_txt_file, args=["Waiter 1 took customer 4's order, waiter 2 took customer 5's order and waiter 3 took customer 6's order.\n"]).start()
@@ -386,21 +386,31 @@ class FirstProblem:
 
     def order_table_to_waiter(self):
         global table_list, waiter_list
-        for table, waiter in zip(table_list, waiter_list):
-            if table.get_state() == 'full' and table.get_order_state() == 'empty':
-                table.set_order_state()
-                self.update_waiter_gui()
-                waiter.set_customer(table.get_customer())
-                waiter.set_order()
+        for waiter in waiter_list:
+            for table in table_list:
+                if waiter.get_order() == False and table.get_state() == 'full' and table.get_order_state() == 'empty':
+                    table.set_order_state()           
+                    waiter.set_customer(table.get_customer())
+                    waiter.set_order()
+                    break
 
         for waiter in waiter_list:
             if waiter.get_order() == True:
                 self.write_to_txt_file(f"{waiter.name} took Customer {waiter.get_customer()}'s order ")
         self.write_to_txt_file("\n")
 
+        chef_index = []
         for waiter in waiter_list:
-            if waiter.get_order() == True:
-                self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} ")
+            for i,chef in enumerate(chef_list):
+                if waiter.get_order() == True and chef.get_order_state() == 'empty':
+                    self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} ")
+                    chef.set_order_state()
+                    chef_index.append(i)
+                    break
+
+        for index in chef_index:
+            chef_list[index].set_order_state()
+
         self.write_to_txt_file(".\n")
         self.update_waiter_gui()
 
@@ -416,11 +426,13 @@ class FirstProblem:
                         chef.set_customer(waiter.get_customer())
                         chef.set_order_state()
                         if(i==0):
-                            self.write_to_txt_file(f"123Chef {chef.name} took the order for customer {chef.get_customer()} ")
+                            self.write_to_txt_file(f"Chef {chef.name} took the order for customer {chef.get_customer()} ")
                         elif(i==1 or i==2):
-                            self.write_to_txt_file(f"123Chef {int(chef.name)-1} took the order for customer {chef.get_customer()} ")
+                            self.write_to_txt_file(f"Chef {int(chef.name)-1} took the order for customer {chef.get_customer()} ")
                         elif(i==3):
-                            self.write_to_txt_file(f"123Chef {int(chef.name)-2} took the order for customer {chef.get_customer()} ")
+                            self.write_to_txt_file(f"Chef {int(chef.name)-2} took the order for customer {chef.get_customer()} ")
+                        waiter.reset_customer()
+                        waiter.reset_order()
                         meal_indexes.append(i)
                         order_count -= 1
                         break
@@ -573,6 +585,9 @@ class Waiter:
     
     def set_customer(self, customer_id):
         self.customer = customer_id
+    
+    def reset_customer(self):
+        self.customer = None
 
     def get_order(self):
         return self.order
@@ -582,6 +597,9 @@ class Waiter:
             self.order = True
         else:
             self.order = False
+
+    def reset_order(self):
+        self.order = False
 
     #def take_order(self):
 
