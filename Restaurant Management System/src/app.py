@@ -178,32 +178,7 @@ class FirstProblem:
             order_table_to_waiter_thread = threading.Timer(4.0, self.order_table_to_waiter).start()
             order_waiter_to_chef_thread = threading.Timer(4.5, self.order_waiter_to_chef).start()
             
-            """ update_waiter_gui_thread = threading.Timer(4.0, self.update_waiter_gui).start()
-            write_order_thread = threading.Timer(4.0, self.write_to_txt_file, args=["Waiter 1 took customer 4's order, waiter 2 took customer 5's order and waiter 3 took customer 6's order.\n"]).start()
-            order_waiter_to_chef_thread = threading.Timer(4.0, self.order_waiter_to_chef).start()
-            write_chef_order_thread = threading.Timer(4.1, self.write_to_txt_file, args=[f"Waiter 1 passed the order of customer 4 to the chef.\n", f"Chef 2 took the order for customer 4 and started to prepare them.\n"]).start() """
 
-
-    def check_empty_chef(self):
-        global chef_list, waiter_queue
-        while(1):
-            print(waiter_queue.qsize())
-            if(waiter_queue.qsize()>0):
-                for chef in chef_list:
-                    if(chef.get_order_state() == 'empty'):
-                        chef.set_order_state()
-                        self.update_chef_gui()
-                        waiter = waiter_queue.get()
-                        chef.set_customer(waiter.get_customer())
-                        if(chef.name == "1"):
-                            self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n", f"Chef {chef.name} took the order for customer {chef.get_customer()} and started to prepare them.\n")
-                        elif(chef.name == "2" or chef.name == "3"):
-                            self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n", f"Chef {int(chef.name)-1} took the order for customer {chef.get_customer()} and started to prepare them.\n")
-                        elif(chef.name == "4"):
-                            self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n", f"Chef {int(chef.name)-2} took the order for customer {chef.get_customer()} and started to prepare them.\n")
-                        #waiter_queue.get_nowait()
-                        if(waiter_queue.qsize() == 0): break
-            time.sleep(1)
 
     def write_to_txt_file(self, text1, text2 = None):
         with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
@@ -281,10 +256,12 @@ class FirstProblem:
             label_customer = tk.Label(square_frame, text=f"Customer: {table_list[col].get_customer()}", anchor="e", padx=15)
             label_table_state = tk.Label(square_frame, text=f"Table state: {table_list[col].get_state()}", anchor="e", padx=15)
             label_order_state = tk.Label(square_frame, text=f"Order state: {table_list[col].get_order_state()}", anchor="e", padx=15)
+            label_meal = tk.Label(square_frame, text=f"Meal: {table_list[col].get_meal()}", anchor="e", padx=15)
 
             label_customer.pack(side="top", fill="both")
             label_table_state.pack(side="top", fill="both")
             label_order_state.pack(side="top", fill="both")
+            label_meal.pack(side="top", fill="both")
 
     def update_waiter_gui(self):  
         waiter_tab_list = [self.waiter_one_tab, self.waiter_two_tab, self.waiter_three_tab]
@@ -315,10 +292,12 @@ class FirstProblem:
                 label_customer = tk.Label(square_frame, text=f"Customer: {table_list[col].get_customer()}", anchor="e", padx=15)
                 label_table_state = tk.Label(square_frame, text=f"Table state: {table_list[col].get_state()}", anchor="e", padx=15)
                 label_order_state = tk.Label(square_frame, text=f"Order state: {table_list[col].get_order_state()}", anchor="e", padx=15)
+                label_meal = tk.Label(square_frame, text=f"Meal: {table_list[col].get_meal()}", anchor="e", padx=15)
 
                 label_customer.pack(side="top", fill="both")
                 label_table_state.pack(side="top", fill="both")
                 label_order_state.pack(side="top", fill="both")
+                label_meal.pack(side="top", fill="both")
 
     def generate_chef_gui(self):
         self.chef_gui = tk.Toplevel()
@@ -388,11 +367,32 @@ class FirstProblem:
                 meal_label.place(x=start_x + (square_size + gap), y=230)
 
             # Display information in the top right of each square
+            label_customer = tk.Label(square_frame, text=f"Customer: {chef_list[col].get_customer()}", anchor="e", padx=5)
             label_order_state = tk.Label(square_frame, text=f"Order state: {chef_list[col].get_order_state()}", anchor="e", padx=5)
-            #label_order_state = tk.Label(square_frame, text=f"Meal state: {chef_list[col].get_meal_state()}", anchor="e", padx=5)
-
+            
+            label_customer.pack(side="top", fill="both")
             label_order_state.pack(side="top", fill="both")
-            #label_order_state.pack(side="top", fill="both")
+
+    def check_empty_chef(self):
+        global chef_list, waiter_queue
+        while(1):
+            print(waiter_queue.qsize())
+            if(waiter_queue.qsize()>0):
+                for chef in chef_list:
+                    if(chef.get_order_state() == 'empty'):
+                        chef.set_order_state()
+                        waiter = waiter_queue.get()
+                        chef.set_customer(waiter.get_customer())
+                        if(chef.name == "1"):
+                            self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n", f"Chef {chef.name} took the order for customer {chef.get_customer()} and started to prepare them.\n")
+                        elif(chef.name == "2" or chef.name == "3"):
+                            self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n", f"Chef {int(chef.name)-1} took the order for customer {chef.get_customer()} and started to prepare them.\n")
+                        elif(chef.name == "4"):
+                            self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n", f"Chef {int(chef.name)-2} took the order for customer {chef.get_customer()} and started to prepare them.\n")
+                        #waiter_queue.get_nowait()
+                        if(waiter_queue.qsize() == 0): break
+                self.update_chef_gui()
+            time.sleep(1)
 
     def order_table_to_waiter(self):
         global table_list, waiter_list
@@ -460,7 +460,17 @@ class FirstProblem:
 
         self.update_chef_gui()
         time.sleep(3)
+        self.order_chef_to_table(meal_indexes)
         self.chef_meal_ready(meal_indexes)
+
+    def order_chef_to_table(self, list):
+        global chef_list, table_list
+        for i in list:
+            for table in table_list:
+                if chef_list[i].get_customer() == table.get_customer():
+                    table.set_meal()
+        
+        self.update_waiter_gui()
 
     def chef_meal_ready(self, list):
         for i in list:
@@ -492,11 +502,11 @@ class FirstProblem:
             square_frame.place(x=start_x + col * (square_size + gap), y=start_y)
 
             # Display information in the top right of each square
+            label_customer = tk.Label(square_frame, text=f"Customer: {chef_list[col].get_customer()}", anchor="e", padx=5)
             label_order_state = tk.Label(square_frame, text=f"Order state: {chef_list[col].get_order_state()}", anchor="e", padx=5)
-            #label_order_state = tk.Label(square_frame, text=f"Meal state: {chef_list[col].get_meal_state()}", anchor="e", padx=5)
-
+            
+            label_customer.pack(side="top", fill="both")
             label_order_state.pack(side="top", fill="both")
-            #label_order_state.pack(side="top", fill="both")
         for col in range(2,4):  
             meal_label = tk.Label(self.chef_two_tab, padx=30, text=f"Meal {col-1}", font=("Helvatica", 15, "bold"), fg="brown")
             meal_label.place(x=start_x + (col-2) * (square_size + gap), y=230)
@@ -504,11 +514,11 @@ class FirstProblem:
             square_frame.place(x=start_x + (col-2) * (square_size + gap), y=start_y)
 
             # Display information in the top right of each square
+            label_customer = tk.Label(square_frame, text=f"Customer: {chef_list[col].get_customer()}", anchor="e", padx=5)
             label_order_state = tk.Label(square_frame, text=f"Order state: {chef_list[col].get_order_state()}", anchor="e", padx=5)
-            #label_order_state = tk.Label(square_frame, text=f"Meal state: {chef_list[col].get_meal_state()}", anchor="e", padx=5)
-
+            
+            label_customer.pack(side="top", fill="both")
             label_order_state.pack(side="top", fill="both")
-            #label_order_state.pack(side="top", fill="both")
         
     def generate_payment_gui(self):
         self.payment_gui = tk.Toplevel()
@@ -539,9 +549,10 @@ class FirstProblem:
 
 class Table:
     def __init__(self):
+        self.customer = None
         self.state = 'empty'
         self.order_state = 'empty'
-        self.customer = None
+        self.meal = 'empty'
 
     def get_customer(self):
         return self.customer
@@ -566,6 +577,15 @@ class Table:
             self.order_state = ' taken '
         else:
             self.order_state = 'empty'
+
+    def get_meal(self):
+        return self.meal
+    
+    def set_meal(self):
+        if(self.meal == 'empty'):
+            self.meal = 'eating'
+        else:
+            self.meal = 'empty'
 
 class Customer:
     def __init__(self, name, number=None):
