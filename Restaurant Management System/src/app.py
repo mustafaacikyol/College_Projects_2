@@ -374,13 +374,15 @@ class FirstProblem:
             label_order_state.pack(side="top", fill="both")
 
     def check_empty_chef(self):
+        meal_indexes = []
         global chef_list, waiter_queue
         while(1):
             print(waiter_queue.qsize())
             if(waiter_queue.qsize()>0):
-                for chef in chef_list:
+                for i,chef in enumerate(chef_list):
                     if(chef.get_order_state() == 'empty'):
                         chef.set_order_state()
+                        meal_indexes.append(i)
                         waiter = waiter_queue.get()
                         chef.set_customer(waiter.get_customer())
                         if(chef.name == "1"):
@@ -392,6 +394,9 @@ class FirstProblem:
                         #waiter_queue.get_nowait()
                         if(waiter_queue.qsize() == 0): break
                 self.update_chef_gui()
+                time.sleep(3)
+                self.order_chef_to_table(meal_indexes)
+                self.chef_meal_ready(meal_indexes)
             time.sleep(1)
 
     def order_table_to_waiter(self):
@@ -473,11 +478,19 @@ class FirstProblem:
         self.update_waiter_gui()
 
     def chef_meal_ready(self, list):
+        global chef_list
         for i in list:
+            if(i==0):
+                self.write_to_txt_file(f"Chef {chef_list[i].name} finished Customer {chef_list[i].get_customer()}'s order. Customer {chef_list[i].get_customer()} start to eating.\n")
+            elif(i==1 or i==2):
+                self.write_to_txt_file(f"Chef {int(chef_list[i].name)-1} finished Customer {chef_list[i].get_customer()}'s order. Customer {chef_list[i].get_customer()} start to eating.\n")
+            elif(i==3):
+                self.write_to_txt_file(f"Chef {int(chef_list[i].name)-2} finished Customer {chef_list[i].get_customer()}'s order. Customer {chef_list[i].get_customer()} start to eating.\n")
+
             chef_list[i].set_order_state()
             chef_list[i].reset_customer()
         self.update_chef_gui()
-        
+
     def update_chef_gui(self):
         # Get the screen width and height
         screen_width = self.chef_one_tab.winfo_screenwidth()
