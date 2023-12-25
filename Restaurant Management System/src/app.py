@@ -70,7 +70,7 @@ class FirstProblem:
 
         # Set the title of the window
         self.first_problem_window.title("First Problem")
-    
+
     def set_step_number(self):
         self.step_number_label = tk.Label(self.first_problem_window, text="Enter the number of steps : ", font=("Helvetica", 15, "bold"), fg="brown")
         self.step_number_label.place(relx=0.35, rely=0.4)
@@ -177,7 +177,6 @@ class FirstProblem:
             # Schedule the thread to run after 5 seconds
             order_table_to_waiter_thread = threading.Timer(2.0, self.order_table_to_waiter).start()
             order_table_to_waiter_thread = threading.Timer(4.0, self.order_table_to_waiter).start()
-
 
     def write_to_txt_file(self, text1, text2 = None):
         with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
@@ -469,9 +468,8 @@ class FirstProblem:
 
         self.update_chef_gui()
         order_chef_to_table_thread = threading.Timer(3.0, self.order_chef_to_table, args=(meal_indexes,)).start()
-        hef_meal_ready_thread = threading.Timer(3.0, self.chef_meal_ready, args=(meal_indexes,)).start()
+        chef_meal_ready_thread = threading.Timer(3.0, self.chef_meal_ready, args=(meal_indexes,)).start()
         
-
     def order_chef_to_table(self, list):
         global chef_list, table_list
         customer_index = []
@@ -484,8 +482,10 @@ class FirstProblem:
                     table.set_meal()
                     break
         self.update_waiter_gui()
-        timer = threading.Timer(3.0, self.making_payment, args=(customer_index, table_index)).start()
-
+        
+        making_payment_thread = threading.Timer(3.0, self.making_payment, args=(customer_index, table_index))
+        making_payment_thread.start()
+        
     def chef_meal_ready(self, list):
         global chef_list
         for i in list:
@@ -503,11 +503,11 @@ class FirstProblem:
     def making_payment(self, customer_index, table_index):
         global table_list
         for table in table_index:
-            #print(table)
             table_list[table].reset_customer()
             table_list[table].set_state()
             table_list[table].set_order_state()
             table_list[table].set_meal()
+        self.update_waiter_gui()
 
     def update_chef_gui(self):
         # Get the screen width and height
