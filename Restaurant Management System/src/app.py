@@ -23,6 +23,7 @@ waiter_list = []
 chef_list = []
 empty_chef_list = []
 waiter_queue = queue.Queue()
+step_counter = 1
 
 class StartApp:
     def __init__(self):
@@ -373,33 +374,31 @@ class FirstProblem:
 
     def check_empty_chef(self):
         global chef_list, waiter_queue
-        while(1):
-            meal_indexes = []
-            counter = 0
-            print(waiter_queue.qsize())
-            if(waiter_queue.qsize()>0):
-                for i,chef in enumerate(chef_list):
-                    if(chef.get_order_state() == 'empty'):
-                        counter += 1
-                        chef.set_order_state()
-                        meal_indexes.append(i)
-                        waiter = waiter_queue.get()
-                        chef.set_customer(waiter.get_customer())
-                        if(chef.name == "1"):
-                            self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n", f"Chef {chef.name} took the order for customer {chef.get_customer()} and started to prepare them.\n")
-                        elif(chef.name == "2" or chef.name == "3"):
-                            self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n", f"Chef {int(chef.name)-1} took the order for customer {chef.get_customer()} and started to prepare them.\n")
-                        elif(chef.name == "4"):
-                            self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n", f"Chef {int(chef.name)-2} took the order for customer {chef.get_customer()} and started to prepare them.\n")
-                        #waiter_queue.get_nowait()
-                        if(waiter_queue.qsize() == 0): break
-                if counter>0:
-                    check_empty_chef_condition_thread = threading.Thread(target=self.check_empty_chef_condition, args=(meal_indexes,)).start() 
-            time.sleep(1)
+        meal_indexes = []
+        counter = 0
+        if(waiter_queue.qsize()>0):
+            for i,chef in enumerate(chef_list):
+                if(chef.get_order_state() == 'empty'):
+                    counter += 1
+                    chef.set_order_state()
+                    meal_indexes.append(i)
+                    waiter = waiter_queue.get()
+                    chef.set_customer(waiter.get_customer())
+                    if(chef.name == "1"):
+                        self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n", f"Chef {chef.name} took the order for customer {chef.get_customer()} and started to prepare them.\n")
+                    elif(chef.name == "2" or chef.name == "3"):
+                        self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n", f"Chef {int(chef.name)-1} took the order for customer {chef.get_customer()} and started to prepare them.\n")
+                    elif(chef.name == "4"):
+                        self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n", f"Chef {int(chef.name)-2} took the order for customer {chef.get_customer()} and started to prepare them.\n")
+                    #waiter_queue.get_nowait()
+                    if(waiter_queue.qsize() == 0): break
+            if counter>0:
+                self.update_chef_gui() 
+                check_empty_chef_condition_thread = threading.Timer(3.0, self.check_empty_chef_condition, args=(meal_indexes,)).start()
+        
+        recursive_thread = threading.Timer(1.0, self.check_empty_chef).start()
 
     def check_empty_chef_condition(self, meal_indexes):
-        self.update_chef_gui()
-        time.sleep(3)
         self.order_chef_to_table(meal_indexes)
         self.chef_meal_ready(meal_indexes)
 
@@ -469,9 +468,9 @@ class FirstProblem:
             self.write_to_txt_file(f"Waiter 3 are on standby as there are no chef available at the moment.\n")
 
         self.update_chef_gui()
-        time.sleep(3)
-        self.order_chef_to_table(meal_indexes)
-        self.chef_meal_ready(meal_indexes)
+        order_chef_to_table_thread = threading.Timer(3.0, self.order_chef_to_table, args=(meal_indexes,)).start()
+        hef_meal_ready_thread = threading.Timer(3.0, self.chef_meal_ready, args=(meal_indexes,)).start()
+        
 
     def order_chef_to_table(self, list):
         global chef_list, table_list
@@ -485,8 +484,7 @@ class FirstProblem:
                     table.set_meal()
                     break
         self.update_waiter_gui()
-        #time.sleep(3)
-        #self.making_payment(customer_index, table_index)
+        timer = threading.Timer(3.0, self.making_payment, args=(customer_index, table_index)).start()
 
     def chef_meal_ready(self, list):
         global chef_list
