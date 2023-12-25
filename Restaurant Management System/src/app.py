@@ -5,6 +5,7 @@ import time
 import asyncio
 import queue
 from concurrent.futures import ThreadPoolExecutor
+#import schedule
 
 table = 6
 waiter = 3
@@ -174,10 +175,7 @@ class FirstProblem:
 
             # Schedule the thread to run after 5 seconds
             order_table_to_waiter_thread = threading.Timer(2.0, self.order_table_to_waiter).start()
-            order_waiter_to_chef_thread = threading.Timer(2.5, self.order_waiter_to_chef).start()
             order_table_to_waiter_thread = threading.Timer(4.0, self.order_table_to_waiter).start()
-            order_waiter_to_chef_thread = threading.Timer(4.5, self.order_waiter_to_chef).start()
-            
 
 
     def write_to_txt_file(self, text1, text2 = None):
@@ -374,13 +372,15 @@ class FirstProblem:
             label_order_state.pack(side="top", fill="both")
 
     def check_empty_chef(self):
-        meal_indexes = []
         global chef_list, waiter_queue
         while(1):
+            meal_indexes = []
+            counter = 0
             print(waiter_queue.qsize())
             if(waiter_queue.qsize()>0):
                 for i,chef in enumerate(chef_list):
                     if(chef.get_order_state() == 'empty'):
+                        counter += 1
                         chef.set_order_state()
                         meal_indexes.append(i)
                         waiter = waiter_queue.get()
@@ -393,11 +393,15 @@ class FirstProblem:
                             self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n", f"Chef {int(chef.name)-2} took the order for customer {chef.get_customer()} and started to prepare them.\n")
                         #waiter_queue.get_nowait()
                         if(waiter_queue.qsize() == 0): break
-                self.update_chef_gui()
-                time.sleep(3)
-                self.order_chef_to_table(meal_indexes)
-                self.chef_meal_ready(meal_indexes)
+                if counter>0:
+                    check_empty_chef_condition_thread = threading.Thread(target=self.check_empty_chef_condition, args=(meal_indexes,)).start() 
             time.sleep(1)
+
+    def check_empty_chef_condition(self, meal_indexes):
+        self.update_chef_gui()
+        time.sleep(3)
+        self.order_chef_to_table(meal_indexes)
+        self.chef_meal_ready(meal_indexes)
 
     def order_table_to_waiter(self):
         global table_list, waiter_list
@@ -428,6 +432,7 @@ class FirstProblem:
 
         self.write_to_txt_file(".\n")
         self.update_waiter_gui()
+        self.order_waiter_to_chef()
 
     def order_waiter_to_chef(self):
         global waiter_queue, waiter_list
@@ -470,12 +475,18 @@ class FirstProblem:
 
     def order_chef_to_table(self, list):
         global chef_list, table_list
+        customer_index = []
+        table_index = []
         for i in list:
             for table in table_list:
                 if chef_list[i].get_customer() == table.get_customer():
+                    customer_index.append(chef_list[i].get_customer())
+                    table_index.append(table.get_customer()-1)
                     table.set_meal()
-        
+                    break
         self.update_waiter_gui()
+        #time.sleep(3)
+        #self.making_payment(customer_index, table_index)
 
     def chef_meal_ready(self, list):
         global chef_list
@@ -490,6 +501,15 @@ class FirstProblem:
             chef_list[i].set_order_state()
             chef_list[i].reset_customer()
         self.update_chef_gui()
+
+    def making_payment(self, customer_index, table_index):
+        global table_list
+        for table in table_index:
+            #print(table)
+            table_list[table].reset_customer()
+            table_list[table].set_state()
+            table_list[table].set_order_state()
+            table_list[table].set_meal()
 
     def update_chef_gui(self):
         # Get the screen width and height
@@ -573,6 +593,9 @@ class Table:
     def set_customer(self, customer_id):
         self.customer = customer_id
 
+    def reset_customer(self):
+        self.customer = None
+
     def get_state(self):
         return self.state
     
@@ -604,10 +627,6 @@ class Customer:
     def __init__(self, name, number=None):
         global customer_counter
         self.name = name
-        if number is not None:
-            print(f'Priority customer {self.name} generated')
-        else:
-            print(f'Non-priority customer {self.name} generated')
         customer_counter += 1
 
 class Waiter:
@@ -615,7 +634,6 @@ class Waiter:
         self.name = name
         self.customer = None
         self.order = False
-        print(f'{self.name} generated')
 
     def get_customer(self):
         return self.customer
@@ -644,7 +662,6 @@ class Chef:
     def __init__(self, name):
         self.name = name
         self.customer = None
-        print(f'{self.name} generated')
         self.order_state = 'empty'
         #self.meal_state = 'empty'
 
