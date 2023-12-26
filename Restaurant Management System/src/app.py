@@ -135,7 +135,7 @@ class FirstProblem:
         start_app_btn.place(relx=0.47, rely=y)
 
     def start_scenario(self, customer_values, priority_values):
-        global total_customers, total_non_priority, total_priority, table_list, table_counter, waiter_list, chef_list, waiter_queue, customer_counter
+        global total_customers, total_non_priority, total_priority, table_list, table_counter, waiter_list, chef_list, waiter_queue, customer_counter, step_counter
         for i in range(3):
             waiter_obj = Waiter(f"Waiter {i+1}")
             waiter_list.append(waiter_obj)
@@ -170,13 +170,21 @@ class FirstProblem:
             table_counter = 0
             self.update_waiter_gui()
 
-            self.write_to_txt_file(f'{total_customers} customers came. There are {total_priority} priotity customers.\n',f'6 customers placed on tables. {total_customers-6} customers on hold.\n')
-            
+            self.write_to_txt_file(f'Step {step_counter}: {total_customers} customers came. There are {total_priority} priotity customers.\n')
+            step_counter += 1
+            self.write_to_txt_file(f'Step {step_counter}: 6 customers placed on tables. {total_customers-6} customers on hold.\n')
+            step_counter += 1
+
             check_waiter_queue_thread = threading.Thread(target=self.check_empty_chef).start() 
 
             # Schedule the thread to run after 5 seconds
             order_table_to_waiter_thread = threading.Timer(2.0, self.order_table_to_waiter).start()
             order_table_to_waiter_thread = threading.Timer(4.0, self.order_table_to_waiter).start()
+
+    def write_step(self):
+        global step_counter
+        self.write_to_txt_file(f'Step {step_counter}: ')
+        step_counter += 1
 
     def write_to_txt_file(self, text1, text2 = None):
         with open('D:/projects 2/first term/first project/Restaurant Management System/log/log.txt', 'a') as file:
@@ -372,7 +380,7 @@ class FirstProblem:
             label_order_state.pack(side="top", fill="both")
 
     def check_empty_chef(self):
-        global chef_list, waiter_queue
+        global chef_list, waiter_queue, step_counter
         meal_indexes = []
         counter = 0
         if(waiter_queue.qsize()>0):
@@ -384,11 +392,20 @@ class FirstProblem:
                     waiter = waiter_queue.get()
                     chef.set_customer(waiter.get_customer())
                     if(chef.name == "1"):
-                        self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n", f"Chef {chef.name} took the order for customer {chef.get_customer()} and started to prepare them.\n")
+                        self.write_to_txt_file(f"Step {step_counter}: {waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n")
+                        step_counter += 1
+                        self.write_to_txt_file(f"Step {step_counter}: Chef {chef.name} took the order for customer {chef.get_customer()} and started to prepare them.\n")
+                        step_counter += 1
                     elif(chef.name == "2" or chef.name == "3"):
-                        self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n", f"Chef {int(chef.name)-1} took the order for customer {chef.get_customer()} and started to prepare them.\n")
+                        self.write_to_txt_file(f"Step {step_counter}: {waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n")
+                        step_counter += 1
+                        self.write_to_txt_file(f"Step {step_counter}: Chef {int(chef.name)-1} took the order for customer {chef.get_customer()} and started to prepare them.\n")
+                        step_counter += 1
                     elif(chef.name == "4"):
-                        self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n", f"Chef {int(chef.name)-2} took the order for customer {chef.get_customer()} and started to prepare them.\n")
+                        self.write_to_txt_file(f"Step {step_counter}: {waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n")
+                        step_counter += 1
+                        self.write_to_txt_file(f"Step {step_counter}: Chef {int(chef.name)-2} took the order for customer {chef.get_customer()} and started to prepare them.\n")
+                        step_counter += 1
                     #waiter_queue.get_nowait()
                     if(waiter_queue.qsize() == 0): break
             if counter>0:
@@ -411,11 +428,13 @@ class FirstProblem:
                     waiter.set_order()
                     break
 
+        self.write_step()
         for waiter in waiter_list:
             if waiter.get_order() == True:
                 self.write_to_txt_file(f"{waiter.name} took Customer {waiter.get_customer()}'s order ")
         self.write_to_txt_file("\n")
 
+        self.write_step()
         chef_index = []
         for waiter in waiter_list:
             for i,chef in enumerate(chef_list):
@@ -433,11 +452,12 @@ class FirstProblem:
         self.order_waiter_to_chef()
 
     def order_waiter_to_chef(self):
-        global waiter_queue, waiter_list
+        global waiter_queue, waiter_list, step_counter
         meal_indexes = []
         order_count = 0
         order_give_to_chef_count = 0
 
+        self.write_step()
         for waiter in waiter_list:
             if(waiter.get_order() == True):
                 order_count += 1
@@ -461,10 +481,12 @@ class FirstProblem:
         if(order_count-order_give_to_chef_count == 2):
             waiter_queue.put(waiter_list[1])
             waiter_queue.put(waiter_list[2])
-            self.write_to_txt_file(f"Waiter 2 and waiter 3 are on standby as there are no chef available at the moment.\n")
+            self.write_to_txt_file(f"Step {step_counter}: Waiter 2 and waiter 3 are on standby as there are no chef available at the moment.\n")
+            step_counter += 1
         elif(order_count-order_give_to_chef_count == 1):
             waiter_queue.put(waiter_list[2])
-            self.write_to_txt_file(f"Waiter 3 are on standby as there are no chef available at the moment.\n")
+            self.write_to_txt_file(f"Step {step_counter}: Waiter 3 are on standby as there are no chef available at the moment.\n")
+            step_counter += 1
 
         self.update_chef_gui()
         order_chef_to_table_thread = threading.Timer(3.0, self.order_chef_to_table, args=(meal_indexes,)).start()
@@ -487,15 +509,17 @@ class FirstProblem:
         making_payment_thread.start()
         
     def chef_meal_ready(self, list):
-        global chef_list
+        global chef_list, step_counter
         for i in list:
             if(i==0):
-                self.write_to_txt_file(f"Chef {chef_list[i].name} finished Customer {chef_list[i].get_customer()}'s order. Customer {chef_list[i].get_customer()} start to eating.\n")
+                self.write_to_txt_file(f"Step {step_counter}: Chef {chef_list[i].name} finished Customer {chef_list[i].get_customer()}'s order. Customer {chef_list[i].get_customer()} start to eating.\n")
+                step_counter += 1
             elif(i==1 or i==2):
-                self.write_to_txt_file(f"Chef {int(chef_list[i].name)-1} finished Customer {chef_list[i].get_customer()}'s order. Customer {chef_list[i].get_customer()} start to eating.\n")
+                self.write_to_txt_file(f"Step {step_counter}: Chef {int(chef_list[i].name)-1} finished Customer {chef_list[i].get_customer()}'s order. Customer {chef_list[i].get_customer()} start to eating.\n")
+                step_counter += 1
             elif(i==3):
-                self.write_to_txt_file(f"Chef {int(chef_list[i].name)-2} finished Customer {chef_list[i].get_customer()}'s order. Customer {chef_list[i].get_customer()} start to eating.\n")
-
+                self.write_to_txt_file(f"Step {step_counter}: Chef {int(chef_list[i].name)-2} finished Customer {chef_list[i].get_customer()}'s order. Customer {chef_list[i].get_customer()} start to eating.\n")
+                step_counter += 1
             chef_list[i].set_order_state()
             chef_list[i].reset_customer()
         self.update_chef_gui()
