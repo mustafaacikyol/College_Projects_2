@@ -529,7 +529,7 @@ class FirstProblem:
         self.update_chef_gui()
 
     def leave_table(self, customer_index, table_index):
-        global table_list, customer_counter, step_counter
+        global table_list, customer_counter, step_counter, total_customers
         for table in table_index:
             customer = table_list[table].get_customer()
             table_list[table].reset_customer()
@@ -538,12 +538,15 @@ class FirstProblem:
             table_list[table].set_meal()
             self.write_to_txt_file(f"Step {step_counter}: Customer {customer} leave from {table_list[table].name} to pay the bill.\n")
             step_counter += 1
-            table_list[table].set_customer(customer_counter)
-            self.write_to_txt_file(f"Step {step_counter}: Customer {customer_counter} sit at the {table_list[table].name}.\n")
-            customer_counter += 1
-            table_list[table].set_state()
-            step_counter += 1
+            if customer_counter<=total_customers:
+                table_list[table].set_customer(customer_counter)
+                self.write_to_txt_file(f"Step {step_counter}: Customer {customer_counter} sit at the {table_list[table].name}.\n")
+                step_counter += 1
+                customer_counter += 1
+                table_list[table].set_state()
         self.update_waiter_gui()
+        # order_table_to_waiter_thread = threading.Timer(2.0, self.order_table_to_waiter)
+        # order_table_to_waiter_thread.start()
         self.prepare_payment(customer_index)
 
     def prepare_payment(self, customer_index):
