@@ -153,8 +153,9 @@ class FirstProblem:
 
         # print(f"Total Non Priority: {total_non_priority}, Total Priority: {total_priority}")
         total_customers = total_non_priority + total_priority
+        self.update_payment_gui()
         
-        if(total_priority<6):
+        if(total_priority<=6):
             for item in range(total_priority):
                 self.generate_priority_customer()
                 table_list[table_counter].set_state()
@@ -180,6 +181,9 @@ class FirstProblem:
             # Schedule the thread to run after 5 seconds
             order_table_to_waiter_thread = threading.Timer(2.0, self.order_table_to_waiter).start()
             order_table_to_waiter_thread = threading.Timer(4.0, self.order_table_to_waiter).start()
+
+        # elif(total_priority>6):
+            
 
     def write_step(self):
         global step_counter
@@ -505,7 +509,8 @@ class FirstProblem:
                     break
         self.update_waiter_gui()
         
-        leave_table_thread = threading.Timer(3.0, self.leave_table, args=(customer_index, table_index)).start()
+        leave_table_thread = threading.Timer(3.0, self.leave_table, args=(customer_index, table_index))
+        leave_table_thread.start()
         
     def chef_meal_ready(self, list):
         global chef_list, step_counter
@@ -544,12 +549,16 @@ class FirstProblem:
     def prepare_payment(self, customer_index):
         global step_counter
         for customer in customer_index:
-            making_payment_thread = threading.Timer(1.0, self.making_payment, args=(customer,)).start()
+            making_payment_thread = threading.Thread(target=self.making_payment, args=(customer,))
+            making_payment_thread.start()
+            time.sleep(1)
 
     def making_payment(self, customer):
-        global step_counter
+        global step_counter, total_payment
         self.write_to_txt_file(f"Step {step_counter}: Customer {customer} paid the bill.\n")
         step_counter += 1
+        total_payment += 1
+        self.update_payment_gui()
 
     def update_chef_gui(self):
         # Get the screen width and height
@@ -606,6 +615,18 @@ class FirstProblem:
         global total_customers,total_payment
         total_customers = 0
         total_payment = 0
+
+        # Create and display labels in the center of the page
+        label_customers = tk.Label(self.payment_gui, text=f"Total Customers: {total_customers}", font=("Helvetica", 14))
+        label_payment = tk.Label(self.payment_gui, text=f"Total Payment: ${total_payment:.2f}", font=("Helvetica", 14))
+
+        label_customers.place(x=(screen_width - label_customers.winfo_reqwidth()) // 2, y=screen_height // 2 - 130)
+        label_payment.place(x=(screen_width - label_payment.winfo_reqwidth()) // 2, y=screen_height // 2 - 70)
+
+    def update_payment_gui(self):
+        # Get the screen width and height
+        screen_width = self.payment_gui.winfo_screenwidth()
+        screen_height = self.payment_gui.winfo_screenheight()
 
         # Create and display labels in the center of the page
         label_customers = tk.Label(self.payment_gui, text=f"Total Customers: {total_customers}", font=("Helvetica", 14))
