@@ -251,7 +251,7 @@ class FirstProblem:
         # Create and display six squares in a single row with six columns
         for col in range(6):
             global table_list
-            table_obj = Table()
+            table_obj = Table(f'Table {col+1}')
             table_list.append(table_obj)
             table_label = tk.Label(waiter_tab, padx=35, text=f"Table {col+1}", font=("Helvatica", 15, "bold"), fg="brown")
             table_label.place(x=start_x + col * (square_size + gap), y=180)
@@ -288,7 +288,7 @@ class FirstProblem:
         start_y = (screen_height - total_height) // 2
         for waiter_tab in waiter_tab_list:
             for col in range(6):
-                table_obj = Table()
+                table_obj = Table(f'Table {col+1}')
                 table_list.append(table_obj)
                 table_label = tk.Label(waiter_tab, padx=35, text=f"Table {col+1}", font=("Helvatica", 15, "bold"), fg="brown")
                 table_label.place(x=start_x + col * (square_size + gap), y=180)
@@ -505,8 +505,7 @@ class FirstProblem:
                     break
         self.update_waiter_gui()
         
-        making_payment_thread = threading.Timer(3.0, self.making_payment, args=(customer_index, table_index))
-        making_payment_thread.start()
+        leave_table_thread = threading.Timer(3.0, self.leave_table, args=(customer_index, table_index)).start()
         
     def chef_meal_ready(self, list):
         global chef_list, step_counter
@@ -524,14 +523,33 @@ class FirstProblem:
             chef_list[i].reset_customer()
         self.update_chef_gui()
 
-    def making_payment(self, customer_index, table_index):
-        global table_list
+    def leave_table(self, customer_index, table_index):
+        global table_list, customer_counter, step_counter
         for table in table_index:
+            customer = table_list[table].get_customer()
             table_list[table].reset_customer()
             table_list[table].set_state()
             table_list[table].set_order_state()
             table_list[table].set_meal()
+            self.write_to_txt_file(f"Step {step_counter}: Customer {customer} leave from {table_list[table].name} to pay the bill.\n")
+            step_counter += 1
+            table_list[table].set_customer(customer_counter)
+            self.write_to_txt_file(f"Step {step_counter}: Customer {customer_counter} sit at the {table_list[table].name}.\n")
+            customer_counter += 1
+            table_list[table].set_state()
+            step_counter += 1
         self.update_waiter_gui()
+        self.prepare_payment(customer_index)
+
+    def prepare_payment(self, customer_index):
+        global step_counter
+        for customer in customer_index:
+            making_payment_thread = threading.Timer(1.0, self.making_payment, args=(customer,)).start()
+
+    def making_payment(self, customer):
+        global step_counter
+        self.write_to_txt_file(f"Step {step_counter}: Customer {customer} paid the bill.\n")
+        step_counter += 1
 
     def update_chef_gui(self):
         # Get the screen width and height
@@ -603,7 +621,8 @@ class FirstProblem:
         non_priority_customer = Customer(f'Customer {customer_counter}')
 
 class Table:
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
         self.customer = None
         self.state = 'empty'
         self.order_state = 'empty'
