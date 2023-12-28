@@ -59,6 +59,7 @@ class StartApp:
     
     def open_second_problem(self):
         second_problem = SecondProblem()
+        second_problem.set_time()
 
 class FirstProblem:
     def __init__(self):
@@ -770,6 +771,53 @@ class SecondProblem:
 
         # Set the title of the window
         self.second_problem_window.title("Second Problem")
+
+    def set_time(self):
+        time_label = tk.Label(self.second_problem_window, text="Enter the time : ", font=("Helvetica", 15, "bold"), fg="brown")
+        time_label.place(relx=0.41, rely=0.25)
+
+        self.time_field = tk.Entry(self.second_problem_window, width=3, font=('Arial 15'))
+        self.time_field.place(relx=0.54, rely=0.25)
+
+        time_type_label = tk.Label(self.second_problem_window, text="min", font=("Helvetica", 15, "bold"))
+        time_type_label.place(relx=0.58, rely=0.25)
+
+        self.second_field = tk.Entry(self.second_problem_window, width=3, font=('Arial 15'))
+        self.second_field.place(relx=0.25, rely=0.4)
+
+        second_label = tk.Label(self.second_problem_window, text=" seconds", font=("Helvetica", 15, "bold"))
+        second_label.place(relx=0.28, rely=0.4)
+
+        self.customer_field = tk.Entry(self.second_problem_window, width=3, font=('Arial 15'))
+        self.customer_field.place(relx=0.42, rely=0.4)
+
+        customer_label = tk.Label(self.second_problem_window, text=" Customer", font=("Helvetica", 15, "bold"))
+        customer_label.place(relx=0.45, rely=0.4)
+
+        self.priority_field = tk.Entry(self.second_problem_window, width=3, font=('Arial 15'))
+        self.priority_field.place(relx=0.58, rely=0.4)
+
+        priority_label = tk.Label(self.second_problem_window, text=" Prioritized", font=("Helvetica", 15, "bold"))
+        priority_label.place(relx=0.61, rely=0.4)
+
+        start_btn = tk.Button(self.second_problem_window, text="Start", bg="#99FFFF", fg="#994C00", padx=15, pady=4, font=("Helvetica", 12, "bold"), borderwidth=5, relief="ridge", command=self.calculate_sources)
+        start_btn.place(relx=0.47, rely=0.55)
+
+    def calculate_sources(self):
+        total_time = int(self.time_field.get())
+        total_seconds = total_time*60
+        print(f'seconds: {total_seconds}')
+        interval = int(self.second_field.get())
+        print(f'interval: {interval}')
+        customer = int(self.customer_field.get())
+        print(f'customer: {customer}')
+        priority = int(self.priority_field.get())
+        print(f'priority: {priority}')
+        total_customer = int((total_seconds/interval)*(customer+priority))
+        print(total_customer)
+
+
+
 
 # Creating an instance of the StartApp class and starting the application
 app = StartApp()
