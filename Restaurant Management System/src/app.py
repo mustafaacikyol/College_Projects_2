@@ -155,35 +155,26 @@ class FirstProblem:
         total_customers = total_non_priority + total_priority
         self.update_payment_gui()
         
-        if(total_priority<=6):
-            for item in range(total_priority):
-                self.generate_priority_customer()
-                table_list[table_counter].set_state()
-                table_list[table_counter].set_customer(customer_counter-1)
-                table_counter += 1
-            #update_waiter_gui_thread = threading.Thread(target=self.update_waiter_gui).start()
-                
-            for item in range(6-total_priority):
-                self.generate_non_priority_customer()
-                table_list[table_counter].set_state()
-                table_list[table_counter].set_customer(customer_counter-1)
-                table_counter += 1
-            table_counter = 0
-            self.update_waiter_gui()
+        for item in range(6):
+            self.generate_priority_customer()
+            table_list[table_counter].set_state()
+            table_list[table_counter].set_customer(customer_counter-1)
+            table_counter += 1
+        #update_waiter_gui_thread = threading.Thread(target=self.update_waiter_gui).start()
 
-            self.write_to_txt_file(f'Step {step_counter}: {total_customers} customers came. There are {total_priority} priotity customers.\n')
-            step_counter += 1
-            self.write_to_txt_file(f'Step {step_counter}: 6 customers placed on tables. {total_customers-6} customers on hold.\n')
-            step_counter += 1
+        table_counter = 0
+        self.update_waiter_gui()
 
-            check_waiter_queue_thread = threading.Thread(target=self.check_empty_chef).start() 
+        self.write_to_txt_file(f'Step {step_counter}: {total_customers} customers came. There are {total_priority} priotity customers.\n')
+        step_counter += 1
+        self.write_to_txt_file(f'Step {step_counter}: 6 customers placed on tables. {total_customers-6} customers on hold.\n')
+        step_counter += 1
 
-            # Schedule the thread to run after 5 seconds
-            order_table_to_waiter_thread = threading.Timer(2.0, self.order_table_to_waiter).start()
-            order_table_to_waiter_thread = threading.Timer(4.0, self.order_table_to_waiter).start()
+        check_waiter_queue_thread = threading.Thread(target=self.check_empty_chef).start() 
 
-        # elif(total_priority>6):
-            
+        # Schedule the thread to run after 5 seconds
+        order_table_to_waiter_thread = threading.Timer(2.0, self.order_table_to_waiter).start()
+        order_table_to_waiter_thread = threading.Timer(4.0, self.order_table_to_waiter).start()
 
     def write_step(self):
         global step_counter
@@ -543,7 +534,6 @@ class FirstProblem:
     def leave_table(self, customer_index, table_index):
         global table_list, customer_counter, step_counter, total_customers
         for table in table_index:
-            print(table)
             customer = table_list[table].get_customer()
             table_list[table].reset_customer()
             table_list[table].set_state()
