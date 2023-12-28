@@ -400,16 +400,22 @@ class FirstProblem:
                         step_counter += 1
                         self.write_to_txt_file(f"Step {step_counter}: Chef {chef.name} took the order for customer {chef.get_customer()} and started to prepare them.\n")
                         step_counter += 1
+                        waiter.reset_customer()
+                        waiter.reset_order()
                     elif(chef.name == "2" or chef.name == "3"):
                         self.write_to_txt_file(f"Step {step_counter}: {waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n")
                         step_counter += 1
                         self.write_to_txt_file(f"Step {step_counter}: Chef {int(chef.name)-1} took the order for customer {chef.get_customer()} and started to prepare them.\n")
                         step_counter += 1
+                        waiter.reset_customer()
+                        waiter.reset_order()
                     elif(chef.name == "4"):
                         self.write_to_txt_file(f"Step {step_counter}: {waiter.name} passed the order of customer {waiter.get_customer()} to the chef.\n")
                         step_counter += 1
                         self.write_to_txt_file(f"Step {step_counter}: Chef {int(chef.name)-2} took the order for customer {chef.get_customer()} and started to prepare them.\n")
                         step_counter += 1
+                        waiter.reset_customer()
+                        waiter.reset_order()
                     #waiter_queue.get_nowait()
                     if(waiter_queue.qsize() == 0): break
             if counter>0:
@@ -424,23 +430,28 @@ class FirstProblem:
 
     def order_table_to_waiter(self):
         global table_list, waiter_list
+        is_waiter_get_order = False
         for waiter in waiter_list:
             for table in table_list:
                 if waiter.get_order() == False and table.get_state() == 'full' and table.get_order_state() == 'empty':
+                    is_waiter_get_order = True
                     table.set_order_state()           
                     waiter.set_customer(table.get_customer())
                     waiter.set_order()
                     break
 
-        self.write_step()
+        if(is_waiter_get_order):
+            self.write_step()
         for waiter in waiter_list:
             if waiter.get_order() == True:
                 self.write_to_txt_file(f"{waiter.name} took Customer {waiter.get_customer()}'s order ")
-        self.write_to_txt_file("\n")
+        if(is_waiter_get_order):
+            self.write_to_txt_file("\n")
 
-        self.write_step()
+        if(is_waiter_get_order):
+            self.write_step()
         chef_index = []
-        for waiter in waiter_list:
+        for j,waiter in enumerate(waiter_list):
             for i,chef in enumerate(chef_list):
                 if waiter.get_order() == True and chef.get_order_state() == 'empty':
                     self.write_to_txt_file(f"{waiter.name} passed the order of customer {waiter.get_customer()} ")
@@ -450,10 +461,11 @@ class FirstProblem:
 
         for index in chef_index:
             chef_list[index].set_order_state()
-
-        self.write_to_txt_file(".\n")
-        self.update_waiter_gui()
-        self.order_waiter_to_chef()
+        
+        if(is_waiter_get_order):
+            self.write_to_txt_file(".\n")
+            self.update_waiter_gui()
+            self.order_waiter_to_chef()
 
     def order_waiter_to_chef(self):
         global waiter_queue, waiter_list, step_counter
@@ -545,8 +557,8 @@ class FirstProblem:
                 customer_counter += 1
                 table_list[table].set_state()
         self.update_waiter_gui()
-        # order_table_to_waiter_thread = threading.Timer(2.0, self.order_table_to_waiter)
-        # order_table_to_waiter_thread.start()
+        order_table_to_waiter_thread = threading.Timer(2.0, self.order_table_to_waiter)
+        order_table_to_waiter_thread.start()
         self.prepare_payment(customer_index)
 
     def prepare_payment(self, customer_index):
