@@ -513,10 +513,10 @@ class FirstProblem:
         customer_index = []
         table_index = []
         for i in list:
-            for table in table_list:
+            for j,table in enumerate(table_list):
                 if chef_list[i].get_customer() == table.get_customer():
                     customer_index.append(chef_list[i].get_customer())
-                    table_index.append(table.get_customer()-1)
+                    table_index.append(j)
                     table.set_meal()
                     break
         self.update_waiter_gui()
@@ -543,6 +543,7 @@ class FirstProblem:
     def leave_table(self, customer_index, table_index):
         global table_list, customer_counter, step_counter, total_customers
         for table in table_index:
+            print(table)
             customer = table_list[table].get_customer()
             table_list[table].reset_customer()
             table_list[table].set_state()
