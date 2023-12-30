@@ -800,23 +800,40 @@ class SecondProblem:
         priority_label = tk.Label(self.second_problem_window, text=" Prioritized", font=("Helvetica", 15, "bold"))
         priority_label.place(relx=0.61, rely=0.4)
 
-        start_btn = tk.Button(self.second_problem_window, text="Start", bg="#99FFFF", fg="#994C00", padx=15, pady=4, font=("Helvetica", 12, "bold"), borderwidth=5, relief="ridge", command=self.calculate_sources)
+        start_btn = tk.Button(self.second_problem_window, text="Start", bg="#99FFFF", fg="#994C00", padx=15, pady=4, font=("Helvetica", 12, "bold"), borderwidth=5, relief="ridge", command=self.display_result)
         start_btn.place(relx=0.47, rely=0.55)
 
     def calculate_sources(self):
         total_time = int(self.time_field.get())
         total_seconds = total_time*60
-        print(f'seconds: {total_seconds}')
+        # print(f'seconds: {total_seconds}')
         interval = int(self.second_field.get())
-        print(f'interval: {interval}')
+        # print(f'interval: {interval}')
         customer = int(self.customer_field.get())
-        print(f'customer: {customer}')
+        # print(f'customer: {customer}')
         priority = int(self.priority_field.get())
-        print(f'priority: {priority}')
-        total_customer = int((total_seconds/interval)*(customer+priority))
-        print(total_customer)
+        # print(f'priority: {priority}')
+        self.total_customer = int((total_seconds/interval)*(customer+priority))
+        # print(total_customer)
 
 
+    def display_result(self):
+        self.result_window = tk.Toplevel()
+        self.result_window.state('zoomed')
+        self.result_window.title("Result of Second Problem")
+        title_label = tk.Label(self.result_window, text="Result of Second Problem", font=("Helvetica", 20, "bold"), fg="brown")
+        title_label.place(relx=0.35, rely=0.2)
+
+        self.calculate_sources()
+
+        result_label_line_1 = tk.Label(self.result_window, text=f"{self.total_customer} customers come to the restaurant. customers leave from the restaurant.", font=("Helvetica", 15, "bold"))
+        result_label_line_1.place(relx=0.1, rely=0.4)
+
+        result_label_line_2 = tk.Label(self.result_window, text=f"For  customers,  tables,  waiters and  chefs, the best earnings are received.", font=("Helvetica", 15, "bold"))
+        result_label_line_2.place(relx=0.1, rely=0.5)
+
+        result_label_line_3 = tk.Label(self.result_window, text=f"The gain is ", font=("Helvetica", 15, "bold"))
+        result_label_line_3.place(relx=0.1, rely=0.6)
 
 
 # Creating an instance of the StartApp class and starting the application
