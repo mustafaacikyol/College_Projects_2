@@ -782,6 +782,7 @@ class SecondProblem:
         self.table = 20
         self.waiter = 10
         self.chef = 5
+        self.profit_dict = {}
 
     def set_time(self):
         time_label = tk.Label(self.second_problem_window, text="Enter the time : ", font=("Helvetica", 15, "bold"), fg="brown")
@@ -830,32 +831,106 @@ class SecondProblem:
         return total_customer
 
     def calculate_combination(self, table, waiter, chef):
+        time_limit = 20
         time_counter = 0
         customer_counter = 0
 
-        while(time_counter<=20):
+        if(waiter != chef):
 
-            time_counter += self.order_take_time
+            while(time_counter<=time_limit):
 
-            time_counter += self.meal_preparing_time
+                time_counter += self.order_take_time
 
-            time_counter += self.meal_eating_time
+                time_counter += self.meal_preparing_time
 
-            customer_counter += 10
+                time_counter += self.meal_eating_time
 
-        time_counter = 2
-        while(time_counter<=20):
+                customer_counter += self.waiter
 
-            time_counter += self.order_take_time+1
+            time_counter = 3
+            while(time_counter<=time_limit):
 
-            time_counter += self.meal_preparing_time
+                time_counter += self.order_take_time
 
-            time_counter += self.meal_eating_time
+                time_counter += self.meal_preparing_time
 
-            customer_counter += 10
+                time_counter += self.meal_eating_time
+
+                customer_counter += self.waiter
+
+            if(table/waiter >=3):
+                time_counter = 6
+                while(time_counter<=time_limit):
+
+                    time_counter += self.order_take_time
+
+                    time_counter += self.meal_preparing_time
+
+                    time_counter += self.meal_eating_time
+
+                    customer_counter += self.waiter
+
+            if(table/waiter >=4):
+                time_counter = 9
+                while(time_counter<=time_limit):
+
+                    time_counter += self.order_take_time
+
+                    time_counter += self.meal_preparing_time
+
+                    time_counter += self.meal_eating_time
+
+                    customer_counter += self.waiter
+        
+        elif(waiter == chef):
+
+            while(time_counter<=time_limit):
+
+                time_counter += self.order_take_time
+
+                time_counter += self.meal_preparing_time
+
+                time_counter += self.meal_eating_time
+
+                customer_counter += self.waiter
+
+            time_counter = 2
+            while(time_counter<=time_limit):
+
+                time_counter += self.order_take_time
+
+                time_counter += self.meal_preparing_time
+
+                time_counter += self.meal_eating_time
+
+                customer_counter += self.waiter
+
+            if(table/waiter >=3):
+                time_counter = 4
+                while(time_counter<=time_limit):
+
+                    time_counter += self.order_take_time
+
+                    time_counter += self.meal_preparing_time
+
+                    time_counter += self.meal_eating_time
+
+                    customer_counter += self.waiter
+
+            if(table/waiter >=4):
+                time_counter = 9
+                while(time_counter<=time_limit):
+
+                    time_counter += self.order_take_time
+
+                    time_counter += self.meal_preparing_time
+
+                    time_counter += self.meal_eating_time
+
+                    customer_counter += self.waiter
+        
 
         profit = customer_counter - (table+waiter+chef)
-        print(profit)
         return profit
 
 
@@ -868,7 +943,20 @@ class SecondProblem:
         title_label.place(relx=0.35, rely=0.2)
 
         total_customer = self.calculate_customers()
-        self.calculate_combination(self.table, self.waiter, self.chef)
+        self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        print(self.profit_dict)
+        self.table += 10
+        self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        print(self.profit_dict)
+        self.table += 10
+        self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        print(self.profit_dict)
+        """ self.table += 10
+        self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        print(self.profit_dict) """
+        self.chef += 5
+        self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        print(self.profit_dict)
 
         result_label_line_1 = tk.Label(self.result_window, text=f"{total_customer} customers come to the restaurant. customers leave from the restaurant.", font=("Helvetica", 15, "bold"))
         result_label_line_1.place(relx=0.1, rely=0.4)
