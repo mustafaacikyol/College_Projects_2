@@ -6,6 +6,7 @@ import asyncio
 import queue
 from concurrent.futures import ThreadPoolExecutor
 #import schedule
+from collections import OrderedDict
 
 table = 6
 waiter = 3
@@ -929,11 +930,10 @@ class SecondProblem:
 
                     customer_counter += self.waiter
         
+        
 
         profit = customer_counter - (table+waiter+chef)
-        return profit
-
-
+        return (profit, customer_counter)
 
     def display_result(self):
         self.result_window = tk.Toplevel()
@@ -943,31 +943,110 @@ class SecondProblem:
         title_label.place(relx=0.35, rely=0.2)
 
         total_customer = self.calculate_customers()
-        self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
-        print(self.profit_dict)
-        self.table += 10
-        self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
-        print(self.profit_dict)
-        self.table += 10
-        self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
-        print(self.profit_dict)
-        """ self.table += 10
-        self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
-        print(self.profit_dict) """
-        self.chef += 5
-        self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
-        print(self.profit_dict)
+        if(total_customer>=12 and total_customer<24):
+            self.table = 4
+            self.waiter = 2
+            self.chef = 1
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=24 and total_customer<36):
+            self.table = 8
+            self.waiter = 4
+            self.chef = 2
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=36 and total_customer<48):
+            self.table = 12
+            self.waiter = 6
+            self.chef = 3
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=48 and total_customer<60):
+            self.table = 16
+            self.waiter = 8
+            self.chef = 4
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=60 and total_customer<72):
+            self.table = 20
+            self.waiter = 10
+            self.chef = 5
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=72 and total_customer<84):
+            self.table = 24
+            self.waiter = 12
+            self.chef = 6
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=84 and total_customer<96):
+            self.table = 28
+            self.waiter = 14
+            self.chef = 7
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=96 and total_customer<108):
+            self.table = 32
+            self.waiter = 16
+            self.chef = 8
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=108 and total_customer<120):
+            self.table = 36
+            self.waiter = 18
+            self.chef = 9
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=120 and total_customer<132):
+            self.table = 40
+            self.waiter = 20
+            self.chef = 10
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=132 and total_customer<144):
+            self.table = 44
+            self.waiter = 22
+            self.chef = 11
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=144 and total_customer<156):
+            self.table = 48
+            self.waiter = 24
+            self.chef = 12
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=156 and total_customer<168):
+            self.table = 52
+            self.waiter = 26
+            self.chef = 13
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=168 and total_customer<180):
+            self.table = 56
+            self.waiter = 28
+            self.chef = 14
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=180 and total_customer<192):
+            self.table = 60
+            self.waiter = 30
+            self.chef = 15
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=192 and total_customer<204):
+            self.table = 64
+            self.waiter = 32
+            self.chef = 16
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=204):
+            self.table = 68
+            self.waiter = 34
+            self.chef = 17
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        # Create an OrderedDict sorted by values
+        sorted_dict = OrderedDict(sorted(self.profit_dict.items(), key=lambda x: x[1], reverse=True))
 
-        result_label_line_1 = tk.Label(self.result_window, text=f"{total_customer} customers come to the restaurant. customers leave from the restaurant.", font=("Helvetica", 15, "bold"))
-        result_label_line_1.place(relx=0.1, rely=0.4)
+        print(sorted_dict)
 
-        result_label_line_2 = tk.Label(self.result_window, text=f"For  customers,  tables,  waiters and  chefs, the best earnings are received.", font=("Helvetica", 15, "bold"))
-        result_label_line_2.place(relx=0.1, rely=0.5)
-
-        result_label_line_3 = tk.Label(self.result_window, text=f"The gain is ", font=("Helvetica", 15, "bold"))
-        result_label_line_3.place(relx=0.1, rely=0.6)
+        # Unpack the first key-value pair
+        sources, profit_and_customer_served_number = next(iter(sorted_dict.items()))
 
 
-# Creating an instance of the StartApp class and starting the application
-app = StartApp()
-app.run()
+        result_label_line_1 = tk.Label(self.result_window, text=f"{total_customer} customers come to the restaurant. {total_customer-profit_and_customer_served_number[1]} customers leave from the restaurant.", font=("Helvetica", 15, "bold"))
+        result_label_line_1.place(relx=0.2, rely=0.4)
+
+        result_label_line_2 = tk.Label(self.result_window, text=f"For {profit_and_customer_served_number[1]} customers, {sources[0]} tables, {sources[1]} waiters and {sources[2]} chefs, the best earnings are received.", font=("Helvetica", 15, "bold"))
+        result_label_line_2.place(relx=0.2, rely=0.5)
+
+        result_label_line_3 = tk.Label(self.result_window, text=f"The gain is {profit_and_customer_served_number[0]}.", font=("Helvetica", 15, "bold"))
+        result_label_line_3.place(relx=0.2, rely=0.6)
+
+if __name__ == "__main__":
+    # Creating an instance of the StartApp class and starting the application
+    app = StartApp()
+    app.run()
