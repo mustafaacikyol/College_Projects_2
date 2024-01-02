@@ -1023,20 +1023,50 @@ class SecondProblem:
             self.waiter = 32
             self.chef = 16
             self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
-        elif(total_customer>=204):
+        elif(total_customer>=204 and total_customer<216):
             self.table = 68
             self.waiter = 34
             self.chef = 17
             self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
-        # Create an OrderedDict sorted by values
-        sorted_dict = OrderedDict(sorted(self.profit_dict.items(), key=lambda x: x[1], reverse=True))
-
-        print(sorted_dict)
+        elif(total_customer>=216 and total_customer<228):
+            self.table = 72
+            self.waiter = 36
+            self.chef = 18
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=228 and total_customer<240):
+            self.table = 76
+            self.waiter = 38
+            self.chef = 19
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=240 and total_customer<252):
+            self.table = 80
+            self.waiter = 40
+            self.chef = 20
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=252 and total_customer<264):
+            self.table = 84
+            self.waiter = 42
+            self.chef = 21
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=264 and total_customer<276):
+            self.table = 88
+            self.waiter = 44
+            self.chef = 22
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=276 and total_customer<288):
+            self.table = 92
+            self.waiter = 46
+            self.chef = 23
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
+        elif(total_customer>=300):
+            self.table = 96
+            self.waiter = 48
+            self.chef = 24
+            self.profit_dict[tuple([self.table, self.waiter, self.chef])] = self.calculate_combination(self.table, self.waiter, self.chef)
 
         # Unpack the first key-value pair
-        sources, profit_and_customer_served_number = next(iter(sorted_dict.items()))
-
-
+        sources, profit_and_customer_served_number = next(iter(self.profit_dict.items()))
+        
         result_label_line_1 = tk.Label(self.result_window, text=f"{total_customer} customers come to the restaurant. {total_customer-profit_and_customer_served_number[1]} customers leave from the restaurant.", font=("Helvetica", 15, "bold"))
         result_label_line_1.place(relx=0.2, rely=0.4)
 
@@ -1047,6 +1077,5 @@ class SecondProblem:
         result_label_line_3.place(relx=0.2, rely=0.6)
 
 if __name__ == "__main__":
-    # Creating an instance of the StartApp class and starting the application
     app = StartApp()
     app.run()

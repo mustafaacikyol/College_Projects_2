@@ -1,0 +1,241 @@
+Step 1: 42 customers came. There are 12 priotity customers.
+Step 2: 6 customers placed on tables. 36 customers on hold.
+Step 3: Waiter 1 took Customer 1's order Waiter 2 took Customer 2's order Waiter 3 took Customer 3's order 
+Step 4: Waiter 1 passed the order of customer 1 Waiter 2 passed the order of customer 2 Waiter 3 passed the order of customer 3 .
+Step 5: Chef 1 took the order for customer 1 Chef 1 took the order for customer 2 Chef 2 took the order for customer 3 
+Step 6: Waiter 1 took Customer 4's order Waiter 2 took Customer 5's order Waiter 3 took Customer 6's order 
+Step 7: Waiter 1 passed the order of customer 4 .
+Step 8: Chef 2 took the order for customer 4 
+Step 9: Waiter 2 and waiter 3 are on standby as there are no chef available at the moment.
+Step 10: Chef 1 finished Customer 1's order. Customer 1 start to eating.
+Step 11: Chef 1 finished Customer 2's order. Customer 2 start to eating.
+Step 12: Chef 2 finished Customer 3's order. Customer 3 start to eating.
+Step 13: Waiter 2 passed the order of customer 5 to the chef.
+Step 14: Chef 1 took the order for customer 5 and started to prepare them.
+Step 15: Waiter 3 passed the order of customer 6 to the chef.
+Step 16: Chef 1 took the order for customer 6 and started to prepare them.
+Step 17: Chef 2 finished Customer 4's order. Customer 4 start to eating.
+Step 18: Customer 1 leave from Table 1 to pay the bill.
+Step 19: Customer 7 sit at the Table 1.
+Step 20: Customer 2 leave from Table 2 to pay the bill.
+Step 21: Customer 8 sit at the Table 2.
+Step 22: Customer 3 leave from Table 3 to pay the bill.
+Step 23: Customer 9 sit at the Table 3.
+Step 24: Customer 1 paid the bill.
+Step 25: Chef 1 finished Customer 5's order. Customer 5 start to eating.
+Step 26: Chef 1 finished Customer 6's order. Customer 6 start to eating.
+Step 27: Customer 2 paid the bill.
+Step 28: Customer 4 leave from Table 4 to pay the bill.
+Step 29: Customer 10 sit at the Table 4.
+Step 30: Customer 4 paid the bill.
+Step 31: Waiter 1 took Customer 7's order Waiter 2 took Customer 8's order Waiter 3 took Customer 9's order 
+Step 32: Step 32: Customer 3 paid the bill.
+Waiter 1 passed the order of customer 7 Waiter 2 passed the order of customer 8 Waiter 3 passed the order of customer 9 .
+Step 34: Chef 1 took the order for customer 7 Chef 1 took the order for customer 8 Chef 2 took the order for customer 9 
+Step 35: Customer 5 leave from Table 5 to pay the bill.
+Step 36: Customer 11 sit at the Table 5.
+Step 37: Customer 6 leave from Table 6 to pay the bill.
+Step 38: Customer 12 sit at the Table 6.
+Step 39: Customer 5 paid the bill.
+Step 40: Waiter 1 took Customer 10's order Waiter 2 took Customer 11's order Waiter 3 took Customer 12's order 
+Step 41: Waiter 1 passed the order of customer 10 .
+Step 42: Chef 2 took the order for customer 10 
+Step 43: Waiter 2 and waiter 3 are on standby as there are no chef available at the moment.
+Step 44: Customer 6 paid the bill.
+Step 45: Chef 1 finished Customer 7's order. Customer 7 start to eating.
+Step 46: Chef 1 finished Customer 8's order. Customer 8 start to eating.
+Step 47: Chef 2 finished Customer 9's order. Customer 9 start to eating.
+Step 48: Waiter 2 passed the order of customer 11 to the chef.
+Step 49: Chef 1 took the order for customer 11 and started to prepare them.
+Step 50: Waiter 3 passed the order of customer 12 to the chef.
+Step 51: Chef 1 took the order for customer 12 and started to prepare them.
+Step 52: Chef 2 finished Customer 10's order. Customer 10 start to eating.
+Step 53: Customer 7 leave from Table 1 to pay the bill.
+Step 54: Customer 13 sit at the Table 1.
+Step 55: Customer 8 leave from Table 2 to pay the bill.
+Step 56: Customer 14 sit at the Table 2.
+Step 57: Customer 9 leave from Table 3 to pay the bill.
+Step 58: Customer 15 sit at the Table 3.
+Step 59: Customer 7 paid the bill.
+Step 60: Chef 1 finished Customer 11's order. Customer 11 start to eating.
+Step 61: Chef 1 finished Customer 12's order. Customer 12 start to eating.
+Step 62: Customer 8 paid the bill.
+Step 63: Customer 10 leave from Table 4 to pay the bill.
+Step 64: Customer 16 sit at the Table 4.
+Step 65: Customer 10 paid the bill.
+Step 66: Waiter 1 took Customer 13's order Waiter 2 took Customer 14's order Waiter 3 took Customer 15's order 
+Step 67: Step 67: Customer 9 paid the bill.
+Waiter 1 passed the order of customer 13 Waiter 2 passed the order of customer 14 Waiter 3 passed the order of customer 15 .
+Step 69: Chef 1 took the order for customer 13 Chef 1 took the order for customer 14 Chef 2 took the order for customer 15 
+Step 70: Customer 11 leave from Table 5 to pay the bill.
+Step 71: Customer 17 sit at the Table 5.
+Step 72: Customer 12 leave from Table 6 to pay the bill.
+Step 73: Customer 18 sit at the Table 6.
+Step 74: Customer 11 paid the bill.
+Step 75: Waiter 1 took Customer 16's order Waiter 2 took Customer 17's order Waiter 3 took Customer 18's order 
+Step 76: Waiter 1 passed the order of customer 16 .
+Step 77: Chef 2 took the order for customer 16 
+Step 78: Waiter 2 and waiter 3 are on standby as there are no chef available at the moment.
+Step 79: Customer 12 paid the bill.
+Step 80: Chef 1 finished Customer 13's order. Customer 13 start to eating.
+Step 81: Chef 1 finished Customer 14's order. Customer 14 start to eating.
+Step 82: Chef 2 finished Customer 15's order. Customer 15 start to eating.
+Step 83: Waiter 2 passed the order of customer 17 to the chef.
+Step 84: Chef 1 took the order for customer 17 and started to prepare them.
+Step 85: Waiter 3 passed the order of customer 18 to the chef.
+Step 86: Chef 1 took the order for customer 18 and started to prepare them.
+Step 87: Chef 2 finished Customer 16's order. Customer 16 start to eating.
+Step 88: Customer 13 leave from Table 1 to pay the bill.
+Step 89: Customer 19 sit at the Table 1.
+Step 90: Customer 14 leave from Table 2 to pay the bill.
+Step 91: Customer 20 sit at the Table 2.
+Step 92: Customer 15 leave from Table 3 to pay the bill.
+Step 93: Customer 21 sit at the Table 3.
+Step 94: Customer 13 paid the bill.
+Step 95: Chef 1 finished Customer 17's order. Customer 17 start to eating.
+Step 96: Chef 1 finished Customer 18's order. Customer 18 start to eating.
+Step 97: Customer 14 paid the bill.
+Step 98: Customer 16 leave from Table 4 to pay the bill.
+Step 99: Customer 22 sit at the Table 4.
+Step 100: Waiter 1 took Customer 19's order Waiter 2 took Customer 20's order Step 101: Customer 15 paid the bill.
+Waiter 3 took Customer 21's order 
+Step 102: Waiter 1 passed the order of customer 19 Waiter 2 passed the order of customer 20 Waiter 3 passed the order of customer 21 .
+Step 103: Customer 16 paid the bill.
+Step 104: Chef 1 took the order for customer 19 Chef 1 took the order for customer 20 Chef 2 took the order for customer 21 
+Step 105: Customer 17 leave from Table 5 to pay the bill.
+Step 106: Customer 23 sit at the Table 5.
+Step 107: Customer 18 leave from Table 6 to pay the bill.
+Step 108: Customer 24 sit at the Table 6.
+Step 109: Customer 17 paid the bill.
+Step 110: Waiter 1 took Customer 22's order Waiter 2 took Customer 23's order Waiter 3 took Customer 24's order 
+Step 111: Waiter 1 passed the order of customer 22 .
+Step 112: Chef 2 took the order for customer 22 
+Step 113: Waiter 2 and waiter 3 are on standby as there are no chef available at the moment.
+Step 114: Customer 18 paid the bill.
+Step 115: Chef 1 finished Customer 19's order. Customer 19 start to eating.
+Step 116: Chef 1 finished Customer 20's order. Customer 20 start to eating.
+Step 117: Chef 2 finished Customer 21's order. Customer 21 start to eating.
+Step 118: Waiter 2 passed the order of customer 23 to the chef.
+Step 119: Chef 1 took the order for customer 23 and started to prepare them.
+Step 120: Waiter 3 passed the order of customer 24 to the chef.
+Step 121: Chef 1 took the order for customer 24 and started to prepare them.
+Step 122: Chef 2 finished Customer 22's order. Customer 22 start to eating.
+Step 123: Customer 19 leave from Table 1 to pay the bill.
+Step 124: Customer 25 sit at the Table 1.
+Step 125: Customer 20 leave from Table 2 to pay the bill.
+Step 126: Customer 26 sit at the Table 2.
+Step 127: Customer 21 leave from Table 3 to pay the bill.
+Step 128: Customer 27 sit at the Table 3.
+Step 129: Chef 1 finished Customer 23's order. Customer 23 start to eating.
+Step 130: Chef 1 finished Customer 24's order. Customer 24 start to eating.
+Step 131: Customer 19 paid the bill.
+Step 132: Customer 20 paid the bill.
+Step 133: Waiter 1 took Customer 25's order Step 134: Customer 21 paid the bill.
+Waiter 2 took Customer 26's order Waiter 3 took Customer 27's order 
+Step 135: Waiter 1 passed the order of customer 25 Waiter 2 passed the order of customer 26 Waiter 3 passed the order of customer 27 .
+Step 136: Customer 22 leave from Table 4 to pay the bill.
+Step 137: Customer 28 sit at the Table 4.
+Step 138: Chef 1 took the order for customer 25 Chef 1 took the order for customer 26 Chef 2 took the order for customer 27 
+Step 139: Customer 22 paid the bill.
+Step 140: Customer 23 leave from Table 5 to pay the bill.
+Step 141: Customer 29 sit at the Table 5.
+Step 142: Customer 24 leave from Table 6 to pay the bill.
+Step 143: Customer 30 sit at the Table 6.
+Step 144: Customer 23 paid the bill.
+Step 145: Customer 24 paid the bill.
+Step 146: Waiter 1 took Customer 28's order Waiter 2 took Customer 29's order Waiter 3 took Customer 30's order 
+Step 147: Waiter 1 passed the order of customer 28 .
+Step 148: Chef 2 took the order for customer 28 
+Step 149: Waiter 2 and waiter 3 are on standby as there are no chef available at the moment.
+Waiter 2 took Customer 29's order Waiter 3 took Customer 30's order Step 150: Chef 1 finished Customer 25's order. Customer 25 start to eating.
+Step 151: Chef 1 finished Customer 26's order. Customer 26 start to eating.
+Step 152: Chef 2 finished Customer 27's order. Customer 27 start to eating.
+Step 153: Waiter 2 passed the order of customer 29 to the chef.
+Step 154: Chef 1 took the order for customer 29 and started to prepare them.
+Step 155: Waiter 3 passed the order of customer 30 to the chef.
+Step 156: Chef 1 took the order for customer 30 and started to prepare them.
+Step 157: Chef 2 finished Customer 28's order. Customer 28 start to eating.
+Step 158: Customer 25 leave from Table 1 to pay the bill.
+Step 159: Customer 31 sit at the Table 1.
+Step 160: Customer 26 leave from Table 2 to pay the bill.
+Step 161: Customer 32 sit at the Table 2.
+Step 162: Customer 27 leave from Table 3 to pay the bill.
+Step 163: Customer 33 sit at the Table 3.
+Step 164: Customer 25 paid the bill.
+Step 165: Chef 1 finished Customer 29's order. Customer 29 start to eating.
+Step 166: Chef 1 finished Customer 30's order. Customer 30 start to eating.
+Step 167: Customer 26 paid the bill.
+Step 168: Waiter 1 took Customer 31's order Waiter 2 took Customer 32's order Step 169: Customer 27 paid the bill.
+Waiter 3 took Customer 33's order 
+Step 170: Waiter 1 passed the order of customer 31 Waiter 2 passed the order of customer 32 Waiter 3 passed the order of customer 33 .
+Step 171: Customer 28 leave from Table 4 to pay the bill.
+Step 172: Customer 34 sit at the Table 4.
+Step 173: Chef 1 took the order for customer 31 Chef 1 took the order for customer 32 Chef 2 took the order for customer 33 
+Step 174: Customer 28 paid the bill.
+Step 175: Customer 29 leave from Table 5 to pay the bill.
+Step 176: Customer 35 sit at the Table 5.
+Step 177: Customer 30 leave from Table 6 to pay the bill.
+Step 178: Customer 36 sit at the Table 6.
+Step 179: Customer 29 paid the bill.
+Step 180: Waiter 1 took Customer 34's order Waiter 2 took Customer 35's order Waiter 3 took Customer 36's order 
+Step 181: Waiter 1 passed the order of customer 34 .
+Step 182: Chef 2 took the order for customer 34 
+Step 183: Waiter 2 and waiter 3 are on standby as there are no chef available at the moment.
+Step 184: Customer 30 paid the bill.
+Step 185: Chef 1 finished Customer 31's order. Customer 31 start to eating.
+Step 186: Chef 1 finished Customer 32's order. Customer 32 start to eating.
+Step 187: Chef 2 finished Customer 33's order. Customer 33 start to eating.
+Step 188: Waiter 2 passed the order of customer 35 to the chef.
+Step 189: Chef 1 took the order for customer 35 and started to prepare them.
+Step 190: Waiter 3 passed the order of customer 36 to the chef.
+Step 191: Chef 1 took the order for customer 36 and started to prepare them.
+Step 192: Chef 2 finished Customer 34's order. Customer 34 start to eating.
+Step 193: Customer 31 leave from Table 1 to pay the bill.
+Step 194: Customer 37 sit at the Table 1.
+Step 195: Customer 32 leave from Table 2 to pay the bill.
+Step 196: Customer 38 sit at the Table 2.
+Step 197: Customer 33 leave from Table 3 to pay the bill.
+Step 198: Customer 39 sit at the Table 3.
+Step 199: Customer 31 paid the bill.
+Step 200: Chef 1 finished Customer 35's order. Customer 35 start to eating.
+Step 201: Chef 1 finished Customer 36's order. Customer 36 start to eating.
+Step 202: Customer 32 paid the bill.
+Step 203: Step 203: Customer 34 leave from Table 4 to pay the bill.
+Waiter 1 took Customer 37's order Step 204: Customer 33 paid the bill.
+Step 205: Customer 40 sit at the Table 4.
+Waiter 2 took Customer 38's order Waiter 3 took Customer 39's order 
+Step 207: Waiter 1 passed the order of customer 37 Waiter 2 passed the order of customer 38 Waiter 3 passed the order of customer 39 .
+Step 208: Customer 34 paid the bill.
+Step 209: Chef 1 took the order for customer 37 Chef 1 took the order for customer 38 Chef 2 took the order for customer 39 
+Step 210: Customer 35 leave from Table 5 to pay the bill.
+Step 211: Customer 41 sit at the Table 5.
+Step 212: Customer 36 leave from Table 6 to pay the bill.
+Step 213: Customer 42 sit at the Table 6.
+Step 214: Customer 35 paid the bill.
+Step 215: Waiter 1 took Customer 40's order Waiter 2 took Customer 41's order Waiter 3 took Customer 42's order 
+Step 216: Waiter 1 passed the order of customer 40 .
+Step 217: Customer 36 paid the bill.
+Step 218: Chef 2 took the order for customer 40 
+Step 219: Waiter 2 and waiter 3 are on standby as there are no chef available at the moment.
+Step 220: Chef 1 finished Customer 37's order. Customer 37 start to eating.
+Step 221: Chef 1 finished Customer 38's order. Customer 38 start to eating.
+Step 222: Chef 2 finished Customer 39's order. Customer 39 start to eating.
+Waiter 2 took Customer 41's order Waiter 3 took Customer 42's order Waiter 2 passed the order of customer 41 Waiter 3 passed the order of customer 42 Step 223: Waiter 2 passed the order of customer 41 to the chef.
+Step 224: Chef 1 took the order for customer 41 and started to prepare them.
+Step 225: Waiter 3 passed the order of customer 42 to the chef.
+Step 226: Chef 1 took the order for customer 42 and started to prepare them.
+Step 227: Chef 2 finished Customer 40's order. Customer 40 start to eating.
+Step 228: Customer 37 leave from Table 1 to pay the bill.
+Step 229: Customer 38 leave from Table 2 to pay the bill.
+Step 230: Customer 39 leave from Table 3 to pay the bill.
+Step 231: Customer 37 paid the bill.
+Step 232: Chef 1 finished Customer 41's order. Customer 41 start to eating.
+Step 233: Chef 1 finished Customer 42's order. Customer 42 start to eating.
+Step 234: Customer 38 paid the bill.
+Step 235: Customer 39 paid the bill.
+Step 236: Customer 40 leave from Table 4 to pay the bill.
+Step 237: Customer 40 paid the bill.
+Step 238: Customer 41 leave from Table 5 to pay the bill.
+Step 239: Customer 42 leave from Table 6 to pay the bill.
+Step 240: Customer 41 paid the bill.
+Step 241: Customer 42 paid the bill.
