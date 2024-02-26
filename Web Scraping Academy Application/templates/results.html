@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results</title>
+</head>
+<body>
+   <table border="1">
+      <tr>
+         <th style="width: 50px;">No</th>
+         <th style="width: 100px;">Title</th>
+         <th style="width: 200px;">Authors</th>
+         <!-- <th style="width: 100px;">Type</th> -->
+         <th style="width: 50px;">Date</th>
+         <th style="width: 200px;">Link</th>
+     </tr>
+      {% for i in range(1, results_length + 1) %}
+        <tr>
+          <td>{{ i }}</td>
+          <td>{{ results[i-1].title }}</td>
+          <td>{{ results[i-1].authors }}</td>
+          <!-- <td>{{ results[i-1].type }}</td> -->
+          <td>{{ results[i-1].date }}</td>
+          <!-- <td>{{ results[i-1].link }}</td> -->
+        </tr>
+      {% endfor %}
+    </table>
+</body>
+</html>

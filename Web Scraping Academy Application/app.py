@@ -1,4 +1,7 @@
 from flask import Flask, redirect, url_for, request, render_template
+import requests
+from bs4 import BeautifulSoup
+
 app = Flask(__name__)
 
 """ @app.route('/hello')
@@ -72,7 +75,7 @@ def result():
       result = request.form
       return render_template("result.html",result = result) """
 
-@app.route('/')
+""" @app.route('/')
 def index():
     return render_template('index.html')
 
@@ -80,7 +83,50 @@ def index():
 def result():
    if request.method == 'POST':
       result = request.form
-      return render_template("result.html",result = result)
+      return render_template("result.html",result = result) """
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/results', methods=['POST'])
+def search():
+    query = request.form['query']
+    results = scrape_google_scholar(query)
+    results_length = len(results)
+    return render_template('results.html', results=results, results_length=results_length)
+
+def scrape_google_scholar(query):
+    url = f"https://scholar.google.com/scholar?q={query}"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+    }
+    response = requests.get(url, headers=headers)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    # Extract relevant information from the soup object
+    # Example: titles, authors, publication dates, etc.
+    results = []
+    for item in soup.find_all('div', class_='gs_ri'):
+        title = item.find('h3', class_='gs_rt').a.text
+        if title is None:
+            title = item.find("h3", class_="gs_rt").find("span").text
+        authors = item.find('div', class_='gs_a').text.split('-')[0].strip()
+        #   authors = item.find('div', class_='gs_a').text
+        #   type = item.find('div', class_='gs_a').text.split(' - ')[0]
+        date_element = item.find('div', class_='gs_a').text
+        date = date_element.split('-')[-2].strip()  # Extract the last part as the date
+        if ',' in date:
+         parts = date.split(',')
+
+         # Get the second part (index 1)
+         date = parts[1].strip()  # Use strip() to remove leading/trailing whitespace
+        
+        link = item.find('h3', class_='gs_rt').a['href']
+        results.append({'title': title, 'authors': authors, 'type': type, 'date': date, 'link': link})
+    return results
+   
+
 
 if __name__ == '__main__':
    app.run(port=5000, debug = True)
