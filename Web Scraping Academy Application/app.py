@@ -1,8 +1,23 @@
 from flask import Flask, render_template, request
 import requests
 from bs4 import BeautifulSoup
+import os
 
 app = Flask(__name__)
+pdf_urls = []
+
+# Function to download PDF files
+def download_pdf(pdf_urls, folder):
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    for i, pdf_url in enumerate(pdf_urls):
+        response = requests.get(pdf_url)
+        if response.status_code == 200:
+            with open(os.path.join(folder, f"article_{i+1}.pdf"), 'wb') as f:
+                f.write(response.content)
+            print(f"Downloaded article_{i+1}.pdf")
+        else:
+            print(f"Failed to download article_{i+1}.pdf")
 
 @app.route('/')
 def index():
@@ -13,7 +28,8 @@ def search():
     query = request.form['query']
     articles = scrape_dergipark(query)
     articles_length = len(articles)
-    print(articles_length)
+    folder = "pdf"  # Specify the folder where you want to save PDFs
+    download_pdf(pdf_urls, folder)  # Call the function to download PDFs
     return render_template('results.html', articles=articles, articles_length=articles_length)
 
 def scrape_dergipark(query):
@@ -60,6 +76,11 @@ def scrape_dergipark(query):
             references = None
 
         try:
+            citation = article_soup.find('div', class_='article-doi').div.text.split(':')[-1].strip()
+        except AttributeError:
+            citation = None
+
+        try:
             # doi = article_soup.find('div', class_='article-doi').a.text.split('/')[-1][-2].strip()
             doi = article_soup.find('div', class_='article-doi').a['href'].split('org/')[-1]
         except AttributeError:
@@ -77,12 +98,18 @@ def scrape_dergipark(query):
             'keywords': keywords,
             'abstract': abstract,
             'references': references,
+            'citation': citation,
             'doi': doi,
             'url': url
         }
         
         articles.append(data)
         counter += 1
+
+        for link in article_soup.find_all('a', title=True):
+            if link['title'] == "Makale PDF linki":
+                pdf_urls.append("https://dergipark.org.tr"+link['href'])
+    
     
     # Render the template with the extracted data
     return articles
