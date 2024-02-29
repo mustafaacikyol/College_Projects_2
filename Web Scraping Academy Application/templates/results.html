@@ -17,6 +17,9 @@
          <th style="width: 50px;">Keywords(Search Engine)</th>
          <th style="width: 50px;">Keywords(Article)</th>
          <th style="width: 200px;">Abstract</th>
+         <th style="width: 200px;">References</th>
+         <th style="width: 200px;">DOI Number</th>
+         <th style="width: 100px;">URL</th>
      </tr>
       {% for i in range(1, articles_length + 1) %}
         <tr>
@@ -29,6 +32,9 @@
           <td>{{ articles[i-1].keywords_se }}</td>
           <td>{{ articles[i-1].keywords }}</td>
           <td>{{ articles[i-1].abstract }}</td>
+          <td>{{ articles[i-1].references }}</td>
+          <td>{{ articles[i-1].doi }}</td>
+          <td>{{ articles[i-1].url }}</td>
         </tr>
       {% endfor %}
     </table>

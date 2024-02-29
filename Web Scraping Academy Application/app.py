@@ -32,7 +32,12 @@ def scrape_dergipark(query):
     for article in soup.find_all('div', class_='article-card'):
         if counter == 10:
             break
+
         name = article.find('h5', class_='card-title').a.text.strip()
+        try:
+            abstract = article.find('div', class_='kt-list kt-list--badge matches').text.strip()
+        except AttributeError:
+            abstract = None
         
         article_url = article.find('h5', class_='card-title').a['href']  # Extract detail page URL
         # Access detail page and perform web scraping
@@ -48,12 +53,19 @@ def scrape_dergipark(query):
         date = article_soup.find('span', class_='article-subtitle').text.split(',')[-1].strip()
         publisher = article_soup.find('div', class_='kt-heading kt-align-center').a.h1.text.strip()
         keywords = article_soup.find('div', class_='article-keywords').p.text.strip()
-        abstract = article_soup.find('div', class_='article-abstract').p.text.strip()
+        # abstract = article_soup.find('div', class_='article-abstract data-section').p.text.strip()
+        try:
+            references = article_soup.find('div', class_='article-citations').div.text.strip()
+        except AttributeError:
+            references = None
 
+        try:
+            # doi = article_soup.find('div', class_='article-doi').a.text.split('/')[-1][-2].strip()
+            doi = article_soup.find('div', class_='article-doi').a['href'].split('org/')[-1]
+        except AttributeError:
+            doi = None
 
-
-        # abstract = article.find('div', class_='abstract').text.strip()
-        # You can extract more information as needed
+        url = article.find('h5', class_='card-title').a['href']
 
         data = {
             'name': name,
@@ -63,7 +75,10 @@ def scrape_dergipark(query):
             'publisher': publisher,
             'keywords_se': query,
             'keywords': keywords,
-            'abstract': abstract
+            'abstract': abstract,
+            'references': references,
+            'doi': doi,
+            'url': url
         }
         
         articles.append(data)
