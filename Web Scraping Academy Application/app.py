@@ -2,9 +2,14 @@ from flask import Flask, render_template, request
 import requests
 from bs4 import BeautifulSoup
 import os
+from pymongo import MongoClient
 
 app = Flask(__name__)
 pdf_urls = []
+
+# Connect to MongoDB
+client = MongoClient('mongodb://localhost:27017/')
+db = client['academy']
 
 # Function to download PDF files
 def download_pdf(pdf_urls, folder):
@@ -21,6 +26,19 @@ def download_pdf(pdf_urls, folder):
 
 @app.route('/')
 def index():
+    # Example: retrieving data from MongoDB
+    collection = db['article']
+    data = collection.find_one()
+    # Convert BSON document to Python dictionary
+    if data:
+        data_dict = {
+            'id': str(data.get('_id')),  # Convert ObjectId to string
+            'title': data.get('title'),
+            # Add more fields as needed
+        }
+        print(data_dict['title'])
+    else:
+        print('no data found')
     return render_template('index.html')
 
 @app.route('/results', methods=['POST'])
