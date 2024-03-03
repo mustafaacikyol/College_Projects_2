@@ -26,19 +26,6 @@ def download_pdf(pdf_urls, folder):
 
 @app.route('/')
 def index():
-    # Example: retrieving data from MongoDB
-    collection = db['article']
-    data = collection.find_one()
-    # Convert BSON document to Python dictionary
-    if data:
-        data_dict = {
-            'id': str(data.get('_id')),  # Convert ObjectId to string
-            'title': data.get('title'),
-            # Add more fields as needed
-        }
-        print(data_dict['title'])
-    else:
-        print('no data found')
     return render_template('index.html')
 
 @app.route('/results', methods=['POST'])
@@ -48,7 +35,19 @@ def search():
     articles_length = len(articles)
     folder = "pdf"  # Specify the folder where you want to save PDFs
     download_pdf(pdf_urls, folder)  # Call the function to download PDFs
+    insert_data(articles)
     return render_template('results.html', articles=articles, articles_length=articles_length)
+
+def insert_data(articles):
+    collection = db['article']  # Replace 'articles' with your actual collection name
+
+    # Insert each article into the collection
+    for article in articles:
+        collection.insert_one(article)
+
+    # Close the MongoDB connection
+    client.close()
+
 
 def scrape_dergipark(query):
     # URL of the page you want to scrape
