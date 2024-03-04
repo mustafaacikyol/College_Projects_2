@@ -10,10 +10,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <!-- <script type = "text/javascript" 
          src = "{{ url_for('static', filename = 'hello.js') }}" ></script> -->
+    
 </head>
 <body>
-    <!-- <input type = "button" onclick = "sayHello()" value = "Say Hello" /> -->
-    <div class="container h-100 d-flex justify-content-center align-items-center">
+    <!-- <div class="container h-100 d-flex justify-content-center align-items-center">
         <div class="card home-div-margin-top">
             <div class="card-body">
                 <h2 class="text-center m-5">Web Scraping Academy App</h2>
@@ -27,7 +27,71 @@
                 </form>
             </div>
         </div>
+    </div> -->
+
+    <div class="container mt-4 text-center">
+        <div class="text-center my-4">
+            <h3>Web Scraping Academy Application</h3>
+        </div>
+        
+        <form action="./results" method="POST">
+            <div class="input-group center">
+                <div class="col-6">
+                    <input type="text" class="form-control" name="query" placeholder="Enter Search Term" aria-label="Search" aria-describedby="search-addon">
+                </div>
+                <div class="input-group-prepend">
+                    <button class="btn btn-primary" type="submit" id="search-addon">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <div class="text-center mt-5 mb-4">
+            <h3>Articles</h3>
+        </div>
     </div>
-    
+
+    <div class="container index-table">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th style="width: 50px;" scope="col">No</th>
+                    <th style="width: 100px;" scope="col">Name</th>
+                    <th style="width: 100px;" scope="col">Authors</th>
+                    <th style="width: 50px;" scope="col">Type</th>
+                    <th style="width: 50px;" scope="col">Date</th>
+                    <th style="width: 50px;" scope="col">Publisher</th>
+                    <th style="width: 50px;" scope="col">Keywords(Search Engine)</th>
+                    <th style="width: 50px;" scope="col">Keywords(Article)</th>
+                    <th style="width: 200px;" scope="col">Abstract</th>
+                    <th style="width: 200px;" scope="col">References</th>
+                    <th style="width: 30px;" scope="col">Citation Number</th>
+                    <th style="width: 200px;" scope="col">DOI Number</th>
+                    <th style="width: 100px;" scope="col">URL</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range(1, articles_data_length + 1) %}
+                    <tr>
+                        <td>{{ i }}</td>
+                        <td>{{ articles_data[i-1].name }}</td>
+                        <td>{{ articles_data[i-1].authors }}</td>
+                        <td>{{ articles_data[i-1].type }}</td>
+                        <td>{{ articles_data[i-1].date }}</td>
+                        <td>{{ articles_data[i-1].publisher }}</td>
+                        <td>{{ articles_data[i-1].keywords_se }}</td>
+                        <td>{{ articles_data[i-1].keywords }}</td>
+                        <td>{{ articles_data[i-1].abstract }}</td>
+                        <td>{{ articles_data[i-1].references }}</td>
+                        <td>{{ articles_data[i-1].citation }}</td>
+                        <td>{{ articles_data[i-1].doi }}</td>
+                        <td>{{ articles_data[i-1].url }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
 </body>
 </html>

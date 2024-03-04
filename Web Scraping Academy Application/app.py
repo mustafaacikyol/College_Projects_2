@@ -26,7 +26,12 @@ def download_pdf(pdf_urls, folder):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    collection = db['article']
+    # Fetch data from MongoDB
+    articles_data_cursor = collection.find()  # This retrieves all documents from the collection
+    articles_data = list(articles_data_cursor)  # Convert cursor to a list
+    articles_data_length = len(articles_data)
+    return render_template('index.html', articles_data=articles_data, articles_data_length = articles_data_length)
 
 @app.route('/results', methods=['POST'])
 def search():
@@ -47,7 +52,6 @@ def insert_data(articles):
 
     # Close the MongoDB connection
     client.close()
-
 
 def scrape_dergipark(query):
     # URL of the page you want to scrape

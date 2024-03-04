@@ -1,7 +1,18 @@
 .home-div-margin-top {
-    margin-top: 100px;
+    margin-top: 10px;
 }
 
 .card-body {
     padding: 40px !important;
 }
+
+.index-table {
+    margin:0 !important;
+    padding: 0 !important;
+}
+
+.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
