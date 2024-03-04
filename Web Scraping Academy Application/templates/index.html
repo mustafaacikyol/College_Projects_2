@@ -48,7 +48,7 @@
         </form>
 
         <div class="text-center mt-5 mb-4">
-            <h3>Articles</h3>
+            <h4>Articles</h4>
         </div>
     </div>
 
@@ -75,7 +75,9 @@
                 {% for i in range(1, articles_data_length + 1) %}
                     <tr>
                         <td>{{ i }}</td>
-                        <td>{{ articles_data[i-1].name }}</td>
+                        <td>
+                            <a href="article-detail?id={{ articles_data[i-1]._id }}">{{ articles_data[i-1].name }}</a>
+                        </td>
                         <td>{{ articles_data[i-1].authors }}</td>
                         <td>{{ articles_data[i-1].type }}</td>
                         <td>{{ articles_data[i-1].date }}</td>

@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import os
 from pymongo import MongoClient
+from bson import ObjectId
 
 app = Flask(__name__)
 pdf_urls = []
@@ -42,6 +43,14 @@ def search():
     download_pdf(pdf_urls, folder)  # Call the function to download PDFs
     insert_data(articles)
     return render_template('results.html', articles=articles, articles_length=articles_length)
+
+@app.route('/article-detail', methods=['GET'])
+def detail():
+    collection = db['article']
+    article_id = request.args.get('id')  # Get the article ID from the URL parameter
+    # Fetch article details based on the article_id from your data source
+    article = fetch_article_details(article_id)  # You need to implement this function
+    return render_template('article-detail.html', article=article)
 
 def insert_data(articles):
     collection = db['article']  # Replace 'articles' with your actual collection name
@@ -134,6 +143,12 @@ def scrape_dergipark(query):
     
     # Render the template with the extracted data
     return articles
+
+def fetch_article_details(article_id):
+    collection = db['article']
+    # Fetch the article details from MongoDB based on the provided article ID
+    article = collection.find_one({'_id': ObjectId(article_id)})
+    return article
 
 if __name__ == '__main__':
     app.run(debug=True)

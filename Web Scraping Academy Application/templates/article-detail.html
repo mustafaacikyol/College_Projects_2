@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article Detail</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" integrity="sha512-b2QcS5SsA8tZodcDtGRELiGv5SaKSk1vDHDaQRda0htPYWZ6046lr3kJ5bAAQdpV2mmA/4v0wQF9MyU6/pDIAg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+          <div>
+            <div class="card">
+              <div class="card-header text-center">
+                <h5>Article Details</h5>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <h6>Name:</h6>
+                    <p>{{ article.name }}</p>
+                  </div>
+                  <div class="col-md-6">
+                    <h6>Authors:</h6>
+                    <p>{{ article.authors }}</p>
+                  </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                      <h6>Type:</h6>
+                      <p>{{ article.type }}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <h6>Publication Date:</h6>
+                      <p>{{ article.date }}</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Publisher:</h6>
+                        <p>{{ article.publisher }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Search Engine Keywords:</h6>
+                        <p>{{ article.keywords_se }}</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <h6>Article Keywords:</h6>
+                        <p>{{ article.keywords }}</p>
+                    </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">
+                    <h6>Abstract:</h6>
+                    <p>{{ article.abstract }}</p>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">
+                    <h6>References:</h6>
+                    <p>{{ article.references }}</p>
+                  </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                      <h6>Citation:</h6>
+                      <p>{{ article.citation }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>DOI Number:</h6>
+                        <p>{{ article.doi }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>URL:</h6>
+                        <p>
+                            <a href="{{ article.url }}">{{ article.url }}</a>
+                        </p>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+</body>
+</html>
