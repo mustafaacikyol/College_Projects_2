@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" integrity="sha512-b2QcS5SsA8tZodcDtGRELiGv5SaKSk1vDHDaQRda0htPYWZ6046lr3kJ5bAAQdpV2mmA/4v0wQF9MyU6/pDIAg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <div class="container my-4 text-center">
+        <p>
+            Search Results for : <b>{{ search_query }}</b> 
+        </p>
+    </div>
+    <div class="container index-table">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th style="width: 50px;" scope="col">No</th>
+                    <th style="width: 100px;" scope="col">Name</th>
+                    <th style="width: 100px;" scope="col">Authors</th>
+                    <th style="width: 50px;" scope="col">Type</th>
+                    <th style="width: 50px;" scope="col">Date</th>
+                    <th style="width: 50px;" scope="col">Publisher</th>
+                    <th style="width: 50px;" scope="col">Keywords(Search Engine)</th>
+                    <th style="width: 50px;" scope="col">Keywords(Article)</th>
+                    <th style="width: 200px;" scope="col">Abstract</th>
+                    <th style="width: 200px;" scope="col">References</th>
+                    <th style="width: 30px;" scope="col">Citation Number</th>
+                    <th style="width: 200px;" scope="col">DOI Number</th>
+                    <th style="width: 100px;" scope="col">URL</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if articles %}
+                    {% for article in articles %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ article.name | highlight_search_term(search_query) | safe }}</td>
+                        <td>{{ article.authors | highlight_search_term(search_query) | safe }}</td>
+                        <td>{{ article.type | highlight_search_term(search_query) | safe }}</td>
+                        <td>{{ article.date | highlight_search_term(search_query) | safe }}</td>
+                        <td>{{ article.publisher | highlight_search_term(search_query) | safe }}</td>
+                        <td>{{ article.keywords_se | highlight_search_term(search_query) | safe }}</td>
+                        <td>{{ article.keywords | highlight_search_term(search_query) | safe }}</td>
+                        <td>{{ article.abstract | highlight_search_term(search_query) | safe }}</td>
+                        <td>{{ article.references | highlight_search_term(search_query) | safe }}</td>
+                        <td>{{ article.citation | highlight_search_term(search_query) | safe }}</td>
+                        <td>{{ article.doi | highlight_search_term(search_query) | safe }}</td>
+                        <td>{{ article.url | highlight_search_term(search_query) | safe }}</td>
+
+                    </tr>
+                    
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="13">No articles found</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+            
+        </table>
+    </div>
+    
+</body>
+</html>

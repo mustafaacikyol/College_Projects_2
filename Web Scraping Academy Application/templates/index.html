@@ -31,13 +31,30 @@
 
     <div class="container mt-4 text-center">
         <div class="text-center my-4">
-            <h3>Web Scraping Academy Application</h3>
+            <h3>Web Scraping</h3>
         </div>
         
         <form action="./results" method="POST">
             <div class="input-group center">
                 <div class="col-6">
                     <input type="text" class="form-control" name="query" placeholder="Enter Search Term" aria-label="Search" aria-describedby="search-addon">
+                </div>
+                <div class="input-group-prepend">
+                    <button class="btn btn-primary" type="submit" id="search-addon">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <div class="text-center my-4">
+            <h3>Search</h3>
+        </div>
+        
+        <form action="./search" method="POST">
+            <div class="input-group center">
+                <div class="col-6">
+                    <input type="text" class="form-control" name="search-query" placeholder="Enter Search Term" aria-label="Search" aria-describedby="search-addon">
                 </div>
                 <div class="input-group-prepend">
                     <button class="btn btn-primary" type="submit" id="search-addon">

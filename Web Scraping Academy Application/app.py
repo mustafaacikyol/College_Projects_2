@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import requests
 from bs4 import BeautifulSoup
 import os
 from pymongo import MongoClient
 from bson import ObjectId
+from elasticsearch import Elasticsearch
 
 app = Flask(__name__)
 pdf_urls = []
@@ -11,6 +12,48 @@ pdf_urls = []
 # Connect to MongoDB
 client = MongoClient('mongodb://localhost:27017/')
 db = client['academy']
+
+# Connect to Elasticsearch
+es = Elasticsearch(hosts=["http://localhost:9200"]) 
+INDEX_NAME = 'articles_index'
+DOC_TYPE = 'article'
+
+def create_index():
+    if not es.indices.exists(index=INDEX_NAME):
+        es.indices.create(index=INDEX_NAME, body={
+            'mappings': {
+                'properties': {
+                    'name': {'type': 'text'},
+                    'authors': {'type': 'text'},
+                    'type': {'type': 'text'},
+                    'date': {'type': 'text'},
+                    'publisher': {'type': 'text'},
+                    'keywords_se': {'type': 'text'},
+                    'keywords': {'type': 'text'},
+                    'abstract': {'type': 'text'},
+                    'references': {'type': 'text'},
+                    'citation': {'type': 'text'},
+                    'doi': {'type': 'text'},
+                    'url': {'type': 'text'},
+                }
+            }
+        })
+
+""" def serialize_article(article):
+    # Convert ObjectId to string
+    if '_id' in article and isinstance(article['_id'], ObjectId):
+        article['_id'] = str(article['_id'])
+
+    return article
+
+def index_article(article):
+    article = serialize_article(article)
+    es.index(index=INDEX_NAME, body=article) """
+
+def index_article(article):
+    article_id = article.pop('_id', None)  # Remove _id field from the body
+    es.index(index=INDEX_NAME, body=article, id=article_id)  # Pass _id as a separate parameter
+
 
 # Function to download PDF files
 def download_pdf(pdf_urls, folder):
@@ -32,10 +75,17 @@ def index():
     articles_data_cursor = collection.find()  # This retrieves all documents from the collection
     articles_data = list(articles_data_cursor)  # Convert cursor to a list
     articles_data_length = len(articles_data)
+    """ # List all indices
+    indices = es.indices.get_alias(index="*")
+    print("Indices:", indices)
+
+    # Get information about a specific index
+    index_info = es.indices.get(index=INDEX_NAME)
+    print("Index Info:", index_info) """
     return render_template('index.html', articles_data=articles_data, articles_data_length = articles_data_length)
 
 @app.route('/results', methods=['POST'])
-def search():
+def result():
     query = request.form['query']
     articles = scrape_dergipark(query)
     articles_length = len(articles)
@@ -52,12 +102,49 @@ def detail():
     article = fetch_article_details(article_id)  # You need to implement this function
     return render_template('article-detail.html', article=article)
 
+@app.route('/search', methods=['POST'])
+def search():
+    search_query = request.form['search-query']
+    if search_query:
+        # Use Elasticsearch's search API to search for articles
+        search_results = es.search(index=INDEX_NAME, body={'query': {'multi_match': {'query': search_query, 'fields': ['name', 'authors', 'type', 'date', 'publisher', 'keywords_se', 'keywords', 'abstract', 'references', 'citation', 'doi', 'url']}}})
+        # Extract relevant information from search results
+        # articles = [{'name': hit['_source']['name'], 'authors': hit['_source']['authors']} for hit in search_results['hits']['hits']]
+        articles = [hit['_source'] for hit in search_results['hits']['hits']]
+        return render_template('search.html', articles=articles, search_query=search_query)
+    else:
+        return render_template('search.html', articles=None, search_query=search_query)
+
+@app.template_filter('highlight_search_term')
+def highlight_search_term(text, search_query):
+    if text is not None and search_query is not None:
+        # Convert both text and search_query to lowercase for case-insensitive search
+        text_lower = text.lower()
+        search_query_lower = search_query.lower()
+
+        # Split the search query into words
+        search_words = search_query_lower.split()
+
+        # Iterate over each word in the search query
+        for word in search_words:
+            # Replace word occurrences with bold formatting
+            highlighted_text = text_lower.replace(word, f"<b>{word}</b>")
+            text_lower = highlighted_text  # Update text_lower for the next word
+
+        return highlighted_text
+    else:
+        return text
+
+
+
+
 def insert_data(articles):
     collection = db['article']  # Replace 'articles' with your actual collection name
 
     # Insert each article into the collection
     for article in articles:
         collection.insert_one(article)
+        index_article(article)
 
     # Close the MongoDB connection
     client.close()
@@ -151,4 +238,5 @@ def fetch_article_details(article_id):
     return article
 
 if __name__ == '__main__':
+    create_index()
     app.run(debug=True)

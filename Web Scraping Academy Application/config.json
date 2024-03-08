@@ -1,0 +1,12 @@
+{
+    "es": {
+      "url": "http://localhost:9200",
+      "index": "my_index_name"  
+    },
+    "doc_manager": "elastic2_doc_manager",
+    "mongo_uri": "mongodb://localhost:27017",
+    "namespaces": {
+      "academy.article": {}  
+    }
+}
+  
