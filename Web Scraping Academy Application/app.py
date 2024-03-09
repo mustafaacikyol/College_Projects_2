@@ -104,16 +104,68 @@ def detail():
 
 @app.route('/search', methods=['POST'])
 def search():
-    search_query = request.form['search-query']
-    if search_query:
+    correction = False
+    query = request.form['search-query']
+    if query:
+        search_query = get_corrected_query(query)
+        if search_query != query:
+            correction = True
         # Use Elasticsearch's search API to search for articles
         search_results = es.search(index=INDEX_NAME, body={'query': {'multi_match': {'query': search_query, 'fields': ['name', 'authors', 'type', 'date', 'publisher', 'keywords_se', 'keywords', 'abstract', 'references', 'citation', 'doi', 'url']}}})
         # Extract relevant information from search results
         # articles = [{'name': hit['_source']['name'], 'authors': hit['_source']['authors']} for hit in search_results['hits']['hits']]
         articles = [hit['_source'] for hit in search_results['hits']['hits']]
-        return render_template('search.html', articles=articles, search_query=search_query)
+        return render_template('search.html', articles=articles, search_query=search_query, correction=correction, query=query)
     else:
-        return render_template('search.html', articles=None, search_query=search_query)
+        return render_template('search.html', articles=None, search_query=search_query, correction=correction, query=query)
+
+""" def get_corrected_query(query):
+    # Use Elasticsearch's suggest feature or fuzzy query to get suggestions
+    suggestion = es.search(index=INDEX_NAME, body={"suggest": {"text": query, "simple_phrase": {"phrase": {"field": "name"}}}})
+    corrected_query = suggestion['suggest']['simple_phrase'][0]['options'][0]['text']
+    return corrected_query """
+
+""" def get_corrected_query(query):
+    # Use Elasticsearch's suggest feature or fuzzy query to get suggestions
+    suggestion = es.search(index=INDEX_NAME, body={"suggest": {"text": query, "simple_phrase": {"phrase": {"field": "keywords"}}}})
+    
+    # Check if suggestions are available
+    if 'simple_phrase' in suggestion['suggest'] and suggestion['suggest']['simple_phrase'][0]['options']:
+        # Get the corrected query from the suggestions
+        corrected_query = suggestion['suggest']['simple_phrase'][0]['options'][0]['text']
+        return corrected_query
+    else:
+        # If no suggestions are available, return the original query
+        return query """
+
+
+def get_corrected_query(user_query):
+    # Use Elasticsearch's "did you mean" feature to get suggestions for corrected query
+    # Here's a simplified example, you may need to adjust based on your Elasticsearch setup
+    suggestion = es.search(index=INDEX_NAME, body={
+        "suggest": {
+            "text": user_query,
+            "simple_phrase": {
+                "phrase": {
+                    "field": "keywords",
+                    "size": 1,
+                    "gram_size": 3,
+                    "direct_generator": [{
+                        "field": "keywords",
+                        "suggest_mode": "always"
+                    }]
+                }
+            }
+        }
+    })
+
+    # Extract corrected query from Elasticsearch response
+    if suggestion['suggest']['simple_phrase'][0]['options']:
+        corrected_query = suggestion['suggest']['simple_phrase'][0]['options'][0]['text']
+    else:
+        corrected_query = user_query  # Use original query if no suggestion found
+
+    return corrected_query
 
 @app.template_filter('highlight_search_term')
 def highlight_search_term(text, search_query):

@@ -10,7 +10,11 @@
 <body>
     <div class="container my-4 text-center">
         <p>
-            Search Results for : <b>{{ search_query }}</b> 
+            {% if correction %}
+                {{ query }}-- you see the results with corrected spelling: <b>{{ search_query }}</b> 
+            {% else %}
+                Search Results for : <b>{{ search_query }}</b> 
+            {% endif %}
         </p>
     </div>
     <div class="container index-table">
