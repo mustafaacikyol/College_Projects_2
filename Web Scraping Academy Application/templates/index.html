@@ -64,6 +64,151 @@
             </div>
         </form>
 
+        <div class="text-center my-4">
+            <h3>Filters</h3>
+        </div>
+
+        <form action="./filter" method="POST">
+            <div class="mb-4">
+                <div class="row">
+                    <div class="col-2">
+                        <!-- Filter for Type -->
+                        <div class="form-group">
+                            <label for="name">Name:</label>
+                            <input type="text" class="form-control" name="name">
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <!-- Filter for Type -->
+                        <div class="form-group">
+                            <label for="authors">Authors:</label>
+                            <input type="text" class="form-control" name="authors">
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <!-- Filter for Type -->
+                        <div class="form-group">
+                            <label for="Type">Type:</label>
+                            <select class="form-control" id="Type">
+                                <option value="all">All</option>
+                                <option value="Editoryal">Editoryal</option>
+                                <option value="Araştırma Makalesi">Araştırma Makalesi</option>
+                                <option value="Derleme">Derleme</option>
+                                <option value="Konferans Bildirisi">Konferans Bildirisi</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-1">
+                        <!-- Filter for Year -->
+                        <div class="form-group">
+                            <label for="Year">Year:</label>
+                            <select class="form-control" id="Year">
+                                <option value="all">All</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                                <option value="2022">2022</option>
+                                <option value="2021">2021</option>
+                                <option value="2020">2020</option>
+                                <option value="2019">2019</option>
+                                <option value="2018">2018</option>
+                                <option value="2017">2017</option>
+                                <option value="2016">2016</option>
+                                <option value="2015">2015</option>
+                                <option value="2014">2014</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <!-- Filter for Year -->
+                        <div class="form-group">
+                            <label for="Publisher">Publisher:</label>
+                            <select class="form-control" id="Publisher">
+                                <option value="all">All</option>
+                                <option value="Journal of Artificial Intelligence and Data Science">Journal of Artificial Intelligence and Data Science</option>
+                                <option value="The Journal of Cognitive Systems">The Journal of Cognitive Systems</option>
+                                <option value="Computers and Informatics">Computers and Informatics</option>
+                                <option value="European Journal of Technique (EJT)">European Journal of Technique (EJT)</option>
+                                <option value="Advances in Artificial Intelligence Research">Advances in Artificial Intelligence Research</option>
+                                <option value="Journal of Metaverse">Journal of Metaverse</option>
+                                <option value="International Journal of Engineering and Innovative Research">International Journal of Engineering and Innovative Research</option>
+                                <option value="Turkish Journal of Science and Technology">Turkish Journal of Science and Technology</option>
+                                <option value="International Journal of Applied Mathematics Electronics and Computers">International Journal of Applied Mathematics Electronics and Computers</option>
+                                <option value="TOJSAT">TOJSAT</option>
+                                <option value="International Journal of Information Security Science">International Journal of Information Security Science</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <!-- Filter for Type -->
+                        <div class="form-group">
+                            <label for="keywords_se">Keywords (SE):</label>
+                            <input type="text" class="form-control" name="keywords_se">
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <!-- Filter for Year -->
+                        <div class="form-group">
+                            <label for="Keywords">Keywords:</label>
+                            <select class="form-control" id="Keywords">
+                                <option value="all">All</option>
+                                <option value="Artificial Intelligence">Artificial Intelligence</option>
+                                <option value="Machine Learning">Machine Learning</option>
+                                <option value="Deep Learning">Deep Learning</option>
+                                <option value="Computer Vision">Computer Vision</option>
+                                <option value="Natural Language Processing">Natural Language Processing</option>
+                                <option value="Large Language Models">Large Language Models</option>
+                                <option value="Cloud Computing">Cloud Computing</option>
+                                <option value="Neural Network">Neural Network</option>
+                                <option value="Image Processing">Image Processing</option>
+                                <option value="Transfer Learning">Transfer Learning</option>
+                                <option value="Object Detection">Object Detection</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <!-- Filter for Type -->
+                        <div class="form-group">
+                            <label for="abstract">Abstract:</label>
+                            <input type="text" class="form-control" name="abstract">
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <!-- Filter for Type -->
+                        <div class="form-group">
+                            <label for="references">References:</label>
+                            <input type="text" class="form-control" name="references">
+                        </div>
+                    </div>
+                    <div class="col-1">
+                        <!-- Filter for Type -->
+                        <div class="form-group">
+                            <label for="citation">Citation:</label>
+                            <input type="text" class="form-control" name="citation">
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <!-- Filter for Type -->
+                        <div class="form-group">
+                            <label for="doi">DOI:</label>
+                            <input type="text" class="form-control" name="doi">
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <!-- Filter for Type -->
+                        <div class="form-group">
+                            <label for="url">URL:</label>
+                            <input type="text" class="form-control" name="url">
+                        </div>
+                    </div>
+                </div>
+                <div class="input-group-prepend mt-4">
+                    <button class="btn btn-primary" type="submit">
+                        Apply
+                    </button>
+                </div>
+            </div>
+        </form>
+
         <div class="text-center mt-5 mb-4">
             <h4>Articles</h4>
         </div>

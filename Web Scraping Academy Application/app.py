@@ -10,7 +10,7 @@ app = Flask(__name__)
 pdf_urls = []
 
 # Connect to MongoDB
-client = MongoClient('mongodb://localhost:27017/')
+client = MongoClient()
 db = client['academy']
 
 # Connect to Elasticsearch
@@ -53,7 +53,6 @@ def index_article(article):
 def index_article(article):
     article_id = article.pop('_id', None)  # Remove _id field from the body
     es.index(index=INDEX_NAME, body=article, id=article_id)  # Pass _id as a separate parameter
-
 
 # Function to download PDF files
 def download_pdf(pdf_urls, folder):
@@ -114,10 +113,90 @@ def search():
         search_results = es.search(index=INDEX_NAME, body={'query': {'multi_match': {'query': search_query, 'fields': ['name', 'authors', 'type', 'date', 'publisher', 'keywords_se', 'keywords', 'abstract', 'references', 'citation', 'doi', 'url']}}})
         # Extract relevant information from search results
         # articles = [{'name': hit['_source']['name'], 'authors': hit['_source']['authors']} for hit in search_results['hits']['hits']]
-        articles = [hit['_source'] for hit in search_results['hits']['hits']]
+        articles = []
+        for hit in search_results['hits']['hits']:
+            article = {'_source': hit['_source'], '_id': hit['_id']}
+            articles.append(article)
         return render_template('search.html', articles=articles, search_query=search_query, correction=correction, query=query)
     else:
         return render_template('search.html', articles=None, search_query=search_query, correction=correction, query=query)
+
+@app.route('/filter', methods=['POST'])
+def filter():
+    name = request.form['name']
+    authors = request.form['authors']
+    # type = request.form['type']
+    # date = request.form['date']
+    # publisher = request.form['publisher']
+    keywords_se = request.form['keywords_se']
+    # keywords = request.form['keywords']
+    abstract = request.form['abstract']
+    references = request.form['references']
+    citation = request.form['citation']
+    doi = request.form['doi']
+    url = request.form['url']
+
+    if name:
+        # Use Elasticsearch's search API to search for articles
+        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'name': name}}})
+        # Extract relevant information from search results
+        # articles = [{'name': hit['_source']['name'], 'authors': hit['_source']['authors']} for hit in search_results['hits']['hits']]
+        articles = []
+        for hit in search_results['hits']['hits']:
+            article = {'_source': hit['_source'], '_id': hit['_id']}
+            articles.append(article)
+        return render_template('filter.html', articles=articles)
+    elif authors:
+        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'authors': authors}}})
+        articles = []
+        for hit in search_results['hits']['hits']:
+            article = {'_source': hit['_source'], '_id': hit['_id']}
+            articles.append(article)
+        return render_template('filter.html', articles=articles)
+    elif keywords_se:
+        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'keywords_se': keywords_se}}})
+        articles = []
+        for hit in search_results['hits']['hits']:
+            article = {'_source': hit['_source'], '_id': hit['_id']}
+            articles.append(article)
+        return render_template('filter.html', articles=articles)
+    elif abstract:
+        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'abstract': abstract}}})
+        articles = []
+        for hit in search_results['hits']['hits']:
+            article = {'_source': hit['_source'], '_id': hit['_id']}
+            articles.append(article)
+        return render_template('filter.html', articles=articles)
+    elif references:
+        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'references': references}}})
+        articles = []
+        for hit in search_results['hits']['hits']:
+            article = {'_source': hit['_source'], '_id': hit['_id']}
+            articles.append(article)
+        return render_template('filter.html', articles=articles)
+    elif citation:
+        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'citation': citation}}})
+        articles = []
+        for hit in search_results['hits']['hits']:
+            article = {'_source': hit['_source'], '_id': hit['_id']}
+            articles.append(article)
+        return render_template('filter.html', articles=articles)
+    elif doi:
+        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'doi': doi}}})
+        articles = []
+        for hit in search_results['hits']['hits']:
+            article = {'_source': hit['_source'], '_id': hit['_id']}
+            articles.append(article)
+        return render_template('filter.html', articles=articles)
+    elif url:
+        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'url': url}}})
+        articles = []
+        for hit in search_results['hits']['hits']:
+            article = {'_source': hit['_source'], '_id': hit['_id']}
+            articles.append(article)
+        return render_template('filter.html', articles=articles)
+    else:
+        return render_template('filter.html', articles=None)
 
 """ def get_corrected_query(query):
     # Use Elasticsearch's suggest feature or fuzzy query to get suggestions
@@ -137,7 +216,6 @@ def search():
     else:
         # If no suggestions are available, return the original query
         return query """
-
 
 def get_corrected_query(user_query):
     # Use Elasticsearch's "did you mean" feature to get suggestions for corrected query
@@ -187,9 +265,6 @@ def highlight_search_term(text, search_query):
     else:
         return text
 
-
-
-
 def insert_data(articles):
     collection = db['article']  # Replace 'articles' with your actual collection name
 
@@ -199,7 +274,7 @@ def insert_data(articles):
         index_article(article)
 
     # Close the MongoDB connection
-    client.close()
+    # client.close()
 
 def scrape_dergipark(query):
     # URL of the page you want to scrape

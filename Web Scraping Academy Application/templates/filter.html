@@ -3,20 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search</title>
+    <title>Filter</title>
     <link rel="stylesheet" href="../static/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" integrity="sha512-b2QcS5SsA8tZodcDtGRELiGv5SaKSk1vDHDaQRda0htPYWZ6046lr3kJ5bAAQdpV2mmA/4v0wQF9MyU6/pDIAg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
-    <div class="container my-4 text-center">
-        <p>
-            {% if correction %}
-                {{ query }}-- you see the results with corrected spelling: <b>{{ search_query }}</b> 
-            {% else %}
-                Search Results for : <b>{{ search_query }}</b> 
-            {% endif %}
-        </p>
-    </div>
     <div class="container index-table">
         <table class="table table-bordered">
             <thead>
@@ -42,26 +33,26 @@
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td>
-                            <a href="article-detail?id={{ article._id }}">{{ article._source.name | highlight_search_term(search_query) | safe }}</a>
+                            <a href="article-detail?id={{ article._id }}">{{ article._source.name }}</a>
                         </td>
-                        <td>{{ article._source.authors | highlight_search_term(search_query) | safe }}</td>
-                        <td>{{ article._source.type | highlight_search_term(search_query) | safe }}</td>
-                        <td>{{ article._source.date | highlight_search_term(search_query) | safe }}</td>
-                        <td>{{ article._source.publisher | highlight_search_term(search_query) | safe }}</td>
-                        <td>{{ article._source.keywords_se | highlight_search_term(search_query) | safe }}</td>
-                        <td>{{ article._source.keywords | highlight_search_term(search_query) | safe }}</td>
-                        <td>{{ article._source.abstract | highlight_search_term(search_query) | safe }}</td>
-                        <td>{{ article._source.references | highlight_search_term(search_query) | safe }}</td>
-                        <td>{{ article._source.citation | highlight_search_term(search_query) | safe }}</td>
-                        <td>{{ article._source.doi | highlight_search_term(search_query) | safe }}</td>
-                        <td>{{ article._source.url | highlight_search_term(search_query) | safe }}</td>
+                        <td>{{ article._source.authors }}</td>
+                        <td>{{ article._source.type }}</td>
+                        <td>{{ article._source.date }}</td>
+                        <td>{{ article._source.publisher }}</td>
+                        <td>{{ article._source.keywords_se }}</td>
+                        <td>{{ article._source.keywords }}</td>
+                        <td>{{ article._source.abstract }}</td>
+                        <td>{{ article._source.references }}</td>
+                        <td>{{ article._source.citation }}</td>
+                        <td>{{ article._source.doi }}</td>
+                        <td>{{ article._source.url }}</td>
 
                     </tr>
                     
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="13">No articles found</td>
+                        <td colspan="13">No articles</td>
                     </tr>
                 {% endif %}
             </tbody>
