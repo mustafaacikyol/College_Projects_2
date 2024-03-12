@@ -115,13 +115,16 @@ def search():
         if search_query != query:
             correction = True
         # Use Elasticsearch's search API to search for articles
-        search_results = es.search(index=INDEX_NAME, body={'query': {'multi_match': {'query': search_query, 'fields': ['name', 'authors', 'type', 'date', 'publisher', 'keywords_se', 'keywords', 'abstract', 'references', 'citation', 'doi', 'url']}}})
+        search_results = es.search(index=INDEX_NAME, body={'query': {'multi_match': {'query': search_query, 'fields': ['name', 'authors', 'type',  'publisher', 'keywords_se', 'keywords', 'abstract', 'references', 'citation', 'doi', 'url']}}})
         # Extract relevant information from search results
         # articles = [{'name': hit['_source']['name'], 'authors': hit['_source']['authors']} for hit in search_results['hits']['hits']]
         articles = []
         for hit in search_results['hits']['hits']:
             article = {'_source': hit['_source'], '_id': hit['_id']}
             articles.append(article)
+        for article in articles:
+            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
+            article['_source']['date']=date_from_db
         return render_template('search.html', articles=articles, search_query=search_query, correction=correction, query=query)
     else:
         return render_template('search.html', articles=None, search_query=search_query, correction=correction, query=query)
@@ -245,8 +248,6 @@ def filter():
         for hit in search_results['hits']['hits']:
             article = {'_source': hit['_source'], '_id': hit['_id']}
             articles.append(article)
-        print(len(articles))
-        date_list = []
         for article in articles:
             date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
             article['_source']['date']=date_from_db

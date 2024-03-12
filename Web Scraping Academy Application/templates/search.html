@@ -46,7 +46,7 @@
                         </td>
                         <td>{{ article._source.authors | highlight_search_term(search_query) | safe }}</td>
                         <td>{{ article._source.type | highlight_search_term(search_query) | safe }}</td>
-                        <td>{{ article._source.date | highlight_search_term(search_query) | safe }}</td>
+                        <td>{{ article._source.date.strftime("%d-%m-%Y") | highlight_search_term(search_query) | safe }}</td>
                         <td>{{ article._source.publisher | highlight_search_term(search_query) | safe }}</td>
                         <td>{{ article._source.keywords_se | highlight_search_term(search_query) | safe }}</td>
                         <td>{{ article._source.keywords | highlight_search_term(search_query) | safe }}</td>
