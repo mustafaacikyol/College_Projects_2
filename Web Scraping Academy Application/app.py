@@ -5,6 +5,7 @@ import os
 from pymongo import MongoClient
 from bson import ObjectId
 from elasticsearch import Elasticsearch
+from datetime import datetime
 
 app = Flask(__name__)
 pdf_urls = []
@@ -26,7 +27,7 @@ def create_index():
                     'name': {'type': 'text'},
                     'authors': {'type': 'text'},
                     'type': {'type': 'text'},
-                    'date': {'type': 'text'},
+                    'date': {'type': 'date'},
                     'publisher': {'type': 'text'},
                     'keywords_se': {'type': 'text'},
                     'keywords': {'type': 'text'},
@@ -74,6 +75,10 @@ def index():
     articles_data_cursor = collection.find()  # This retrieves all documents from the collection
     articles_data = list(articles_data_cursor)  # Convert cursor to a list
     articles_data_length = len(articles_data)
+    date_list = []
+    for article in articles_data:
+        date_from_db = datetime.strptime(str(article['date']), "%Y-%m-%d %H:%M:%S")
+        date_list.append(date_from_db)
     """ # List all indices
     indices = es.indices.get_alias(index="*")
     print("Indices:", indices)
@@ -81,7 +86,7 @@ def index():
     # Get information about a specific index
     index_info = es.indices.get(index=INDEX_NAME)
     print("Index Info:", index_info) """
-    return render_template('index.html', articles_data=articles_data, articles_data_length = articles_data_length)
+    return render_template('index.html', articles_data=articles_data, articles_data_length = articles_data_length, date_list=date_list)
 
 @app.route('/results', methods=['POST'])
 def result():
@@ -125,11 +130,11 @@ def search():
 def filter():
     name = request.form['name']
     authors = request.form['authors']
-    # type = request.form['type']
-    # date = request.form['date']
-    # publisher = request.form['publisher']
+    type = request.form['type']
+    date = request.form['date']
+    publisher = request.form['publisher']
     keywords_se = request.form['keywords_se']
-    # keywords = request.form['keywords']
+    keywords = request.form['keywords']
     abstract = request.form['abstract']
     references = request.form['references']
     citation = request.form['citation']
@@ -153,8 +158,124 @@ def filter():
             article = {'_source': hit['_source'], '_id': hit['_id']}
             articles.append(article)
         return render_template('filter.html', articles=articles)
+    elif type:
+        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'type': type}}})
+        articles = []
+        for hit in search_results['hits']['hits']:
+            article = {'_source': hit['_source'], '_id': hit['_id']}
+            articles.append(article)
+        return render_template('filter.html', articles=articles)
+    elif date:
+        """ # Parse the selected year to create a date range
+        start_date = datetime.strptime(f'01.01.{date}', '%d.%m.%Y')
+        end_date = datetime.strptime(f'31.12.{date}', '%d.%m.%Y')
+
+        # Use a range query to filter documents within the selected year
+        search_results = es.search(index=INDEX_NAME, body={
+            "query": {
+                "range": {
+                    "date": {
+                        "gte": start_date.strftime('%d.%m.%Y'),
+                        "lte": end_date.strftime('%d.%m.%Y')
+                    }
+                }
+            }
+        }) """
+
+        """ # Parse the selected year to create a date range
+        selected_year = int(date)
+        start_date = datetime(selected_year, 1, 1)
+        end_date = datetime(selected_year, 12, 31)
+
+        # Use a range query to filter documents within the selected year
+        search_results = es.search(index=INDEX_NAME, body={
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "range": {
+                                "date": {
+                                    "gte": f"01.01.{selected_year}||.y",
+                                    "lte": f"31.12.{selected_year}||.y"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        }) """
+
+        selected_year = int(date)
+        # Create a range query to match documents within the year
+        start_date = datetime(selected_year, 1, 1).strftime('%Y-%m-%d')
+        end_date = datetime(selected_year, 12, 31).strftime('%Y-%m-%d')
+        print(start_date)
+        print(end_date)
+
+        search_results = es.search(
+            index=INDEX_NAME,
+            body={
+                "query": {
+                    "range": {
+                        "date": {
+                            "gte": start_date,
+                            "lte": end_date
+                        }
+                    }
+                }
+            }
+        )
+
+        """ search_results = es.search(
+            index=INDEX_NAME,
+            body={
+                "query": {
+                    "range": {
+                        "date": {
+                            "time_zone": "+01:00",        
+                            "gte": "20.12.2023||/y", 
+                            "lte": "now"                  
+                        }
+                    }
+                }
+            }
+        ) """
+
+        articles = []
+        for hit in search_results['hits']['hits']:
+            article = {'_source': hit['_source'], '_id': hit['_id']}
+            articles.append(article)
+        print(len(articles))
+        date_list = []
+        for article in articles:
+            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
+            article['_source']['date']=date_from_db
+        return render_template('filter.html', articles=articles)
+    elif publisher:
+        # search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'publisher': publisher}}})
+        search_results = es.search(index=INDEX_NAME, body={
+            'query': {
+                'multi_match': {
+                    'query': publisher,
+                    'fields': ['publisher'],  # Add other fields if needed
+                    'operator': 'and'  # This ensures that all words must match
+                }
+            }
+        })
+        articles = []
+        for hit in search_results['hits']['hits']:
+            article = {'_source': hit['_source'], '_id': hit['_id']}
+            articles.append(article)
+        return render_template('filter.html', articles=articles)
     elif keywords_se:
         search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'keywords_se': keywords_se}}})
+        articles = []
+        for hit in search_results['hits']['hits']:
+            article = {'_source': hit['_source'], '_id': hit['_id']}
+            articles.append(article)
+        return render_template('filter.html', articles=articles)
+    elif keywords:
+        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'keywords': keywords}}})
         articles = []
         for hit in search_results['hits']['hits']:
             article = {'_source': hit['_source'], '_id': hit['_id']}
@@ -310,7 +431,8 @@ def scrape_dergipark(query):
             type = article_soup.find('div', class_='kt-portlet__head-title').span.text.strip()
         except AttributeError:
             type = None
-        date = article_soup.find('span', class_='article-subtitle').text.split(',')[-1].strip()
+        date_string = article_soup.find('span', class_='article-subtitle').text.split(',')[-1].strip()
+        date = datetime.strptime(date_string, "%d.%m.%Y")
         publisher = article_soup.find('div', class_='kt-heading kt-align-center').a.h1.text.strip()
         keywords = article_soup.find('div', class_='article-keywords').p.text.strip()
         # abstract = article_soup.find('div', class_='article-abstract data-section').p.text.strip()
