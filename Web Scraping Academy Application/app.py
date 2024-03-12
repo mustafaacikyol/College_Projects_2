@@ -153,6 +153,9 @@ def filter():
         for hit in search_results['hits']['hits']:
             article = {'_source': hit['_source'], '_id': hit['_id']}
             articles.append(article)
+        for article in articles:
+            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
+            article['_source']['date']=date_from_db
         return render_template('filter.html', articles=articles)
     elif authors:
         search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'authors': authors}}})
@@ -160,6 +163,9 @@ def filter():
         for hit in search_results['hits']['hits']:
             article = {'_source': hit['_source'], '_id': hit['_id']}
             articles.append(article)
+        for article in articles:
+            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
+            article['_source']['date']=date_from_db
         return render_template('filter.html', articles=articles)
     elif type:
         search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'type': type}}})
@@ -167,6 +173,9 @@ def filter():
         for hit in search_results['hits']['hits']:
             article = {'_source': hit['_source'], '_id': hit['_id']}
             articles.append(article)
+        for article in articles:
+            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
+            article['_source']['date']=date_from_db
         return render_template('filter.html', articles=articles)
     elif date:
         """ # Parse the selected year to create a date range
@@ -267,6 +276,9 @@ def filter():
         for hit in search_results['hits']['hits']:
             article = {'_source': hit['_source'], '_id': hit['_id']}
             articles.append(article)
+        for article in articles:
+            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
+            article['_source']['date']=date_from_db
         return render_template('filter.html', articles=articles)
     elif keywords_se:
         search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'keywords_se': keywords_se}}})
@@ -274,6 +286,9 @@ def filter():
         for hit in search_results['hits']['hits']:
             article = {'_source': hit['_source'], '_id': hit['_id']}
             articles.append(article)
+        for article in articles:
+            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
+            article['_source']['date']=date_from_db
         return render_template('filter.html', articles=articles)
     elif keywords:
         search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'keywords': keywords}}})
@@ -281,6 +296,9 @@ def filter():
         for hit in search_results['hits']['hits']:
             article = {'_source': hit['_source'], '_id': hit['_id']}
             articles.append(article)
+        for article in articles:
+            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
+            article['_source']['date']=date_from_db
         return render_template('filter.html', articles=articles)
     elif abstract:
         search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'abstract': abstract}}})
@@ -288,6 +306,9 @@ def filter():
         for hit in search_results['hits']['hits']:
             article = {'_source': hit['_source'], '_id': hit['_id']}
             articles.append(article)
+        for article in articles:
+            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
+            article['_source']['date']=date_from_db
         return render_template('filter.html', articles=articles)
     elif references:
         search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'references': references}}})
@@ -295,6 +316,9 @@ def filter():
         for hit in search_results['hits']['hits']:
             article = {'_source': hit['_source'], '_id': hit['_id']}
             articles.append(article)
+        for article in articles:
+            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
+            article['_source']['date']=date_from_db
         return render_template('filter.html', articles=articles)
     elif citation:
         search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'citation': citation}}})
@@ -302,6 +326,9 @@ def filter():
         for hit in search_results['hits']['hits']:
             article = {'_source': hit['_source'], '_id': hit['_id']}
             articles.append(article)
+        for article in articles:
+            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
+            article['_source']['date']=date_from_db
         return render_template('filter.html', articles=articles)
     elif doi:
         search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'doi': doi}}})
@@ -309,6 +336,9 @@ def filter():
         for hit in search_results['hits']['hits']:
             article = {'_source': hit['_source'], '_id': hit['_id']}
             articles.append(article)
+        for article in articles:
+            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
+            article['_source']['date']=date_from_db
         return render_template('filter.html', articles=articles)
     elif url:
         search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'url': url}}})
@@ -316,6 +346,9 @@ def filter():
         for hit in search_results['hits']['hits']:
             article = {'_source': hit['_source'], '_id': hit['_id']}
             articles.append(article)
+        for article in articles:
+            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
+            article['_source']['date']=date_from_db
         return render_template('filter.html', articles=articles)
     else:
         return render_template('filter.html', articles=None)
