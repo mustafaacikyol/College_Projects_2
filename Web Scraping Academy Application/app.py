@@ -6,6 +6,7 @@ from pymongo import MongoClient
 from bson import ObjectId
 from elasticsearch import Elasticsearch
 from datetime import datetime
+import time
 
 app = Flask(__name__)
 pdf_urls = []
@@ -56,7 +57,7 @@ def index_article(article):
     es.index(index=INDEX_NAME, body=article, id=article_id)  # Pass _id as a separate parameter
 
 # Function to download PDF files
-def download_pdf(pdf_urls, folder):
+""" def download_pdf(pdf_urls, folder):
     if not os.path.exists(folder):
         os.makedirs(folder)
     for i, pdf_url in enumerate(pdf_urls):
@@ -66,7 +67,37 @@ def download_pdf(pdf_urls, folder):
                 f.write(response.content)
             print(f"Downloaded article_{i+1}.pdf")
         else:
-            print(f"Failed to download article_{i+1}.pdf")
+            print(f"Failed to download article_{i+1}.pdf") """
+
+def download_pdf(pdf_urls, folder):
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    
+    for i, pdf_url in enumerate(pdf_urls):
+        retries = 3  # Number of times to retry the download
+        while retries > 0:
+            try:
+                response = requests.get(pdf_url)
+                if response.status_code == 200:
+                    with open(os.path.join(folder, f"article_{i+1}.pdf"), 'wb') as f:
+                        f.write(response.content)
+                    print(f"Downloaded article_{i+1}.pdf")
+                    break  # Exit the retry loop if download is successful
+                else:
+                    print(f"Failed to download article_{i+1}.pdf (Status code: {response.status_code})")
+            except Exception as e:
+                print(f"Error downloading article_{i+1}.pdf: {e}")
+            retries -= 1
+            time.sleep(1)  # Add a delay between retries
+
+        if retries == 0:
+            print(f"Failed to download article_{i+1}.pdf after {retries} retries")
+
+# Example usage:
+# pdf_urls = [...]  # List of PDF URLs
+# folder = "downloads"
+# download_pdf(pdf_urls, folder)
+
 
 @app.route('/')
 def index():
