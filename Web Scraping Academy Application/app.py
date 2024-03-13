@@ -162,227 +162,66 @@ def search():
 
 @app.route('/filter', methods=['POST'])
 def filter():
-    name = request.form['name']
-    authors = request.form['authors']
-    type = request.form['type']
-    date = request.form['date']
-    publisher = request.form['publisher']
-    keywords_se = request.form['keywords_se']
-    keywords = request.form['keywords']
-    abstract = request.form['abstract']
-    references = request.form['references']
-    citation = request.form['citation']
-    doi = request.form['doi']
-    url = request.form['url']
+    # Initialize the query body
+    query_body = {'query': {'bool': {'must': []}}}
 
+    # Extract values from the form
+    name = request.form.get('name')
+    authors = request.form.get('authors')
+    type = request.form.get('type')
+    date = request.form.get('date')
+    publisher = request.form.get('publisher')
+    keywords_se = request.form.get('keywords_se')
+    keywords = request.form.get('keywords')
+    abstract = request.form.get('abstract')
+    references = request.form.get('references')
+    citation = request.form.get('citation')
+    doi = request.form.get('doi')
+    url = request.form.get('url')
+
+    # Add filters to the query body based on the provided fields
     if name:
-        # Use Elasticsearch's search API to search for articles
-        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'name': name}}})
-        # Extract relevant information from search results
-        # articles = [{'name': hit['_source']['name'], 'authors': hit['_source']['authors']} for hit in search_results['hits']['hits']]
-        articles = []
-        for hit in search_results['hits']['hits']:
-            article = {'_source': hit['_source'], '_id': hit['_id']}
-            articles.append(article)
-        for article in articles:
-            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
-            article['_source']['date']=date_from_db
-        return render_template('filter.html', articles=articles)
-    elif authors:
-        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'authors': authors}}})
-        articles = []
-        for hit in search_results['hits']['hits']:
-            article = {'_source': hit['_source'], '_id': hit['_id']}
-            articles.append(article)
-        for article in articles:
-            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
-            article['_source']['date']=date_from_db
-        return render_template('filter.html', articles=articles)
-    elif type:
-        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'type': type}}})
-        articles = []
-        for hit in search_results['hits']['hits']:
-            article = {'_source': hit['_source'], '_id': hit['_id']}
-            articles.append(article)
-        for article in articles:
-            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
-            article['_source']['date']=date_from_db
-        return render_template('filter.html', articles=articles)
-    elif date:
-        """ # Parse the selected year to create a date range
-        start_date = datetime.strptime(f'01.01.{date}', '%d.%m.%Y')
-        end_date = datetime.strptime(f'31.12.{date}', '%d.%m.%Y')
-
-        # Use a range query to filter documents within the selected year
-        search_results = es.search(index=INDEX_NAME, body={
-            "query": {
-                "range": {
-                    "date": {
-                        "gte": start_date.strftime('%d.%m.%Y'),
-                        "lte": end_date.strftime('%d.%m.%Y')
-                    }
-                }
-            }
-        }) """
-
-        """ # Parse the selected year to create a date range
+        query_body['query']['bool']['must'].append({'match': {'name': name}})
+    if authors:
+        query_body['query']['bool']['must'].append({'match': {'authors': authors}})
+    if type:
+        query_body['query']['bool']['must'].append({'match': {'type': type}})
+    if date:
         selected_year = int(date)
-        start_date = datetime(selected_year, 1, 1)
-        end_date = datetime(selected_year, 12, 31)
-
-        # Use a range query to filter documents within the selected year
-        search_results = es.search(index=INDEX_NAME, body={
-            "query": {
-                "bool": {
-                    "must": [
-                        {
-                            "range": {
-                                "date": {
-                                    "gte": f"01.01.{selected_year}||.y",
-                                    "lte": f"31.12.{selected_year}||.y"
-                                }
-                            }
-                        }
-                    ]
-                }
-            }
-        }) """
-
-        selected_year = int(date)
-        # Create a range query to match documents within the year
         start_date = datetime(selected_year, 1, 1).strftime('%Y-%m-%d')
         end_date = datetime(selected_year, 12, 31).strftime('%Y-%m-%d')
-        print(start_date)
-        print(end_date)
+        query_body['query']['bool']['must'].append({'range': {'date': {'gte': start_date, 'lte': end_date}}})
+    if publisher:
+        query_body['query']['bool']['must'].append({'match': {'publisher': publisher}})
+    if keywords_se:
+        query_body['query']['bool']['must'].append({'match': {'keywords_se': keywords_se}})
+    if keywords:
+        query_body['query']['bool']['must'].append({'match': {'keywords': keywords}})
+    if abstract:
+        query_body['query']['bool']['must'].append({'match': {'abstract': abstract}})
+    if references:
+        query_body['query']['bool']['must'].append({'match': {'references': references}})
+    if citation:
+        query_body['query']['bool']['must'].append({'match': {'citation': citation}})
+    if doi:
+        query_body['query']['bool']['must'].append({'match': {'doi': doi}})
+    if url:
+        query_body['query']['bool']['must'].append({'match': {'url': url}})
 
-        search_results = es.search(
-            index=INDEX_NAME,
-            body={
-                "query": {
-                    "range": {
-                        "date": {
-                            "gte": start_date,
-                            "lte": end_date
-                        }
-                    }
-                }
-            }
-        )
+    # Perform the search using the constructed query body
+    search_results = es.search(index=INDEX_NAME, body=query_body)
 
-        """ search_results = es.search(
-            index=INDEX_NAME,
-            body={
-                "query": {
-                    "range": {
-                        "date": {
-                            "time_zone": "+01:00",        
-                            "gte": "20.12.2023||/y", 
-                            "lte": "now"                  
-                        }
-                    }
-                }
-            }
-        ) """
+    # Process search results and render template
+    articles = []
+    for hit in search_results['hits']['hits']:
+        article = {'_source': hit['_source'], '_id': hit['_id']}
+        articles.append(article)
+        # Convert date string to datetime object if needed
+        date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
+        article['_source']['date'] = date_from_db
+    return render_template('filter.html', articles=articles)
 
-        articles = []
-        for hit in search_results['hits']['hits']:
-            article = {'_source': hit['_source'], '_id': hit['_id']}
-            articles.append(article)
-        for article in articles:
-            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
-            article['_source']['date']=date_from_db
-        return render_template('filter.html', articles=articles)
-    elif publisher:
-        # search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'publisher': publisher}}})
-        search_results = es.search(index=INDEX_NAME, body={
-            'query': {
-                'multi_match': {
-                    'query': publisher,
-                    'fields': ['publisher'],  # Add other fields if needed
-                    'operator': 'and'  # This ensures that all words must match
-                }
-            }
-        })
-        articles = []
-        for hit in search_results['hits']['hits']:
-            article = {'_source': hit['_source'], '_id': hit['_id']}
-            articles.append(article)
-        for article in articles:
-            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
-            article['_source']['date']=date_from_db
-        return render_template('filter.html', articles=articles)
-    elif keywords_se:
-        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'keywords_se': keywords_se}}})
-        articles = []
-        for hit in search_results['hits']['hits']:
-            article = {'_source': hit['_source'], '_id': hit['_id']}
-            articles.append(article)
-        for article in articles:
-            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
-            article['_source']['date']=date_from_db
-        return render_template('filter.html', articles=articles)
-    elif keywords:
-        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'keywords': keywords}}})
-        articles = []
-        for hit in search_results['hits']['hits']:
-            article = {'_source': hit['_source'], '_id': hit['_id']}
-            articles.append(article)
-        for article in articles:
-            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
-            article['_source']['date']=date_from_db
-        return render_template('filter.html', articles=articles)
-    elif abstract:
-        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'abstract': abstract}}})
-        articles = []
-        for hit in search_results['hits']['hits']:
-            article = {'_source': hit['_source'], '_id': hit['_id']}
-            articles.append(article)
-        for article in articles:
-            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
-            article['_source']['date']=date_from_db
-        return render_template('filter.html', articles=articles)
-    elif references:
-        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'references': references}}})
-        articles = []
-        for hit in search_results['hits']['hits']:
-            article = {'_source': hit['_source'], '_id': hit['_id']}
-            articles.append(article)
-        for article in articles:
-            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
-            article['_source']['date']=date_from_db
-        return render_template('filter.html', articles=articles)
-    elif citation:
-        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'citation': citation}}})
-        articles = []
-        for hit in search_results['hits']['hits']:
-            article = {'_source': hit['_source'], '_id': hit['_id']}
-            articles.append(article)
-        for article in articles:
-            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
-            article['_source']['date']=date_from_db
-        return render_template('filter.html', articles=articles)
-    elif doi:
-        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'doi': doi}}})
-        articles = []
-        for hit in search_results['hits']['hits']:
-            article = {'_source': hit['_source'], '_id': hit['_id']}
-            articles.append(article)
-        for article in articles:
-            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
-            article['_source']['date']=date_from_db
-        return render_template('filter.html', articles=articles)
-    elif url:
-        search_results = es.search(index=INDEX_NAME, body={'query': {'match': {'url': url}}})
-        articles = []
-        for hit in search_results['hits']['hits']:
-            article = {'_source': hit['_source'], '_id': hit['_id']}
-            articles.append(article)
-        for article in articles:
-            date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
-            article['_source']['date']=date_from_db
-        return render_template('filter.html', articles=articles)
-    else:
-        return render_template('filter.html', articles=None)
+
 
 """ def get_corrected_query(query):
     # Use Elasticsearch's suggest feature or fuzzy query to get suggestions
