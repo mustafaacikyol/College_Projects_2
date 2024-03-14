@@ -99,9 +99,9 @@ def download_pdf(pdf_urls, folder):
 # download_pdf(pdf_urls, folder)
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    collection = db['article']
+    """ collection = db['article']
     # Fetch data from MongoDB
     articles_data_cursor = collection.find()  # This retrieves all documents from the collection
     articles_data = list(articles_data_cursor)  # Convert cursor to a list
@@ -110,14 +110,104 @@ def index():
     for article in articles_data:
         date_from_db = datetime.strptime(str(article['date']), "%Y-%m-%d %H:%M:%S")
         date_list.append(date_from_db)
-    """ # List all indices
-    indices = es.indices.get_alias(index="*")
-    print("Indices:", indices)
 
-    # Get information about a specific index
-    index_info = es.indices.get(index=INDEX_NAME)
-    print("Index Info:", index_info) """
-    return render_template('index.html', articles_data=articles_data, articles_data_length = articles_data_length, date_list=date_list)
+    return render_template('index.html', articles_data=articles_data, articles_data_length = articles_data_length, date_list=date_list) """
+
+    """ collection = db['article']
+    
+    if request.method == 'POST':
+        sort_option = request.form.get('sort')
+        if sort_option == 'date_newest':
+            articles_data_cursor = collection.find().sort('date', -1)
+        elif sort_option == 'date_oldest':
+            articles_data_cursor = collection.find().sort('date', 1)
+        elif sort_option == 'citation_most':
+            articles_data_cursor = collection.find().sort('citation', -1)
+        elif sort_option == 'citation_least':
+            articles_data_cursor = collection.find().sort('citation', 1)
+        else:
+            # Handle invalid sort option
+            articles_data_cursor = collection.find()
+    else:
+        # Default behavior for GET request
+        articles_data_cursor = collection.find()
+    
+    articles_data = list(articles_data_cursor)
+    articles_data_length = len(articles_data)
+    
+    date_list = []
+    for article in articles_data:
+        date_from_db = datetime.strptime(str(article['date']), "%Y-%m-%d %H:%M:%S")
+        date_list.append(date_from_db)
+
+    return render_template('index.html', articles_data=articles_data, articles_data_length=articles_data_length, date_list=date_list) """
+
+    """ collection = db['article']
+    
+    if request.method == 'POST':
+        sort_option = request.form.get('sort')
+        if sort_option == 'date_newest':
+            articles_data_cursor = collection.find().sort('date', -1)
+        elif sort_option == 'date_oldest':
+            articles_data_cursor = collection.find().sort('date', 1)
+        elif sort_option == 'citation_most':
+            articles_data_cursor = collection.find().sort('citation', -1)
+        elif sort_option == 'citation_least':
+            articles_data_cursor = collection.find().sort('citation', 1)
+        else:
+            # Handle invalid sort option
+            articles_data_cursor = collection.find()
+    else:
+        # Default behavior for GET request
+        articles_data_cursor = collection.find()
+    
+    articles_data = list(articles_data_cursor)
+    articles_data_length = len(articles_data)
+    
+    date_list = []
+    for article in articles_data:
+        date_from_db = datetime.strptime(str(article['date']), "%Y-%m-%d %H:%M:%S")
+        date_list.append(date_from_db)
+
+    return render_template('index.html', articles_data=articles_data, articles_data_length=articles_data_length, date_list=date_list) """
+
+    collection = db['article']
+    
+    if request.method == 'POST':
+        sort_option = request.form.get('sort')
+        if sort_option == 'date_newest':
+            articles_data_cursor = collection.find().sort('date', -1)
+        elif sort_option == 'date_oldest':
+            articles_data_cursor = collection.find().sort('date', 1)
+        elif sort_option == 'citation_most':
+            articles_data_cursor = collection.aggregate([
+                {'$addFields': {'citation_int': {'$toInt': '$citation'}}},
+                {'$sort': {'citation_int': -1}},
+                {'$project': {'citation_int': 0}}
+            ])
+        elif sort_option == 'citation_least':
+            articles_data_cursor = collection.aggregate([
+                {'$addFields': {'citation_int': {'$toInt': '$citation'}}},
+                {'$sort': {'citation_int': 1}},
+                {'$project': {'citation_int': 0}}
+            ])
+        else:
+            # Handle invalid sort option
+            articles_data_cursor = collection.find()
+    else:
+        # Default behavior for GET request
+        articles_data_cursor = collection.find()
+    
+    articles_data = list(articles_data_cursor)
+    articles_data_length = len(articles_data)
+    
+    date_list = []
+    for article in articles_data:
+        date_from_db = datetime.strptime(str(article['date']), "%Y-%m-%d %H:%M:%S")
+        date_list.append(date_from_db)
+
+    return render_template('index.html', articles_data=articles_data, articles_data_length=articles_data_length, date_list=date_list)
+
 
 @app.route('/results', methods=['POST'])
 def result():
