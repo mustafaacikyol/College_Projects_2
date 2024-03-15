@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Articles</title>
     <link rel="stylesheet" href="../static/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" integrity="sha512-b2QcS5SsA8tZodcDtGRELiGv5SaKSk1vDHDaQRda0htPYWZ6046lr3kJ5bAAQdpV2mmA/4v0wQF9MyU6/pDIAg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"
+        integrity="sha512-b2QcS5SsA8tZodcDtGRELiGv5SaKSk1vDHDaQRda0htPYWZ6046lr3kJ5bAAQdpV2mmA/4v0wQF9MyU6/pDIAg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
+
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -31,19 +35,20 @@
             </ul>
         </div>
     </nav>
-    
+
 
 
     <div class="container mt-4 text-center">
-        
+
         <div class="text-center my-4">
             <h3>Search</h3>
         </div>
-        
+
         <form action="./search" method="POST">
             <div class="input-group center">
                 <div class="col-6">
-                    <input type="text" class="form-control" name="search-query" placeholder="Enter Search Term" aria-label="Search" aria-describedby="search-addon">
+                    <input type="text" class="form-control" name="search-query" placeholder="Enter Search Term"
+                        aria-label="Search" aria-describedby="search-addon">
                 </div>
                 <div class="input-group-prepend">
                     <button class="btn btn-primary" type="submit" id="search-addon">
@@ -108,17 +113,25 @@
                             <label for="publisher">Publisher:</label>
                             <select class="form-control" id="publisher" name="publisher">
                                 <option value="">Please Select</option>
-                                <option value="Journal of Artificial Intelligence and Data Science">Journal of Artificial Intelligence and Data Science</option>
-                                <option value="The Journal of Cognitive Systems">The Journal of Cognitive Systems</option>
+                                <option value="Journal of Artificial Intelligence and Data Science">Journal of
+                                    Artificial Intelligence and Data Science</option>
+                                <option value="The Journal of Cognitive Systems">The Journal of Cognitive Systems
+                                </option>
                                 <option value="Computers and Informatics">Computers and Informatics</option>
-                                <option value="European Journal of Technique (EJT)">European Journal of Technique (EJT)</option>
-                                <option value="Advances in Artificial Intelligence Research">Advances in Artificial Intelligence Research</option>
+                                <option value="European Journal of Technique (EJT)">European Journal of Technique (EJT)
+                                </option>
+                                <option value="Advances in Artificial Intelligence Research">Advances in Artificial
+                                    Intelligence Research</option>
                                 <option value="Journal of Metaverse">Journal of Metaverse</option>
-                                <option value="International Journal of Engineering and Innovative Research">International Journal of Engineering and Innovative Research</option>
-                                <option value="Turkish Journal of Science and Technology">Turkish Journal of Science and Technology</option>
-                                <option value="International Journal of Applied Mathematics Electronics and Computers">International Journal of Applied Mathematics Electronics and Computers</option>
+                                <option value="International Journal of Engineering and Innovative Research">
+                                    International Journal of Engineering and Innovative Research</option>
+                                <option value="Turkish Journal of Science and Technology">Turkish Journal of Science and
+                                    Technology</option>
+                                <option value="International Journal of Applied Mathematics Electronics and Computers">
+                                    International Journal of Applied Mathematics Electronics and Computers</option>
                                 <option value="TOJSAT">TOJSAT</option>
-                                <option value="International Journal of Information Security Science">International Journal of Information Security Science</option>
+                                <option value="International Journal of Information Security Science">International
+                                    Journal of Information Security Science</option>
                             </select>
                         </div>
                     </div>
@@ -178,42 +191,44 @@
                 <div class="input-group">
                     <label for="sort" class="input-group-text">Sort by :</label>
                     <select class="form-select" name="sort" id="sort">
-                        <option value="date_newest">Date (first the newest)</option>
-                        <option value="date_oldest">Date (first the oldest)</option>
-                        <option value="citation_most">Citation Number (first the most)</option>
-                        <option value="citation_least">Citation Number (first the least)</option>
+                        <option value="date_newest" {% if sort == "date_newest" %} selected {% endif %}>Date (first the newest)</option>
+                        <option value="date_oldest" {% if sort == "date_oldest" %} selected {% endif %}>Date (first the oldest)</option>
+                        <option value="citation_most" {% if sort == "citation_most" %} selected {% endif %}>Citation Number (first the most)</option>
+                        <option value="citation_least" {% if sort == "citation_least" %} selected {% endif %}>Citation Number (first the least)</option>
                     </select>
                     <button type="submit" class="btn btn-primary">Sort</button>
                 </div>
             </div>
         </form>
+        
 
         <div class="text-center mt-5 mb-4">
             <h4>Articles</h4>
         </div>
     </div>
 
-    <div class="container index-table">
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th style="width: 50px;" scope="col">No</th>
-                    <th style="width: 100px;" scope="col">Name</th>
-                    <th style="width: 100px;" scope="col">Authors</th>
-                    <th style="width: 50px;" scope="col">Type</th>
-                    <th style="width: 50px;" scope="col">Date</th>
-                    <th style="width: 50px;" scope="col">Publisher</th>
-                    <th style="width: 50px;" scope="col">Keywords(Search Engine)</th>
-                    <th style="width: 50px;" scope="col">Keywords(Article)</th>
-                    <th style="width: 200px;" scope="col">Abstract</th>
-                    <th style="width: 200px;" scope="col">References</th>
-                    <th style="width: 30px;" scope="col">Citation Number</th>
-                    <th style="width: 200px;" scope="col">DOI Number</th>
-                    <th style="width: 100px;" scope="col">URL</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for i in range(1, articles_data_length + 1) %}
+    <div class="index-table">
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;" scope="col">No</th>
+                        <th style="width: 100px;" scope="col">Name</th>
+                        <th style="width: 100px;" scope="col">Authors</th>
+                        <th style="width: 50px;" scope="col">Type</th>
+                        <th style="width: 50px;" scope="col">Date</th>
+                        <th style="width: 50px;" scope="col">Publisher</th>
+                        <th style="width: 50px;" scope="col">Keywords(Search Engine)</th>
+                        <th style="width: 50px;" scope="col">Keywords(Article)</th>
+                        <th style="width: 200px;" scope="col">Abstract</th>
+                        <th style="width: 200px;" scope="col">References</th>
+                        <th style="width: 30px;" scope="col">Citation Number</th>
+                        <th style="width: 200px;" scope="col">DOI Number</th>
+                        <th style="width: 100px;" scope="col">URL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in range(1, articles_data_length + 1) %}
                     <tr>
                         <td>{{ i }}</td>
                         <td>
@@ -231,14 +246,16 @@
                         <td>{{ articles_data[i-1].doi }}</td>
                         <td>{{ articles_data[i-1].url }}</td>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- jQuery and Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
+
 </html>

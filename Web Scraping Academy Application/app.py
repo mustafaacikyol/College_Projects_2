@@ -74,7 +74,7 @@ def download_pdf(pdf_urls, folder):
         os.makedirs(folder)
     
     for i, pdf_url in enumerate(pdf_urls):
-        retries = 3  # Number of times to retry the download
+        retries = 5  # Number of times to retry the download
         while retries > 0:
             try:
                 response = requests.get(pdf_url)
@@ -225,6 +225,7 @@ def result():
 @app.route('/articles', methods=['GET', 'POST'])
 def articles():
     collection = db['article']
+    sort_option = None
     
     if request.method == 'POST':
         sort_option = request.form.get('sort')
@@ -258,7 +259,7 @@ def articles():
     for article in articles_data:
         date_from_db = datetime.strptime(str(article['date']), "%Y-%m-%d %H:%M:%S")
         date_list.append(date_from_db)
-    return render_template('articles.html', articles_data=articles_data, articles_data_length=articles_data_length, date_list=date_list)
+    return render_template('articles.html', articles_data=articles_data, articles_data_length=articles_data_length, date_list=date_list, sort=sort_option)
 
 @app.route('/article-detail', methods=['GET'])
 def detail():
