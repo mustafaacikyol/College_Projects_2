@@ -16,14 +16,14 @@
     justify-content: center;
     align-items: center;
   }
-
+/* 
 .index-form-left-margin {
     margin-left: 330px;
-}
+} */
 
-.index-form-width {
-    width: 55%;
-}
+/* .index-form-width {
+    width: 25%;
+} */
 
 .navbar-brand {
     margin-left: 80px;
