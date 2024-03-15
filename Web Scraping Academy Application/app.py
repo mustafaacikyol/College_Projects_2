@@ -172,31 +172,7 @@ def index():
     return render_template('index.html', articles_data=articles_data, articles_data_length=articles_data_length, date_list=date_list) """
 
     collection = db['article']
-    
-    if request.method == 'POST':
-        sort_option = request.form.get('sort')
-        if sort_option == 'date_newest':
-            articles_data_cursor = collection.find().sort('date', -1)
-        elif sort_option == 'date_oldest':
-            articles_data_cursor = collection.find().sort('date', 1)
-        elif sort_option == 'citation_most':
-            articles_data_cursor = collection.aggregate([
-                {'$addFields': {'citation_int': {'$toInt': '$citation'}}},
-                {'$sort': {'citation_int': -1}},
-                {'$project': {'citation_int': 0}}
-            ])
-        elif sort_option == 'citation_least':
-            articles_data_cursor = collection.aggregate([
-                {'$addFields': {'citation_int': {'$toInt': '$citation'}}},
-                {'$sort': {'citation_int': 1}},
-                {'$project': {'citation_int': 0}}
-            ])
-        else:
-            # Handle invalid sort option
-            articles_data_cursor = collection.find()
-    else:
-        # Default behavior for GET request
-        articles_data_cursor = collection.find()
+    articles_data_cursor = collection.find().sort('name', 1)
     
     articles_data = list(articles_data_cursor)
     articles_data_length = len(articles_data)
@@ -247,10 +223,10 @@ def articles():
             ])
         else:
             # Handle invalid sort option
-            articles_data_cursor = collection.find()
+            articles_data_cursor = collection.find().sort('name', 1)
     else:
         # Default behavior for GET request
-        articles_data_cursor = collection.find()
+        articles_data_cursor = collection.find().sort('name', 1)
     
     articles_data = list(articles_data_cursor)
     articles_data_length = len(articles_data)
