@@ -208,6 +208,9 @@ def index():
 
     return render_template('index.html', articles_data=articles_data, articles_data_length=articles_data_length, date_list=date_list)
 
+@app.route('/web-scraping', methods=['GET'])
+def web_scraping():
+    return render_template('web-scraping.html')
 
 @app.route('/results', methods=['POST'])
 def result():
@@ -218,6 +221,44 @@ def result():
     download_pdf(pdf_urls, folder)  # Call the function to download PDFs
     insert_data(articles)
     return render_template('results.html', articles=articles, articles_length=articles_length)
+
+@app.route('/articles', methods=['GET', 'POST'])
+def articles():
+    collection = db['article']
+    
+    if request.method == 'POST':
+        sort_option = request.form.get('sort')
+        if sort_option == 'date_newest':
+            articles_data_cursor = collection.find().sort('date', -1)
+        elif sort_option == 'date_oldest':
+            articles_data_cursor = collection.find().sort('date', 1)
+        elif sort_option == 'citation_most':
+            articles_data_cursor = collection.aggregate([
+                {'$addFields': {'citation_int': {'$toInt': '$citation'}}},
+                {'$sort': {'citation_int': -1}},
+                {'$project': {'citation_int': 0}}
+            ])
+        elif sort_option == 'citation_least':
+            articles_data_cursor = collection.aggregate([
+                {'$addFields': {'citation_int': {'$toInt': '$citation'}}},
+                {'$sort': {'citation_int': 1}},
+                {'$project': {'citation_int': 0}}
+            ])
+        else:
+            # Handle invalid sort option
+            articles_data_cursor = collection.find()
+    else:
+        # Default behavior for GET request
+        articles_data_cursor = collection.find()
+    
+    articles_data = list(articles_data_cursor)
+    articles_data_length = len(articles_data)
+    
+    date_list = []
+    for article in articles_data:
+        date_from_db = datetime.strptime(str(article['date']), "%Y-%m-%d %H:%M:%S")
+        date_list.append(date_from_db)
+    return render_template('articles.html', articles_data=articles_data, articles_data_length=articles_data_length, date_list=date_list)
 
 @app.route('/article-detail', methods=['GET'])
 def detail():
@@ -310,8 +351,6 @@ def filter():
         date_from_db = datetime.strptime(str(article['_source']['date']), "%Y-%m-%dT%H:%M:%S")
         article['_source']['date'] = date_from_db
     return render_template('filter.html', articles=articles)
-
-
 
 """ def get_corrected_query(query):
     # Use Elasticsearch's suggest feature or fuzzy query to get suggestions

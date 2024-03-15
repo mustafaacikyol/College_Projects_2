@@ -1,5 +1,5 @@
-.home-div-margin-top {
-    margin-top: 10px;
+.web-scraping-div-margin-top {
+    margin-top: 70px;
 }
 
 .card-body {
@@ -23,4 +23,18 @@
 
 .index-form-width {
     width: 55%;
+}
+
+.navbar-brand {
+    margin-left: 50px;
+}
+
+.navbar {
+    padding: 0px !important;
+}
+
+.navbar-nav .nav-link {
+    font-size: 20px; 
+    margin-right: 70px;
+    color: white;
 }

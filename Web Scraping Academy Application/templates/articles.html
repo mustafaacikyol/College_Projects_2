@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>Articles</title>
     <link rel="stylesheet" href="../static/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" integrity="sha512-b2QcS5SsA8tZodcDtGRELiGv5SaKSk1vDHDaQRda0htPYWZ6046lr3kJ5bAAQdpV2mmA/4v0wQF9MyU6/pDIAg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <!-- <script type = "text/javascript" 
-         src = "{{ url_for('static', filename = 'hello.js') }}" ></script> -->
-    
 </head>
 <body>
 
@@ -36,40 +33,9 @@
     </nav>
     
 
-    <!-- <div class="container h-100 d-flex justify-content-center align-items-center">
-        <div class="card home-div-margin-top">
-            <div class="card-body">
-                <h2 class="text-center m-5">Web Scraping Academy App</h2>
-                <form action="./results" method="POST">
-                    <div class="form-group m-5">
-                        <input type="text" class="form-control" name="query" placeholder="enter search term">
-                    </div>
-                    <div class="text-center mb-5">
-                        <button class="btn btn-primary btn-block" type="submit">Search</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div> -->
 
     <div class="container mt-4 text-center">
-        <div class="text-center my-4">
-            <h3>Web Scraping</h3>
-        </div>
         
-        <form action="./results" method="POST">
-            <div class="input-group center">
-                <div class="col-6">
-                    <input type="text" class="form-control" name="query" placeholder="Enter Search Term" aria-label="Search" aria-describedby="search-addon">
-                </div>
-                <div class="input-group-prepend">
-                    <button class="btn btn-primary" type="submit" id="search-addon">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-            </div>
-        </form>
-
         <div class="text-center my-4">
             <h3>Search</h3>
         </div>
@@ -207,7 +173,7 @@
             </div>
         </form>
 
-        <form class="my-5 index-form-left-margin" action="./" method="POST">
+        <form class="my-5 index-form-left-margin" action="./articles" method="POST">
             <div class="index-form-width">
                 <div class="input-group">
                     <label for="sort" class="input-group-text">Sort by :</label>
