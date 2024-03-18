@@ -45,7 +45,7 @@ def index_article(article):
     article_id = article.pop('_id', None)  # Remove _id field from the body
     es.index(index=INDEX_NAME, body=article, id=article_id)  # Pass _id as a separate parameter
 
-def download_pdf(pdf_urls, folder):
+def download_pdf(pdf_urls, folder, query):
     if not os.path.exists(folder):
         os.makedirs(folder)
     
@@ -55,19 +55,19 @@ def download_pdf(pdf_urls, folder):
             try:
                 response = requests.get(pdf_url)
                 if response.status_code == 200:
-                    with open(os.path.join(folder, f"article_{i+1}.pdf"), 'wb') as f:
+                    with open(os.path.join(folder, f"{query}_{i+1}.pdf"), 'wb') as f:
                         f.write(response.content)
-                    print(f"Downloaded article_{i+1}.pdf")
+                    print(f"Downloaded {query}_{i+1}.pdf")
                     break  # Exit the retry loop if download is successful
                 else:
-                    print(f"Failed to download article_{i+1}.pdf (Status code: {response.status_code})")
+                    print(f"Failed to download {query}_{i+1}.pdf (Status code: {response.status_code})")
             except Exception as e:
-                print(f"Error downloading article_{i+1}.pdf: {e}")
+                print(f"Error downloading {query}_{i+1}.pdf: {e}")
             retries -= 1
             time.sleep(1)  # Add a delay between retries
 
         if retries == 0:
-            print(f"Failed to download article_{i+1}.pdf after {retries} retries")
+            print(f"Failed to download {query}_{i+1}.pdf after {retries} retries")
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -94,7 +94,7 @@ def result():
     articles = scrape_dergipark(query)
     articles_length = len(articles)
     folder = "pdf"  # Specify the folder where you want to save PDFs
-    download_pdf(pdf_urls, folder)  # Call the function to download PDFs
+    download_pdf(pdf_urls, folder, query)  # Call the function to download PDFs
     insert_data(articles)
     return render_template('results.html', articles=articles, articles_length=articles_length)
 
@@ -289,6 +289,7 @@ def insert_data(articles):
     # client.close()
 
 def scrape_dergipark(query):
+    pdf_urls.clear()
     # URL of the page you want to scrape
     url = f'https://dergipark.org.tr/tr/search?q={query}&section=articles'
     
