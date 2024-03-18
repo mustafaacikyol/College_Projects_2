@@ -41,33 +41,9 @@ def create_index():
             }
         })
 
-""" def serialize_article(article):
-    # Convert ObjectId to string
-    if '_id' in article and isinstance(article['_id'], ObjectId):
-        article['_id'] = str(article['_id'])
-
-    return article
-
-def index_article(article):
-    article = serialize_article(article)
-    es.index(index=INDEX_NAME, body=article) """
-
 def index_article(article):
     article_id = article.pop('_id', None)  # Remove _id field from the body
     es.index(index=INDEX_NAME, body=article, id=article_id)  # Pass _id as a separate parameter
-
-# Function to download PDF files
-""" def download_pdf(pdf_urls, folder):
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-    for i, pdf_url in enumerate(pdf_urls):
-        response = requests.get(pdf_url)
-        if response.status_code == 200:
-            with open(os.path.join(folder, f"article_{i+1}.pdf"), 'wb') as f:
-                f.write(response.content)
-            print(f"Downloaded article_{i+1}.pdf")
-        else:
-            print(f"Failed to download article_{i+1}.pdf") """
 
 def download_pdf(pdf_urls, folder):
     if not os.path.exists(folder):
@@ -93,84 +69,8 @@ def download_pdf(pdf_urls, folder):
         if retries == 0:
             print(f"Failed to download article_{i+1}.pdf after {retries} retries")
 
-# Example usage:
-# pdf_urls = [...]  # List of PDF URLs
-# folder = "downloads"
-# download_pdf(pdf_urls, folder)
-
-
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    """ collection = db['article']
-    # Fetch data from MongoDB
-    articles_data_cursor = collection.find()  # This retrieves all documents from the collection
-    articles_data = list(articles_data_cursor)  # Convert cursor to a list
-    articles_data_length = len(articles_data)
-    date_list = []
-    for article in articles_data:
-        date_from_db = datetime.strptime(str(article['date']), "%Y-%m-%d %H:%M:%S")
-        date_list.append(date_from_db)
-
-    return render_template('index.html', articles_data=articles_data, articles_data_length = articles_data_length, date_list=date_list) """
-
-    """ collection = db['article']
-    
-    if request.method == 'POST':
-        sort_option = request.form.get('sort')
-        if sort_option == 'date_newest':
-            articles_data_cursor = collection.find().sort('date', -1)
-        elif sort_option == 'date_oldest':
-            articles_data_cursor = collection.find().sort('date', 1)
-        elif sort_option == 'citation_most':
-            articles_data_cursor = collection.find().sort('citation', -1)
-        elif sort_option == 'citation_least':
-            articles_data_cursor = collection.find().sort('citation', 1)
-        else:
-            # Handle invalid sort option
-            articles_data_cursor = collection.find()
-    else:
-        # Default behavior for GET request
-        articles_data_cursor = collection.find()
-    
-    articles_data = list(articles_data_cursor)
-    articles_data_length = len(articles_data)
-    
-    date_list = []
-    for article in articles_data:
-        date_from_db = datetime.strptime(str(article['date']), "%Y-%m-%d %H:%M:%S")
-        date_list.append(date_from_db)
-
-    return render_template('index.html', articles_data=articles_data, articles_data_length=articles_data_length, date_list=date_list) """
-
-    """ collection = db['article']
-    
-    if request.method == 'POST':
-        sort_option = request.form.get('sort')
-        if sort_option == 'date_newest':
-            articles_data_cursor = collection.find().sort('date', -1)
-        elif sort_option == 'date_oldest':
-            articles_data_cursor = collection.find().sort('date', 1)
-        elif sort_option == 'citation_most':
-            articles_data_cursor = collection.find().sort('citation', -1)
-        elif sort_option == 'citation_least':
-            articles_data_cursor = collection.find().sort('citation', 1)
-        else:
-            # Handle invalid sort option
-            articles_data_cursor = collection.find()
-    else:
-        # Default behavior for GET request
-        articles_data_cursor = collection.find()
-    
-    articles_data = list(articles_data_cursor)
-    articles_data_length = len(articles_data)
-    
-    date_list = []
-    for article in articles_data:
-        date_from_db = datetime.strptime(str(article['date']), "%Y-%m-%d %H:%M:%S")
-        date_list.append(date_from_db)
-
-    return render_template('index.html', articles_data=articles_data, articles_data_length=articles_data_length, date_list=date_list) """
-
     collection = db['article']
     articles_data_cursor = collection.find().sort('name', 1)
     
@@ -329,25 +229,6 @@ def filter():
         article['_source']['date'] = date_from_db
     return render_template('filter.html', articles=articles)
 
-""" def get_corrected_query(query):
-    # Use Elasticsearch's suggest feature or fuzzy query to get suggestions
-    suggestion = es.search(index=INDEX_NAME, body={"suggest": {"text": query, "simple_phrase": {"phrase": {"field": "name"}}}})
-    corrected_query = suggestion['suggest']['simple_phrase'][0]['options'][0]['text']
-    return corrected_query """
-
-""" def get_corrected_query(query):
-    # Use Elasticsearch's suggest feature or fuzzy query to get suggestions
-    suggestion = es.search(index=INDEX_NAME, body={"suggest": {"text": query, "simple_phrase": {"phrase": {"field": "keywords"}}}})
-    
-    # Check if suggestions are available
-    if 'simple_phrase' in suggestion['suggest'] and suggestion['suggest']['simple_phrase'][0]['options']:
-        # Get the corrected query from the suggestions
-        corrected_query = suggestion['suggest']['simple_phrase'][0]['options'][0]['text']
-        return corrected_query
-    else:
-        # If no suggestions are available, return the original query
-        return query """
-
 def get_corrected_query(user_query):
     # Use Elasticsearch's "did you mean" feature to get suggestions for corrected query
     # Here's a simplified example, you may need to adjust based on your Elasticsearch setup
@@ -397,7 +278,7 @@ def highlight_search_term(text, search_query):
         return text
 
 def insert_data(articles):
-    collection = db['article']  # Replace 'articles' with your actual collection name
+    collection = db['article']  
 
     # Insert each article into the collection
     for article in articles:
