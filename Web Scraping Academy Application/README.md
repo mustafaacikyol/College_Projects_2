@@ -52,3 +52,7 @@ URL address
 • The dynamic filtering process should also be included on the web page. The filtering process should be applicable both separately and together for all features of the publication in the database.
 
 • It should be possible to sort according to the date of the most recent or earliest publication on the web page, and it should also be possible to sort according to the number of citations as the least or most.
+
+### Development Process  
+
+***I developed this project using flask, mongoDB and elasticsearch.***
